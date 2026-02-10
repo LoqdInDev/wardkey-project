@@ -1,0 +1,19 @@
+/* WARDKEY Content Script Styles */
+.wardkey-field-icon {
+  pointer-events: auto !important;
+  opacity: 0.6 !important;
+  transition: opacity 0.15s !important;
+}
+
+.wardkey-field-icon:hover {
+  opacity: 1 !important;
+}
+
+#wardkey-fill-banner {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
+#wardkey-fill-banner strong {
+  color: #3d7cf5 !important;
+  font-weight: 700 !important;
+}

@@ -1,0 +1,51 @@
+{
+  "name": "WARDKEY — AI Password Manager",
+  "short_name": "WARDKEY",
+  "description": "AI-powered password manager. Local-first, zero-knowledge, free forever.",
+  "start_url": "./wardkey.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0c0c14",
+  "theme_color": "#3d7cf5",
+  "categories": ["security", "utilities", "productivity"],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230c0c14'/><text x='256' y='340' font-size='280' text-anchor='middle'>🔐</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='38' fill='%230c0c14'/><text x='96' y='130' font-size='110' text-anchor='middle'>🔐</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230c0c14'/><circle cx='256' cy='230' r='80' fill='none' stroke='%233d7cf5' stroke-width='24'/><rect x='232' y='290' width='48' height='100' rx='8' fill='%233d7cf5'/><rect x='200' y='370' width='112' height='40' rx='8' fill='%233d7cf5'/></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Password Generator",
+      "short_name": "Generator",
+      "url": "./wardkey.html#generator",
+      "icons": [{"src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' rx='20' fill='%230c0c14'/><text x='48' y='66' font-size='52' text-anchor='middle'>⚡</text></svg>", "sizes": "96x96"}]
+    },
+    {
+      "name": "Watchtower",
+      "short_name": "Security",
+      "url": "./wardkey.html#watchtower",
+      "icons": [{"src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' rx='20' fill='%230c0c14'/><text x='48' y='66' font-size='52' text-anchor='middle'>🛡️</text></svg>", "sizes": "96x96"}]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

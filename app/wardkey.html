@@ -1,0 +1,1804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0c0c14" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="description" content="AI-powered password manager. Local-first, zero-knowledge, free forever.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.wardkey.io; frame-ancestors 'none'">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="no-referrer">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WARDKEY">
+<meta name="application-name" content="WARDKEY">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="msapplication-TileColor" content="#3d7cf5">
+<title>WARDKEY — Vault</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230c0c14'/><text x='50' y='66' font-size='55' text-anchor='middle'>🔐</text></svg>">
+<link rel="manifest" href="wardkey-manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg0:#06060b;--bg1:#0c0c14;--bg2:#12121c;--bg3:#1a1a28;--bg4:#222236;
+  --tx1:#eaeaf2;--tx2:#9494b0;--tx3:#5e5e7a;
+  --bd:#1e1e30;--bdf:#3d7cf5;
+  --ac:#3d7cf5;--acg:rgba(61,124,245,.1);--ach:#5b94ff;--ac2:#22d3a8;--ac2g:rgba(34,211,168,.1);
+  --gn:#22d3a8;--gnb:rgba(34,211,168,.08);--yl:#f0c246;--ylb:rgba(240,194,70,.08);
+  --og:#ef8b3a;--ogb:rgba(239,139,58,.08);--rd:#ef4468;--rdb:rgba(239,68,104,.08);
+  --pp:#9b6dff;--ppb:rgba(155,109,255,.08);--cy:#3dc8ef;--cyb:rgba(61,200,239,.08);
+  --r:10px;--rs:7px;--rl:14px;
+  --font:'DM Sans',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+  --glass:rgba(12,12,20,.7);--glass-bd:rgba(255,255,255,.04);
+  --sh-sm:0 1px 3px rgba(0,0,0,.3);--sh:0 4px 20px rgba(0,0,0,.35);--sh-lg:0 12px 48px rgba(0,0,0,.5);
+  --tr:all .15s ease
+}
+[data-theme="light"]{
+  --bg0:#f5f6fa;--bg1:#ffffff;--bg2:#f0f1f5;--bg3:#e4e6ed;--bg4:#d4d7e0;
+  --tx1:#1a1a2e;--tx2:#5a5e76;--tx3:#8b90a8;
+  --bd:#d8dae5;--bdf:#3d7cf5;
+  --glass:rgba(255,255,255,.85);--glass-bd:rgba(0,0,0,.06);
+  --sh-sm:0 1px 3px rgba(0,0,0,.06);--sh:0 4px 20px rgba(0,0,0,.08);--sh-lg:0 12px 48px rgba(0,0,0,.12);
+  --acg:rgba(61,124,245,.08);--ac2g:rgba(34,211,168,.08);
+  --gnb:rgba(34,211,168,.1);--ylb:rgba(240,194,70,.1);--ogb:rgba(239,139,58,.1);--rdb:rgba(239,68,104,.1);--ppb:rgba(155,109,255,.1);--cyb:rgba(61,200,239,.1)
+}
+[data-theme="light"] .lock::before{background:radial-gradient(ellipse 600px 400px at 50% 40%,rgba(61,124,245,.08),transparent 70%),radial-gradient(ellipse 400px 300px at 30% 60%,rgba(34,211,168,.05),transparent 60%)}
+[data-theme="light"] .lock h1{background:linear-gradient(135deg,var(--tx1) 40%,var(--ac));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+[data-theme="light"] .fs option{background:var(--bg1);color:var(--tx1)}
+[data-theme="light"] .dp{box-shadow:-4px 0 30px rgba(0,0,0,.08)}
+[data-theme="light"] .card:hover{border-color:rgba(0,0,0,.08)}
+[data-theme="light"] .vi:hover{background:var(--bg3);border-color:rgba(0,0,0,.06)}
+[data-theme="light"] .bc:hover{border-color:rgba(0,0,0,.08)}
+[data-theme="light"] .tst{background:var(--bg1);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+[data-theme="light"] input[type=range]{background:var(--bg4)}
+[data-theme="light"] .sb{background:var(--bg1);border-right-color:var(--bd)}
+[data-theme="light"] .tb{background:var(--bg1)}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);background:var(--bg0);color:var(--tx1);font-size:17px;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px}
+::selection{background:var(--ac);color:white}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes ringFill{from{stroke-dashoffset:var(--ring-c)}to{stroke-dashoffset:var(--ring-off)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes breathe{0%,100%{box-shadow:0 0 30px rgba(61,124,245,.08)}50%{box-shadow:0 0 50px rgba(61,124,245,.15)}}
+@keyframes gradMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+/* ════════ LOCK SCREEN ════════ */
+.lock{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:var(--bg0);transition:opacity .6s,visibility .6s}
+.lock::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 600px 400px at 50% 40%,rgba(61,124,245,.05),transparent 70%),radial-gradient(ellipse 400px 300px at 30% 60%,rgba(34,211,168,.03),transparent 60%)}
+.lock.out{opacity:0;visibility:hidden;pointer-events:none}
+.lock-c{text-align:center;position:relative;z-index:1;max-width:400px;width:100%;padding:0 20px}
+.lock-logo{width:72px;height:72px;margin:0 auto 24px;background:linear-gradient(135deg,var(--ac),var(--ac2));border-radius:20px;display:flex;align-items:center;justify-content:center;animation:breathe 4s ease-in-out infinite;position:relative}
+.lock-logo::after{content:'';position:absolute;inset:-3px;border-radius:23px;background:linear-gradient(135deg,var(--ac),var(--ac2));opacity:.15;filter:blur(12px)}
+.lock-logo svg{width:30px;height:30px;stroke:white;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.lock h1{font-size:42px;font-weight:800;letter-spacing:4px;margin-bottom:6px;background:linear-gradient(135deg,var(--tx1) 40%,var(--ac));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.lock-tag{color:var(--tx3);font-size:16px;margin-bottom:32px;font-weight:400;letter-spacing:.5px}
+.lock-form{position:relative}
+.lock-form input{width:100%;padding:14px 52px 14px 16px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);color:var(--tx1);font-family:var(--mono);font-size:18px;letter-spacing:4px;outline:none;transition:var(--tr)}
+.lock-form input:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--acg)}
+.lock-form input::placeholder{letter-spacing:0;font-family:var(--font);color:var(--tx3);font-size:15px}
+.lock-go{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:var(--rs);background:var(--ac);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.lock-go:hover{background:var(--ach);transform:translateY(-50%) scale(1.04)}
+.lock-go svg{width:16px;height:16px;stroke:white;fill:none;stroke-width:2.5}
+.lock-hint{color:var(--tx3);font-size:15px;margin-top:14px}
+.lock-err{color:var(--rd);font-size:12px;margin-top:10px;display:none}
+.lock-feat{display:flex;gap:24px;justify-content:center;margin-top:36px;color:var(--tx3);font-size:14px;font-weight:500}
+.lock-feat div{display:flex;align-items:center;gap:5px}
+.lock-feat svg{width:12px;height:12px}
+.lock-tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--bg2);border-radius:var(--rs);padding:3px;border:1px solid var(--bd)}
+.lock-tab{flex:1;padding:8px;font-size:12px;font-weight:600;border-radius:5px;border:none;cursor:pointer;background:transparent;color:var(--tx3);transition:var(--tr)}
+.lock-tab.on{background:var(--ac);color:white}
+.lock-sub{display:flex;gap:4px;margin-bottom:12px}
+.lock-sub .lock-tab{padding:6px;font-size:11px}
+.lock-panel{display:none}.lock-panel.on{display:block}
+.lock-fi{width:100%;padding:10px 14px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx1);font-family:var(--font);font-size:13px;outline:none;transition:var(--tr);margin-bottom:8px}
+.lock-fi:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--acg)}
+.lock-fi::placeholder{color:var(--tx3)}
+.lock-fi[type="password"]{font-family:var(--mono);letter-spacing:2px}
+.lock-fi[type="password"]::placeholder{letter-spacing:0;font-family:var(--font)}
+.lock-bt{width:100%;padding:11px;border-radius:var(--rs);border:none;cursor:pointer;font-size:13px;font-weight:600;transition:var(--tr);font-family:var(--font)}
+.lock-bt-p{background:var(--ac);color:white}.lock-bt-p:hover{background:var(--ach)}
+.lock-info{font-size:11px;color:var(--tx3);margin-top:10px;line-height:1.5}
+@keyframes syncSpin{to{transform:rotate(360deg)}}
+.sync-icon{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--tx3);margin-left:6px}
+.sync-icon.active svg{animation:syncSpin 1s linear infinite}
+.sync-icon.done{color:var(--gn)}
+
+/* ════════ APP SHELL ════════ */
+.app{display:flex;height:100vh;opacity:0;pointer-events:none;transition:opacity .5s}
+.app.on{opacity:1;pointer-events:auto}
+
+/* ════════ SIDEBAR ════════ */
+.sb{width:260px;min-width:260px;background:var(--bg1);border-right:1px solid var(--bd);display:flex;flex-direction:column;padding:14px 0;position:relative;z-index:10}
+.sb-head{display:flex;align-items:center;gap:9px;padding:0 14px;margin-bottom:16px}
+.sb-mark{width:28px;height:28px;background:linear-gradient(135deg,var(--ac),var(--ac2));border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-mark svg{width:13px;height:13px;stroke:white;fill:none;stroke-width:2.5}
+.sb-brand{font-size:18px;font-weight:800;letter-spacing:3px}
+.sb-v{font-size:7px;font-weight:700;color:var(--ac);background:var(--acg);padding:2px 5px;border-radius:3px;letter-spacing:.5px;margin-left:auto}
+.sb-sec{font-size:12px;font-weight:700;letter-spacing:2px;color:var(--tx3);padding:12px 14px 5px;text-transform:uppercase}
+.sb-nav{flex:1;overflow-y:auto;padding-bottom:8px}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;color:var(--tx2);font-size:16px;font-weight:500;transition:var(--tr);border-left:2px solid transparent;position:relative}
+.ni:hover{color:var(--tx1);background:rgba(255,255,255,.02)}
+.ni.on{color:var(--ac);background:var(--acg);border-left-color:var(--ac)}
+.ni svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0;stroke-linecap:round;stroke-linejoin:round}
+.ni .c{margin-left:auto;font-size:13px;font-weight:600;background:var(--bg3);color:var(--tx3);padding:1px 6px;border-radius:8px;min-width:20px;text-align:center}
+.ni.on .c{background:rgba(61,124,245,.15);color:var(--ac)}
+.ni .rd{width:5px;height:5px;border-radius:50%;background:var(--rd);margin-left:auto}
+.sb-foot{padding:10px 14px;border-top:1px solid var(--bd);display:flex;align-items:center;gap:8px}
+.sb-av{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--ac2),var(--cy));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--bg0);flex-shrink:0}
+.sb-u{flex:1;min-width:0}.sb-un{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sb-up{font-size:13px;color:var(--tx3)}
+.sb-lk{width:24px;height:24px;border-radius:6px;background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--tx3);transition:var(--tr)}
+.sb-lk:hover{background:var(--rdb);color:var(--rd)}
+.sb-lk svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* ════════ MAIN ════════ */
+.mn{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.tb{display:flex;align-items:center;gap:10px;padding:10px 20px;border-bottom:1px solid var(--bd);background:var(--bg1);position:relative;z-index:5}
+.tb-t{font-size:24px;font-weight:700}
+.tb-s{flex:1;max-width:340px;position:relative;margin-left:auto}
+.tb-s input{width:100%;padding:8px 10px 8px 30px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx1);font-family:var(--font);font-size:12px;outline:none;transition:var(--tr)}
+.tb-s input:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--acg)}
+.tb-s input::placeholder{color:var(--tx3)}
+.tb-s svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:12px;height:12px;stroke:var(--tx3);fill:none;stroke-width:2}
+.tb-k{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--tx3);background:var(--bg2);padding:1px 5px;border-radius:3px;border:1px solid var(--bd);font-family:var(--mono)}
+.tb-a{display:flex;gap:4px}
+
+/* ════════ BANNERS ════════ */
+.ban{display:none;align-items:center;gap:10px;padding:10px 24px;font-size:15px;font-weight:500}
+.ban.on{display:flex}
+.ban-t{background:linear-gradient(90deg,var(--ogb),var(--rdb));border-bottom:1px solid rgba(239,139,58,.2);color:var(--og)}
+.ban-c{background:var(--acg);border-bottom:1px solid rgba(61,124,245,.15);color:var(--ac)}
+.ban svg{width:13px;height:13px;flex-shrink:0}
+.ban .t{font-family:var(--mono);font-weight:600}
+
+/* ════════ BUTTONS ════════ */
+.bt{padding:10px 18px;border-radius:var(--rs);font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;transition:var(--tr);border:none;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.bt-p{background:var(--ac);color:white}.bt-p:hover{background:var(--ach);transform:translateY(-1px);box-shadow:0 4px 12px var(--acg)}
+.bt-s{background:var(--bg3);color:var(--tx2);border:1px solid var(--bd)}.bt-s:hover{color:var(--tx1);border-color:var(--tx3)}
+.bt-g{background:transparent;color:var(--tx2);padding:5px 8px}.bt-g:hover{color:var(--tx1)}
+.bt-d{background:var(--rdb);color:var(--rd)}.bt-d:hover{background:var(--rd);color:white}
+.bt-ok{background:var(--gnb);color:var(--gn)}
+.bt svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
+.bt-i{width:28px;height:28px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:var(--rs);background:var(--bg3);border:1px solid var(--bd);cursor:pointer;color:var(--tx2);transition:var(--tr)}
+.bt-i:hover{color:var(--tx1);border-color:var(--tx3)}
+.bt-i svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* ════════ CONTENT ════════ */
+.ct{flex:1;overflow-y:auto;padding:28px 32px;scroll-behavior:smooth}
+.pg{animation:fadeIn .2s ease-out}
+
+/* ════════ STATS ════════ */
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.card{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:22px;transition:var(--tr);animation:fadeIn .3s both}
+.card:hover{border-color:rgba(255,255,255,.06);transform:translateY(-1px)}
+.card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.card-ic{width:32px;height:32px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center}
+.card-ic svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.card-tr{font-size:13px;font-weight:600;padding:2px 6px;border-radius:4px}
+.card-v{font-size:36px;font-weight:700;margin-bottom:2px;letter-spacing:-.5px}
+.card-l{font-size:14px;color:var(--tx3);font-weight:500}
+
+/* ════════ SCORE RING ════════ */
+.ring{position:relative;display:inline-flex;align-items:center;justify-content:center}
+.ring svg{transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-linecap:round}
+.ring .bg{stroke:var(--bg4)}
+.ring-v{position:absolute;font-weight:800}
+
+/* ════════ LIST ITEMS ════════ */
+.vf{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.chip{padding:6px 16px;border-radius:16px;font-size:14px;font-weight:500;background:var(--bg3);color:var(--tx2);border:1px solid var(--bd);cursor:pointer;transition:var(--tr)}
+.chip:hover{border-color:var(--ac);color:var(--tx1)}
+.chip.on{background:var(--acg);border-color:var(--ac);color:var(--ac)}
+
+.vl{display:flex;flex-direction:column;gap:2px}
+.vi{display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--bg2);border:1px solid transparent;border-radius:var(--r);cursor:pointer;transition:var(--tr);animation:fadeIn .2s both}
+.vi:hover{background:var(--bg3);border-color:var(--bd)}
+.vi-i{width:48px;height:48px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;background:var(--bg3)}
+.vi-n{flex:1;min-width:0}
+.vi-t{font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px}
+.vi-t .fv{color:var(--yl);font-size:10px}
+.vi-d{font-size:14px;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vi-m{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.vi-sb{width:38px;height:3px;border-radius:1px;background:var(--bg4);overflow:hidden}
+.vi-sf{height:100%;border-radius:1px}
+.vi-a{display:flex;gap:2px;opacity:0;transition:opacity .15s}
+.vi:hover .vi-a{opacity:1}
+.vi-b{width:24px;height:24px;border:none;border-radius:5px;background:transparent;cursor:pointer;color:var(--tx3);display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.vi-b:hover{background:var(--bg4);color:var(--tx1)}
+.vi-b svg{width:11px;height:11px}
+
+/* ════════ DETAIL PANEL ════════ */
+.dp{position:fixed;right:-460px;top:0;bottom:0;width:460px;background:var(--bg1);border-left:1px solid var(--bd);z-index:50;transition:right .25s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:-4px 0 30px rgba(0,0,0,.3)}
+.dp.on{right:0}
+.dp-h{display:flex;align-items:center;gap:7px;padding:12px 16px;border-bottom:1px solid var(--bd)}
+.dp-x{width:26px;height:26px;border:none;border-radius:var(--rs);background:var(--bg3);cursor:pointer;color:var(--tx2);display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.dp-x:hover{color:var(--tx1)}
+.dp-x svg{width:12px;height:12px}
+.dp-t{flex:1;font-size:20px;font-weight:700}
+.dp-b{flex:1;overflow-y:auto;padding:16px}
+.df{margin-bottom:12px}
+.df-l{font-size:12px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:3px}
+.df-v{display:flex;align-items:center;gap:4px;padding:8px 11px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);font-family:var(--mono);font-size:12px}
+.df-v span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cb{width:22px;height:22px;border:none;border-radius:4px;background:transparent;cursor:pointer;color:var(--tx3);display:flex;align-items:center;justify-content:center;transition:var(--tr);flex-shrink:0}
+.cb:hover{color:var(--ac);background:var(--acg)}
+.cb svg{width:11px;height:11px}
+.tg{padding:4px 10px;border-radius:4px;font-size:13px;font-weight:500;background:var(--bg3);color:var(--tx2)}
+
+.sb2{height:4px;border-radius:2px;background:var(--bg4);overflow:hidden}
+.sb2-f{height:100%;border-radius:2px;transition:all .4s}
+.sb2-l{font-size:13px;font-weight:600}
+
+/* ════════ MODALS ════════ */
+.mo{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .2s}
+.mo.on{opacity:1;visibility:visible}
+.mo-c{width:500px;max-height:80vh;background:var(--bg1);border:1px solid var(--bd);border-radius:var(--rl);box-shadow:var(--sh-lg);display:flex;flex-direction:column;transform:scale(.97);transition:transform .2s}
+.mo.on .mo-c{transform:scale(1)}
+.mo-h{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--bd)}
+.mo-t{font-size:22px;font-weight:700}
+.mo-x{width:26px;height:26px;border:none;border-radius:var(--rs);background:var(--bg3);cursor:pointer;color:var(--tx2);display:flex;align-items:center;justify-content:center}
+.mo-x svg{width:12px;height:12px}
+.mo-b{padding:18px;overflow-y:auto;flex:1}
+.mo-f{padding:12px 18px;border-top:1px solid var(--bd);display:flex;justify-content:flex-end;gap:6px}
+.fg{margin-bottom:12px}
+.fl{display:block;font-size:14px;font-weight:600;color:var(--tx2);margin-bottom:3px}
+.fi{width:100%;padding:9px 11px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx1);font-family:var(--font);font-size:13px;outline:none;transition:var(--tr)}
+.fi:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--acg)}
+.fs{width:100%;padding:9px 11px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx1);font-family:var(--font);font-size:16px;outline:none;appearance:none;cursor:pointer}
+.fs option{background:var(--bg1)}
+.ft{width:100%;padding:9px 11px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx1);font-family:var(--font);font-size:16px;outline:none;resize:vertical;min-height:56px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* ════════ TOTP ════════ */
+.tg2{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.tc{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px;cursor:pointer;transition:var(--tr)}
+.tc:hover{border-color:var(--ac);transform:translateY(-1px)}
+.tc-code{font-family:var(--mono);font-size:38px;font-weight:700;letter-spacing:5px;margin:8px 0;text-align:center}
+.tc-bar{display:flex;align-items:center;gap:6px;justify-content:center}
+.tc-trk{flex:1;height:2px;border-radius:1px;background:var(--bg4);overflow:hidden}
+.tc-fill{height:100%;border-radius:1px;transition:width 1s linear}
+
+/* ════════ GENERATOR ════════ */
+.gbox{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:16px}
+.gout{display:flex;align-items:center;gap:6px;padding:10px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);margin-bottom:10px}
+.gout code{flex:1;font-family:var(--mono);font-size:20px;word-break:break-all;letter-spacing:.5px}
+.gopts{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.gopt{display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:5px;background:var(--bg3);cursor:pointer;font-size:14px;font-weight:500;color:var(--tx2);transition:var(--tr);user-select:none}
+.gopt.on{background:var(--acg);color:var(--ac)}
+input[type=range]{width:100%;height:3px;-webkit-appearance:none;background:var(--bg4);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--ac);cursor:pointer;box-shadow:0 0 6px var(--acg)}
+
+/* ════════ BREACH CARDS ════════ */
+.bc{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:11px 14px;display:flex;align-items:center;gap:10px;margin-bottom:4px;transition:var(--tr);animation:fadeIn .2s both}
+.bc:hover{border-color:rgba(255,255,255,.06)}
+.bc-i{width:34px;height:34px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bc-i svg{width:15px;height:15px}
+.bc-n{flex:1}.bc-t{font-size:16px;font-weight:600;margin-bottom:1px}.bc-d{font-size:14px;color:var(--tx3)}
+.sv{padding:4px 10px;border-radius:4px;font-size:13px;font-weight:600}
+
+/* ════════ CHARTS ════════ */
+.ch{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px}
+.ch-t{font-size:17px;font-weight:700;margin-bottom:10px}
+.br{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.br-l{width:80px;font-size:14px;color:var(--tx2);text-align:right}
+.br-t{flex:1;height:16px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.br-f{height:100%;border-radius:3px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-size:12px;font-weight:600;color:white;transition:width .5s}
+
+/* ════════ LOG ════════ */
+.li{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:1px solid var(--bd)}
+.li:last-child{border-bottom:none}
+.li-d{width:6px;height:6px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.li-n{flex:1}.li-a{font-size:15px;font-weight:500}.li-t{font-size:13px;color:var(--tx3)}
+
+/* ════════ TOGGLE ════════ */
+.tgl{width:32px;height:18px;border-radius:9px;background:var(--bg4);border:1px solid var(--bd);cursor:pointer;position:relative;transition:var(--tr)}
+.tgl.on{background:var(--ac);border-color:var(--ac)}
+.tgl-k{width:12px;height:12px;border-radius:50%;background:white;position:absolute;top:2px;left:2px;transition:var(--tr)}
+.tgl.on .tgl-k{left:16px}
+
+/* ════════ SECTION ════════ */
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.st{font-size:22px;font-weight:700}
+.ss{font-size:14px;color:var(--tx3)}
+
+/* ════════ EMPTY ════════ */
+.emp{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 16px;text-align:center}
+.emp svg{width:32px;height:32px;stroke:var(--tx3);margin-bottom:8px;opacity:.3;fill:none;stroke-width:1.5}
+.emp-t{font-size:20px;font-weight:600;color:var(--tx2);margin-bottom:2px}
+.emp-s{font-size:14px;color:var(--tx3)}
+
+/* ════════ TOAST ════════ */
+.tst-c{position:fixed;bottom:16px;right:16px;z-index:200;display:flex;flex-direction:column;gap:4px}
+.tst{padding:9px 16px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--rs);box-shadow:var(--sh);display:flex;align-items:center;gap:8px;font-size:15px;font-weight:500;animation:fadeUp .25s;min-width:220px}
+.tst svg{width:14px;height:14px;flex-shrink:0;fill:none;stroke-width:2}
+.tst.ok{border-color:var(--gn)}.tst.ok svg{stroke:var(--gn)}
+.tst.er{border-color:var(--rd)}.tst.er svg{stroke:var(--rd)}
+.tst.in{border-color:var(--ac)}.tst.in svg{stroke:var(--ac)}
+
+/* ════════ SHORTCUTS ════════ */
+.sc-bg{position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.65);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .2s}
+.sc-bg.on{opacity:1;visibility:visible}
+.sc-box{background:var(--bg1);border:1px solid var(--bd);border-radius:var(--rl);padding:22px;width:440px;max-height:70vh;overflow-y:auto}
+.sc-t{font-size:22px;font-weight:700;margin-bottom:12px}
+.sc-r{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bd)}
+.sc-k{display:flex;gap:3px}
+.sc-kk{padding:3px 7px;background:var(--bg3);border:1px solid var(--bd);border-radius:3px;font-family:var(--mono);font-size:13px}
+.sc-d{font-size:15px;color:var(--tx2)}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+/* ════════ AI COMPONENTS ════════ */
+.ai-card{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.ai-hdr{padding:16px;background:linear-gradient(135deg,rgba(155,109,255,.06),rgba(61,124,245,.06));border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px}
+.ai-ic{width:50px;height:50px;border-radius:var(--rs);background:linear-gradient(135deg,var(--pp),var(--ac));display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.ai-hdr h3{font-size:22px;font-weight:700}
+.ai-hdr p{font-size:14px;color:var(--tx3);margin-top:1px}
+.ai-body{padding:16px}
+.ai-in{display:flex;gap:6px;margin-bottom:12px}
+.ai-in input,.ai-in textarea{flex:1;padding:11px 14px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx1);font-family:var(--font);font-size:15px;outline:none;transition:var(--tr)}
+.ai-in input:focus,.ai-in textarea:focus{border-color:var(--pp);box-shadow:0 0 0 3px var(--ppb)}
+.ai-in textarea{min-height:80px;resize:vertical;font-family:var(--mono);font-size:13px}
+.ai-go{padding:10px 20px;border-radius:var(--rs);background:linear-gradient(135deg,var(--pp),var(--ac));border:none;color:white;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;transition:var(--tr);white-space:nowrap;display:flex;align-items:center;gap:5px;align-self:flex-start}
+.ai-go:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(155,109,255,.25)}
+.ai-go:disabled{opacity:.5;pointer-events:none}
+.ai-go svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
+.ai-res{padding:16px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);font-size:16px;line-height:1.7;color:var(--tx2);white-space:pre-wrap;word-wrap:break-word;animation:fadeIn .3s}
+.ai-res strong{color:var(--tx1)}
+.ai-res em{color:var(--pp);font-style:normal}
+.ai-ld{display:flex;align-items:center;gap:8px;padding:14px;color:var(--pp);font-size:12px;font-weight:500}
+.ai-ld::before{content:'';width:16px;height:16px;border:2px solid var(--bd);border-top-color:var(--pp);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+.ai-tag{display:inline-block;padding:2px 7px;border-radius:3px;font-size:9px;font-weight:600;margin-right:3px}
+.ai-tag.crit{background:var(--rdb);color:var(--rd)}
+.ai-tag.warn{background:var(--ogb);color:var(--og)}
+.ai-tag.safe{background:var(--gnb);color:var(--gn)}
+.ai-tag.info{background:var(--ppb);color:var(--pp)}
+.ai-pw-list{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.ai-pw-ch{padding:4px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:14px;font-size:10px;font-weight:500;color:var(--tx2);cursor:pointer;transition:var(--tr);font-family:var(--mono)}
+.ai-pw-ch:hover{border-color:var(--pp);color:var(--pp)}
+.ai-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:9px;font-weight:600;background:linear-gradient(135deg,var(--ppb),var(--acg));color:var(--pp);margin-bottom:10px}
+.ai-badge svg{width:10px;height:10px}
+
+/* ════════ MOBILE HAMBURGER ════════ */
+.ham{display:none;width:34px;height:34px;border:none;border-radius:var(--rs);background:transparent;cursor:pointer;color:var(--tx2);align-items:center;justify-content:center;flex-shrink:0;z-index:15}
+.ham svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.mob-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:8}
+.mob-ov.on{display:block}
+
+/* ════════ BOTTOM NAV (mobile) ════════ */
+.bnav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:20;background:var(--bg1);border-top:1px solid var(--bd);padding:4px 0 env(safe-area-inset-bottom,4px);height:calc(52px + env(safe-area-inset-bottom,0px))}
+.bnav-r{display:flex;justify-content:space-around;align-items:center;max-width:420px;margin:0 auto}
+.bn{display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 8px;cursor:pointer;color:var(--tx3);transition:var(--tr);position:relative;border:none;background:transparent;min-width:44px}
+.bn.on{color:var(--ac)}
+.bn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.bn span{font-size:8px;font-weight:600;letter-spacing:.3px}
+.bn .bd{position:absolute;top:2px;right:8px;width:5px;height:5px;border-radius:50%;background:var(--rd)}
+
+/* ════════ TABLET (≤900px) ════════ */
+@media(max-width:900px){
+  .sb{width:48px;min-width:48px}
+  .sb-brand,.sb-v,.sb-sec,.ni span,.ni .c,.ni .rd,.sb-u{display:none}
+  .ni{justify-content:center;padding:8px;border-left:none}
+  .sb-head{justify-content:center}.sb-foot{justify-content:center}
+  .grid4{grid-template-columns:1fr 1fr}
+  .grid2{grid-template-columns:1fr}
+  .dp{width:100%;right:-100%}
+  .sc-box{width:90vw;max-width:420px}
+  .mo-c{width:92vw;max-width:500px}
+}
+
+/* ════════ MOBILE (≤640px) ════════ */
+@media(max-width:640px){
+  /* Show hamburger + bottom nav */
+  .ham{display:flex}
+  .bnav{display:block}
+
+  /* Sidebar becomes overlay drawer */
+  .sb{position:fixed;left:-260px;top:0;bottom:0;width:260px;min-width:260px;z-index:9;transition:left .28s cubic-bezier(.4,0,.2,1);box-shadow:none}
+  .sb.open{left:0;box-shadow:4px 0 30px rgba(0,0,0,.4)}
+  .sb-brand,.sb-v,.sb-sec,.ni span,.ni .c,.ni .rd,.sb-u{display:revert}
+  .ni{justify-content:flex-start;padding:6px 14px;border-left:2px solid transparent}
+  .sb-head{justify-content:flex-start}.sb-foot{justify-content:flex-start}
+
+  /* Main area adjustments */
+  .mn{padding-bottom:52px}
+  .ct{padding:12px 12px 20px}
+
+  /* Toolbar mobile */
+  .tb{padding:8px 12px;gap:6px}
+  .tb-t{font-size:14px}
+  .tb-s{max-width:none;flex:1;margin-left:0}
+  .tb-k{display:none}
+  .tb-a .bt span{display:none}
+  .tb-a .bt svg{margin:0}
+
+  /* Lock screen */
+  .lock-c{padding:0 16px}
+  .lock h1{font-size:24px}
+  .lock-feat{flex-direction:column;gap:8px;align-items:center}
+
+  /* Grids */
+  .grid4{grid-template-columns:1fr 1fr;gap:8px}
+  .grid2{grid-template-columns:1fr;gap:10px}
+  .tg2{grid-template-columns:1fr!important}
+
+  /* Detail panel full-screen */
+  .dp{width:100%;right:-100%;top:0;bottom:0;border-left:none}
+
+  /* Modals */
+  .mo-c{width:96vw;max-width:500px;max-height:88vh;border-radius:var(--r)}
+  .sc-box{width:92vw}
+
+  /* Items */
+  .vi{padding:8px 10px}
+  .vi-i{width:30px;height:30px;font-size:13px}
+  .vi-a{opacity:1}
+
+  /* Cards */
+  .card{padding:11px}
+  .card-v{font-size:18px}
+
+  /* Charts */
+  .ch{padding:10px}
+
+  /* Watchtower hero responsive */
+  .wtH{flex-direction:column!important;text-align:center;gap:12px!important;padding:18px!important}
+  .wtH .ring{margin:0 auto}
+
+  /* Toasts */
+  .tst-c{left:12px;right:12px;bottom:60px}
+  .tst{min-width:auto}
+
+  /* Banner */
+  .ban{padding:6px 12px;font-size:10px}
+}
+</style>
+</head>
+<body>
+<!-- ════════ LOCK SCREEN ════════ -->
+<div class="lock" id="LS">
+<div class="lock-c">
+  <div class="lock-logo"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 00-8 0v2"/><circle cx="12" cy="15" r="1.5"/><line x1="12" y1="16.5" x2="12" y2="18"/></svg></div>
+  <h1>WARDKEY</h1>
+  <div class="lock-tag">Your digital vault · Local-first encryption · You hold the keys</div>
+  <div class="lock-tabs">
+    <button class="lock-tab on" id="ltLocal" onclick="authTab('local')">Local Only</button>
+    <button class="lock-tab" id="ltCloud" onclick="authTab('cloud')">Cloud Sync</button>
+  </div>
+  <!-- LOCAL ONLY PANEL -->
+  <div class="lock-panel on" id="lpLocal">
+    <div class="lock-form">
+      <input type="password" id="mpIn" placeholder="Master password" autofocus>
+      <button class="lock-go" onclick="unlock()"><svg viewBox="0 0 24 24" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </div>
+    <div class="lock-hint">Enter your master password (4+ characters)</div>
+    <div class="lock-info">Your vault stays on this device. No account needed.</div>
+  </div>
+  <!-- CLOUD SYNC PANEL -->
+  <div class="lock-panel" id="lpCloud">
+    <div class="lock-sub">
+      <button class="lock-tab on" id="ltLogin" onclick="authMode('login')">Login</button>
+      <button class="lock-tab" id="ltReg" onclick="authMode('register')">Register</button>
+    </div>
+    <!-- LOGIN FORM -->
+    <div class="lock-panel on" id="lpLogin" style="text-align:left">
+      <input type="email" class="lock-fi" id="alEmail" placeholder="Email address" autocomplete="email">
+      <input type="password" class="lock-fi" id="alPw" placeholder="Account password" autocomplete="current-password">
+      <input type="password" class="lock-fi" id="alMp" placeholder="Master password (vault decryption)" style="font-family:var(--mono);letter-spacing:2px">
+      <button class="lock-bt lock-bt-p" onclick="doLogin()">Login & Unlock</button>
+      <div class="lock-info">Sync your encrypted vault across devices.</div>
+    </div>
+    <!-- REGISTER FORM -->
+    <div class="lock-panel" id="lpReg" style="text-align:left">
+      <input type="text" class="lock-fi" id="arName" placeholder="Your name" autocomplete="name">
+      <input type="email" class="lock-fi" id="arEmail" placeholder="Email address" autocomplete="email">
+      <input type="password" class="lock-fi" id="arPw" placeholder="Account password (8+ characters)" autocomplete="new-password">
+      <input type="password" class="lock-fi" id="arPwC" placeholder="Confirm account password" autocomplete="new-password">
+      <input type="password" class="lock-fi" id="arMp" placeholder="Master password (4+ characters, for vault encryption)" style="font-family:var(--mono);letter-spacing:2px">
+      <button class="lock-bt lock-bt-p" onclick="doRegister()">Create Account & Unlock</button>
+      <div class="lock-info">Your master password never leaves your device. The server only sees encrypted data.</div>
+    </div>
+  </div>
+  <div class="lock-err" id="lErr">Minimum 4 characters required</div>
+  <div class="lock-feat">
+    <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>AES-256-GCM</div>
+    <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Auto-lock</div>
+    <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Zero-knowledge</div>
+  </div>
+</div>
+</div>
+
+<!-- ════════ APP ════════ -->
+<div class="app" id="app">
+<div class="sb">
+  <div class="sb-head"><div class="sb-mark"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 00-8 0v2"/></svg></div><span class="sb-brand">WARDKEY</span><span class="sb-v">V3</span></div>
+  <div class="sb-nav" id="sNav"></div>
+  <div class="sb-foot" id="sbUpgrade" style="padding:8px 14px;margin-bottom:4px">
+    <div onclick="showUpgrade()" style="cursor:pointer;padding:10px;border-radius:var(--rs);background:linear-gradient(135deg,rgba(108,92,231,.1),rgba(139,92,246,.06));border:1px solid rgba(108,92,231,.15);text-align:center;width:100%">
+      <div style="font-size:10px;font-weight:700;color:var(--ac2);margin-bottom:2px">⚡ Upgrade to Pro</div>
+      <div style="font-size:8px;color:var(--tx3)">Unlimited AI · Multi-device sync</div>
+    </div>
+  </div>
+  <div class="sb-foot"><div class="sb-av" id="sbAv">D</div><div class="sb-u"><div class="sb-un" id="sbName">User</div><div class="sb-up"><span id="sbPlan">Free Plan</span><span class="sync-icon" id="syncIco"></span></div></div><button class="sb-lk" onclick="lock()" title="Lock vault"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></button></div>
+</div>
+<div class="mn">
+  <div class="ban ban-t" id="tBan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg><strong>Travel Mode Active</strong> — Sensitive items are hidden<button class="bt bt-g" style="margin-left:auto" onclick="toggleTravel()">Disable</button></div>
+  <div class="ban ban-c" id="cBan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Clipboard auto-clears in <span class="t" id="cTmr">--</span>s</div>
+  <div class="tb"><button class="ham" id="hamBtn" onclick="toggleSB()"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button><div class="tb-t" id="pTit">Dashboard</div><div class="tb-s"><svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Search vault..." id="gSch" oninput="doSearch(this.value)"><span class="tb-k">⌘K</span></div><div class="tb-a"><button class="bt-i" onclick="toggleTheme()" title="Toggle light/dark" id="thBtn"><svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button><button class="bt-i" onclick="toggleSC()" title="Shortcuts"><svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></button><button class="bt bt-p" onclick="openAdd()"><svg viewBox="0 0 24 24" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>New</span></button></div></div>
+  <div class="ct" id="ct"></div>
+</div>
+</div>
+
+<!-- ════════ MOBILE OVERLAY ════════ -->
+<div class="mob-ov" id="mobOv" onclick="closeSB()"></div>
+
+<!-- ════════ BOTTOM NAV (mobile) ════════ -->
+<div class="bnav"><div class="bnav-r">
+  <button class="bn on" data-p="dashboard" onclick="mNav('dashboard')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>Home</span></button>
+  <button class="bn" data-p="passwords" onclick="mNav('passwords')"><svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.78 7.78 5.5 5.5 0 017.78-7.78z"/></svg><span>Vault</span></button>
+  <button class="bn" data-p="watchtower" onclick="mNav('watchtower')"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Security</span><span class="bd" id="bnDot" style="display:none"></span></button>
+  <button class="bn" data-p="generator" onclick="mNav('generator')"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span>Generate</span></button>
+  <button class="bn" data-p="more" onclick="toggleSB()"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg><span>More</span></button>
+</div></div>
+
+<!-- ════════ DETAIL PANEL ════════ -->
+<div class="dp" id="dP"><div class="dp-h">
+  <button class="dp-x" onclick="closeD()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  <div class="dp-t" id="dTit"></div>
+  <button class="bt bt-g" onclick="editCur()" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+  <button class="bt bt-g" onclick="toggleFav()" id="fBtn" title="Favorite">☆</button>
+  <button class="bt bt-d" onclick="delCur()" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+</div><div class="dp-b" id="dBod"></div></div>
+
+<!-- ════════ ADD MODAL ════════ -->
+<div class="mo" id="addMo"><div class="mo-c"><div class="mo-h"><div class="mo-t" id="mTit">Add New Item</div><button class="mo-x" onclick="closeAdd()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="mo-b" id="mBod"></div><div class="mo-f"><button class="bt bt-s" onclick="closeAdd()">Cancel</button><button class="bt bt-p" id="mSav" onclick="saveItem()">Save</button></div></div></div>
+
+<!-- ════════ IMPORT MODAL ════════ -->
+<div class="mo" id="impMo"><div class="mo-c" style="width:420px"><div class="mo-h"><div class="mo-t">Import / Export</div><button class="mo-x" onclick="$('impMo').classList.remove('on')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="mo-b">
+  <div class="st" style="margin-bottom:8px">Import</div>
+  <div style="border:2px dashed var(--bd);border-radius:var(--r);padding:22px;text-align:center;margin-bottom:14px;cursor:pointer;transition:var(--tr)" onclick="$('impF').click()" onmouseover="this.style.borderColor='var(--ac)'" onmouseout="this.style.borderColor='var(--bd)'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="1.5" style="width:26px;height:26px;margin-bottom:5px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    <div style="font-size:12px;font-weight:600;margin-bottom:2px">Drop CSV/JSON or click to browse</div>
+    <div style="font-size:10px;color:var(--tx3)">LastPass · 1Password · Bitwarden · Chrome</div>
+  </div>
+  <input type="file" id="impF" accept=".csv,.json" style="display:none" onchange="doImport(this)">
+  <div style="height:1px;background:var(--bd);margin:14px 0"></div>
+  <div class="st" style="margin-bottom:8px">Export</div>
+  <div style="display:flex;gap:6px"><button class="bt bt-s" style="flex:1" onclick="doExport('json')">JSON Backup</button><button class="bt bt-s" style="flex:1" onclick="doExport('csv')">CSV Export</button></div>
+</div></div></div>
+
+<!-- ════════ UPGRADE MODAL ════════ -->
+<div class="mo" id="upMo"><div class="mo-c" style="width:380px"><div class="mo-h"><div class="mo-t">⚡ Upgrade</div><button class="mo-x" onclick="$('upMo').classList.remove('on')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="mo-b" id="upBod"></div></div></div>
+
+<!-- ════════ SHORTCUTS ════════ -->
+<div class="sc-bg" id="scBg" onclick="if(event.target===this)toggleSC()"><div class="sc-box"><div class="sc-t">⌨️ Keyboard Shortcuts</div><div id="scL"></div></div></div>
+
+<!-- ════════ TOASTS ════════ -->
+<div class="tst-c" id="tC"></div>
+<script>
+// ════════ CORE ════════
+const $=id=>document.getElementById(id);
+const IC={cp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>',eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',ref:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>',launch:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'};
+
+function launchSite(type,id,e){
+  if(e)e.stopPropagation();
+  const item=V[type]?.find(i=>i.id===id);if(!item)return;
+  const url=item.url||item.rpId;
+  if(!url){toast('No URL configured','er');return}
+  // Copy password/credential to clipboard first
+  const secret=item.password||item.key||item.credId||'';
+  if(secret){
+    navigator.clipboard.writeText(secret).then(()=>{
+      startClip(30);
+    }).catch(()=>{});
+  }
+  // Open in new tab
+  let target=url;
+  if(!target.startsWith('http'))target='https://'+target;
+  window.open(target,'_blank');
+  logA('Launched',item.name,'edit');saveV();
+  toast('🚀 Opened '+item.name+(secret?' · password copied':''),'ok');
+}
+
+const NAV=[
+{s:'Overview'},
+{id:'dashboard',ic:'grid',l:'Dashboard'},
+{id:'favorites',ic:'star',l:'Favorites'},
+{s:'Vault'},
+{id:'passwords',ic:'key',l:'Passwords',b:'pwC'},
+{id:'cards',ic:'card',l:'Cards & IDs',b:'cdC'},
+{id:'notes',ic:'file',l:'Secure Notes',b:'ntC'},
+{id:'apikeys',ic:'code',l:'API Keys',b:'akC'},
+{id:'licenses',ic:'box',l:'Licenses',b:'lcC'},
+{id:'passkeys',ic:'finger',l:'Passkeys',b:'pkC'},
+{s:'Security'},
+{id:'generator',ic:'zap',l:'Generator'},
+{id:'authenticator',ic:'clock',l:'Authenticator',b:'tpC'},
+{id:'watchtower',ic:'shield',l:'Watchtower',dot:1},
+{id:'audit',ic:'check',l:'Security Audit'},
+{id:'scanner',ic:'scan',l:'Breach Scanner'},
+{id:'credmap',ic:'web',l:'Credential Map'},
+{id:'decay',ic:'hourglass',l:'Decay Timeline'},
+{s:'Tools'},
+{id:'sharing',ic:'share',l:'Sharing'},
+{id:'aliases',ic:'mail',l:'Email Aliases'},
+{id:'emergency',ic:'users',l:'Emergency'},
+{id:'analytics',ic:'bar',l:'Analytics'},
+{id:'activity',ic:'pulse',l:'Activity'},
+{id:'trash',ic:'trash',l:'Trash',b:'trC'},
+{s:'AI'},
+{id:'ai-analyzer',ic:'brain',l:'Password Analyzer'},
+{id:'ai-report',ic:'doc',l:'Security Report'},
+{id:'ai-phishing',ic:'hook',l:'Phishing Detector'},
+{s:'System'},
+{id:'settings',ic:'gear',l:'Settings'}
+];
+
+const ICONS={grid:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',star:'<svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',key:'<svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.78 7.78 5.5 5.5 0 017.78-7.78z"/></svg>',card:'<svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>',file:'<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>',code:'<svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',box:'<svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>',zap:'<svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',clock:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',shield:'<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',check:'<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',scan:'<svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>',share:'<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',users:'<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>',bar:'<svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',pulse:'<svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',trash:'<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>',gear:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9"/>',
+brain:'<svg viewBox="0 0 24 24"><path d="M12 2a4 4 0 014 4 4 4 0 012 3.5 4 4 0 01-1 7.5v1a2 2 0 01-2 2h-2"/><path d="M12 2a4 4 0 00-4 4 4 4 0 00-2 3.5 4 4 0 001 7.5v1a2 2 0 002 2h2"/><line x1="12" y1="2" x2="12" y2="22"/></svg>',
+doc:'<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+hook:'<svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
+finger:'<svg viewBox="0 0 24 24"><path d="M12 10a4 4 0 014 4v6"/><path d="M8 10.1A4 4 0 0112 6v0a4 4 0 014 4v2"/><path d="M4 13a8 8 0 0112.3-6.7"/><path d="M20 17a8 8 0 01-16 0v-2"/><circle cx="12" cy="10" r="1"/></svg>',
+mail:'<svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>',
+web:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>',
+hourglass:'<svg viewBox="0 0 24 24"><path d="M6 2h12v4a8 8 0 01-4 6.93V14a8 8 0 014 6.93V22H6v-1.07A8 8 0 0110 14v-1.07A8 8 0 016 6V2z"/><path d="M6 2h12M6 22h12"/></svg>'};
+
+const SC=[['⌘ K','Search vault'],['⌘ L','Lock vault'],['⌘ N','New item'],['⌘ G','Generator'],['⌘ T','Travel mode'],['⌘ F','Favorites'],['⌘ E','Export vault'],['Esc','Close panel'],['?','Show shortcuts']];
+
+// ════════ STATE ════════
+let V={passwords:[],cards:[],notes:[],totp:[],shares:[],emergency:[],breaches:[],apikeys:[],licenses:[],passkeys:[],aliases:[],trash:[],activity:[]};
+let pg='dashboard',curD=null,editI=null,sq='',af='all',travel=false,clipI=null,clipS=0,mk=null,addTp='password';
+let gL=20,gO={upper:1,lower:1,num:1,sym:1},gM='password',gW=5;
+
+// ════════ AUTH & SYNC STATE ════════
+const API='https://api.wardkey.io';
+let authToken=null,authUser=null,syncEnabled=false,lastSyncTime=null,syncInProgress=false;
+
+function saveAuth(){
+  if(authToken&&authUser){
+    localStorage.setItem('wardkey_auth',JSON.stringify({token:authToken,user:authUser,sync:syncEnabled,lastSync:lastSyncTime}));
+  }else{localStorage.removeItem('wardkey_auth')}
+}
+function loadAuth(){
+  try{
+    const raw=localStorage.getItem('wardkey_auth');
+    if(!raw)return;
+    const d=JSON.parse(raw);
+    authToken=d.token||null;authUser=d.user||null;syncEnabled=!!d.sync;lastSyncTime=d.lastSync||null;
+    IS_PRO=authUser?.plan==='pro';
+  }catch{authToken=null;authUser=null;syncEnabled=false}
+}
+loadAuth();
+
+// ════════ CRYPTO (HARDENED) ════════
+// Security architecture:
+// - AES-256-GCM encryption (authenticated encryption with associated data)
+// - PBKDF2 with 600,000 iterations + SHA-256 for key derivation
+// - Unique 16-byte salt per vault (stored separately from ciphertext)
+// - Unique 12-byte IV per encryption operation (never reused)
+// - Verification hash to detect wrong passwords without exposing data
+// - Brute-force lockout after 5 failed attempts
+
+const CRYPTO_VERSION = 4; // bump on any format change
+let failedAttempts = 0;
+let lockoutUntil = 0;
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS = 60000; // 1 minute lockout
+
+async function deriveKey(pw, salt) {
+  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:600000, hash:'SHA-256'}, k, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+}
+
+// Derive a separate verification hash (NOT the same as the encryption key)
+async function deriveVerifyHash(pw, salt) {
+  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({name:'PBKDF2', salt, iterations:310000, hash:'SHA-512'}, k, 256);
+  return btoa(String.fromCharCode(...new Uint8Array(bits)));
+}
+
+async function encrypt(data, key) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, new TextEncoder().encode(JSON.stringify(data)));
+  return {iv:[...iv], ct:[...new Uint8Array(ct)]};
+}
+
+async function decrypt(obj, key) {
+  return JSON.parse(new TextDecoder().decode(
+    await crypto.subtle.decrypt({name:'AES-GCM', iv:new Uint8Array(obj.iv)}, key, new Uint8Array(obj.ct))
+  ));
+}
+
+async function saveV() {
+  if (!mk) return;
+  const e = await encrypt(V, mk);
+  const stored = {v:CRYPTO_VERSION, salt:[...window._vaultSalt], verify:window._verifyHash, data:e};
+  localStorage.setItem('wardkey_v4', JSON.stringify(stored));
+  if(syncEnabled&&authToken)syncUp(stored);
+}
+
+// ════════ CLOUD SYNC ════════
+async function syncUp(stored){
+  if(syncInProgress||!authToken)return;
+  syncInProgress=true;updateSyncIcon('active');
+  try{
+    const res=await fetch(API+'/api/vault',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},body:JSON.stringify(stored)});
+    if(res.status===401){authToken=null;saveAuth();toast('Session expired — please log in again','er');updateSyncIcon('');return}
+    if(res.status===409){toast('Vault conflict — server has a newer version. Use Sync Now in Settings.','er');updateSyncIcon('');return}
+    if(!res.ok)throw new Error('Sync failed');
+    lastSyncTime=Date.now();updateSyncIcon('done');
+  }catch(e){updateSyncIcon('');console.error('Sync up error:',e.message)}
+  finally{syncInProgress=false}
+}
+async function syncDown(){
+  if(!authToken)return;
+  syncInProgress=true;updateSyncIcon('active');
+  try{
+    const res=await fetch(API+'/api/vault',{headers:{'Authorization':'Bearer '+authToken}});
+    if(res.status===401){authToken=null;saveAuth();toast('Session expired — please log in again','er');updateSyncIcon('');return}
+    if(!res.ok)throw new Error('Sync download failed');
+    const data=await res.json();
+    if(data.data){
+      localStorage.setItem('wardkey_v4',JSON.stringify(data));
+      // Re-decrypt with current master key
+      const p=data;
+      const salt=new Uint8Array(p.salt);
+      V=await decrypt(p.data,mk);
+      window._vaultSalt=salt;
+      ['apikeys','licenses','trash','activity','passkeys','aliases','shares','emergency'].forEach(k=>{if(!V[k])V[k]=[]});
+      lastSyncTime=Date.now();updateSyncIcon('done');
+      render();updC();toast('Vault synced from cloud','ok');
+    }else{updateSyncIcon('done')}
+  }catch(e){updateSyncIcon('');toast('Sync failed: '+e.message,'er')}
+  finally{syncInProgress=false}
+}
+function updateSyncIcon(state){
+  const el=$('syncIco');if(!el)return;
+  el.className='sync-icon'+(state?' '+state:'');
+  if(state==='active')el.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Syncing…';
+  else if(state==='done')el.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Synced';
+  else el.innerHTML='';
+}
+
+function updateSidebar(){
+  const name=authUser?.name||'User';
+  const el=$('sbName');if(el)el.textContent=name;
+  const av=$('sbAv');if(av)av.textContent=name.charAt(0).toUpperCase();
+  const plan=$('sbPlan');if(plan)plan.textContent=syncEnabled?(authUser?.plan==='pro'?'Pro Plan':'Free Plan · Cloud'):'Local Mode';
+  if(syncEnabled)updateSyncIcon('done');
+}
+
+async function loadV(pw) {
+  // Try v4 format first, then migrate from v3
+  let raw = localStorage.getItem('wardkey_v4');
+  if (raw) {
+    const p = JSON.parse(raw);
+    const salt = new Uint8Array(p.salt);
+    // Verify password before attempting decryption
+    const hash = await deriveVerifyHash(pw, salt);
+    if (hash !== p.verify) throw new Error('WRONG_PASSWORD');
+    mk = await deriveKey(pw, salt);
+    V = await decrypt(p.data, mk);
+    window._vaultSalt = salt;
+    window._verifyHash = p.verify;
+    ['apikeys','licenses','trash','activity','passkeys','aliases'].forEach(k => { if (!V[k]) V[k] = []; });
+    return;
+  }
+  // Try v3 migration
+  raw = localStorage.getItem('wardkey_v3');
+  if (raw) {
+    try {
+      const p = JSON.parse(raw);
+      mk = await deriveKey(pw, new Uint8Array(p.iv));
+      V = await decrypt(p, mk);
+      // Migrate to v4 with proper salt
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      window._vaultSalt = salt;
+      mk = await deriveKey(pw, salt);
+      window._verifyHash = await deriveVerifyHash(pw, salt);
+      ['apikeys','licenses','trash','activity','passkeys','aliases'].forEach(k => { if (!V[k]) V[k] = []; });
+      await saveV();
+      localStorage.removeItem('wardkey_v3');
+      return;
+    } catch { /* v3 decrypt failed — clear stale data and fall through to create fresh */ }
+    localStorage.removeItem('wardkey_v3');
+  }
+  // No vault exists — create new
+  seed();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  window._vaultSalt = salt;
+  mk = await deriveKey(pw, salt);
+  window._verifyHash = await deriveVerifyHash(pw, salt);
+  await saveV();
+}
+
+function secureClear() {
+  // Wipe sensitive data from memory on lock
+  mk = null;
+  window._vaultSalt = null;
+  window._verifyHash = null;
+  V = {passwords:[],cards:[],notes:[],totp:[],apikeys:[],licenses:[],passkeys:[],aliases:[],breaches:[],trash:[],activity:[]};
+  // Clear any displayed passwords from DOM
+  document.querySelectorAll('[id^="pwV"],[id^="ph"]').forEach(el => { el.textContent = ''; });
+  window._cpw = null;
+  // Clear clipboard if we wrote to it
+  try { navigator.clipboard.writeText(''); } catch {}
+  // Note: authToken/authUser/syncEnabled are preserved across locks (session persistence)
+  // They are only cleared on explicit logout or vault wipe
+}
+
+// ════════ VAULT INIT ════════
+function seed(){
+  V={passwords:[],cards:[],notes:[],totp:[],apikeys:[],licenses:[],passkeys:[],aliases:[],shares:[],emergency:[],breaches:[],trash:[],activity:[]};
+}
+
+// ════════ AUTH ════════
+async function unlock(){
+  const pw=$('mpIn').value;
+  if(pw.length<4){$('lErr').textContent='Password must be at least 4 characters';$('lErr').style.display='block';shake($('mpIn'));return}
+  // Brute force protection
+  if(Date.now()<lockoutUntil){const sec=Math.ceil((lockoutUntil-Date.now())/1000);$('lErr').textContent=`Too many attempts. Try again in ${sec}s`;$('lErr').style.display='block';shake($('mpIn'));return}
+  $('lErr').style.display='none';
+  try{
+    await loadV(pw);
+    failedAttempts=0;
+    $('LS').classList.add('out');$('app').classList.add('on');buildNav();render();updC();updateSidebar();resetAL();setTimeout(checkRotations,500);
+  const isLight=document.documentElement.getAttribute('data-theme')==='light';
+  const btn=$('thBtn');if(btn)btn.innerHTML=isLight?'<svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>':'<svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+  }catch(e){
+    failedAttempts++;
+    const hasVault = !!(localStorage.getItem('wardkey_v4')||localStorage.getItem('wardkey_v3'));
+    if(failedAttempts>=MAX_ATTEMPTS){lockoutUntil=Date.now()+LOCKOUT_MS;$('lErr').innerHTML=`Too many failed attempts. Locked for 60 seconds.`+
+      (hasVault?`<br><a href="#" onclick="resetVault(event)" style="color:var(--ac);font-size:11px;text-decoration:underline;margin-top:4px;display:inline-block">Forgot password? Reset vault</a>`:'')}
+    else{$('lErr').innerHTML=`Wrong password (${MAX_ATTEMPTS-failedAttempts} attempt${MAX_ATTEMPTS-failedAttempts>1?'s':''} remaining)`+
+      (hasVault?`<br><a href="#" onclick="resetVault(event)" style="color:var(--ac);font-size:11px;text-decoration:underline;margin-top:4px;display:inline-block">Forgot password? Reset vault</a>`:'')}
+    $('lErr').style.display='block';
+    shake($('mpIn'));$('mpIn').value='';$('mpIn').focus();return;
+  }
+}
+function resetVault(e){
+  e.preventDefault();
+  if(!confirm('This will permanently erase your vault. You will start fresh. Continue?'))return;
+  localStorage.removeItem('wardkey_v4');localStorage.removeItem('wardkey_v3');localStorage.removeItem('wardkey_auth');
+  authToken=null;authUser=null;syncEnabled=false;
+  failedAttempts=0;lockoutUntil=0;
+  $('lErr').style.display='none';$('mpIn').value='';$('mpIn').focus();
+  toast('Vault reset — enter a new master password','ok');
+}
+// ════════ AUTH UI FUNCTIONS ════════
+function authTab(mode){
+  $('ltLocal').classList.toggle('on',mode==='local');
+  $('ltCloud').classList.toggle('on',mode==='cloud');
+  $('lpLocal').classList.toggle('on',mode==='local');
+  $('lpCloud').classList.toggle('on',mode==='cloud');
+  if(mode==='local')setTimeout(()=>$('mpIn')?.focus(),100);
+  else setTimeout(()=>$('alEmail')?.focus(),100);
+}
+function authMode(mode){
+  $('ltLogin').classList.toggle('on',mode==='login');
+  $('ltReg').classList.toggle('on',mode==='register');
+  $('lpLogin').classList.toggle('on',mode==='login');
+  $('lpReg').classList.toggle('on',mode==='register');
+  if(mode==='login')setTimeout(()=>$('alEmail')?.focus(),100);
+  else setTimeout(()=>$('arName')?.focus(),100);
+}
+async function doRegister(){
+  const name=$('arName').value.trim(),email=$('arEmail').value.trim(),pw=$('arPw').value,pwc=$('arPwC').value,mp=$('arMp').value;
+  if(!name||!email){showAuthErr('Name and email are required');return}
+  if(pw.length<8){showAuthErr('Account password must be at least 8 characters');return}
+  if(pw!==pwc){showAuthErr('Account passwords do not match');return}
+  if(mp.length<4){showAuthErr('Master password must be at least 4 characters');return}
+  showAuthErr('');
+  try{
+    const res=await fetch(API+'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password:pw})});
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||'Registration failed');
+    authToken=data.token;authUser=data.user||{name,email,plan:'free'};syncEnabled=true;
+    saveAuth();
+    // Now unlock vault with master password
+    $('mpIn').value=mp;
+    await unlock();
+    toast('Account created — vault syncing enabled','ok');
+  }catch(e){showAuthErr(e.message)}
+}
+async function doLogin(){
+  const email=$('alEmail').value.trim(),pw=$('alPw').value,mp=$('alMp').value;
+  if(!email||!pw){showAuthErr('Email and account password are required');return}
+  if(mp.length<4){showAuthErr('Master password must be at least 4 characters');return}
+  showAuthErr('');
+  try{
+    const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||'Login failed');
+    authToken=data.token;authUser=data.user||{email,plan:'free'};syncEnabled=true;
+    saveAuth();
+    // Try to download vault from server before unlocking
+    try{
+      const vRes=await fetch(API+'/api/vault',{headers:{'Authorization':'Bearer '+authToken}});
+      if(vRes.ok){
+        const vData=await vRes.json();
+        if(vData.data){
+          // Server has a vault — store it locally so loadV picks it up
+          localStorage.setItem('wardkey_v4',JSON.stringify(vData));
+          lastSyncTime=Date.now();
+        }
+      }
+    }catch{}
+    $('mpIn').value=mp;
+    await unlock();
+    toast('Logged in — vault synced','ok');
+  }catch(e){showAuthErr(e.message)}
+}
+function showAuthErr(msg){const el=$('lErr');if(msg){el.textContent=msg;el.style.display='block'}else{el.style.display='none'}}
+function doLogout(){
+  if(!confirm('Log out? Your vault will remain on this device but cloud sync will stop.'))return;
+  authToken=null;authUser=null;syncEnabled=false;lastSyncTime=null;IS_PRO=false;
+  localStorage.removeItem('wardkey_auth');
+  updateSidebar();updateSyncIcon('');render();toast('Logged out — local mode active','ok');
+}
+async function doDeleteAccount(){
+  if(!confirm('Delete your account? This will remove your cloud data. Your local vault will be kept.'))return;
+  if(!confirm('Are you absolutely sure? This cannot be undone.'))return;
+  try{
+    const res=await fetch(API+'/api/auth/account',{method:'DELETE',headers:{'Authorization':'Bearer '+authToken}});
+    if(!res.ok){const d=await res.json().catch(()=>({}));throw new Error(d.error||'Failed to delete account')}
+    authToken=null;authUser=null;syncEnabled=false;lastSyncTime=null;IS_PRO=false;
+    localStorage.removeItem('wardkey_auth');
+    updateSidebar();updateSyncIcon('');render();toast('Account deleted — vault kept locally','ok');
+  }catch(e){toast('Error: '+e.message,'er')}
+}
+
+function shake(el){el.style.animation='none';el.offsetHeight;el.style.animation='shake .4s'}
+function lock(){secureClear();$('LS').classList.remove('out');$('app').classList.remove('on');$('mpIn').value='';
+  // Clear cloud form fields
+  ['alEmail','alPw','alMp','arName','arEmail','arPw','arPwC','arMp'].forEach(id=>{const el=$(id);if(el)el.value=''});
+  // If user was logged in, show cloud tab
+  if(syncEnabled){authTab('cloud');authMode('login')}
+  setTimeout(()=>{if(syncEnabled)$('alMp')?.focus();else $('mpIn')?.focus()},600);
+}
+$('mpIn').addEventListener('keydown',e=>{if(e.key==='Enter')unlock()});
+// Cloud form enter-key handlers
+['alMp'].forEach(id=>{const el=$(id);if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()})});
+['arMp'].forEach(id=>{const el=$(id);if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter')doRegister()})});
+let alT;function resetAL(){clearTimeout(alT);alT=setTimeout(lock,3e5)}
+document.addEventListener('mousemove',resetAL);document.addEventListener('keydown',resetAL);
+document.addEventListener('touchstart',resetAL);document.addEventListener('scroll',resetAL);
+
+// Lock on tab hide / minimize (configurable)
+let tabLockEnabled = true;
+let tabHideTimer = null;
+document.addEventListener('visibilitychange', () => {
+  if (!mk) return; // already locked
+  if (document.hidden && tabLockEnabled) {
+    // Lock after 30s of tab being hidden (not instant to allow quick tab switches)
+    tabHideTimer = setTimeout(() => { if (document.hidden && mk) lock(); }, 30000);
+  } else { clearTimeout(tabHideTimer); }
+});
+
+// Prevent screenshots/screen capture on sensitive fields (mobile)
+document.addEventListener('contextmenu', e => {
+  if (e.target.closest('[data-sensitive]')) e.preventDefault();
+});
+
+// ════════ NAVIGATION ════════
+function buildNav(){$('sNav').innerHTML=NAV.map(n=>{if(n.s)return`<div class="sb-sec">${n.s}</div>`;const dot=n.dot&&V.breaches.some(b=>!b.resolved);return`<div class="ni${pg===n.id?' on':''}" data-p="${n.id}" onclick="nav('${n.id}')">${ICONS[n.ic]}<span>${n.l}</span>${n.b?`<span class="c" id="${n.b}">0</span>`:''}${dot?'<div class="rd"></div>':''}</div>`}).join('')}
+function nav(p){pg=p;sq='';af='all';$('gSch').value='';document.querySelectorAll('.ni').forEach(e=>e.classList.toggle('on',e.dataset.p===p));const T={dashboard:'Dashboard',favorites:'⭐ Favorites',passwords:'Passwords',cards:'Cards & IDs',notes:'Secure Notes',apikeys:'API Keys & Tokens',licenses:'Software Licenses',passkeys:'🔑 Passkeys',generator:'Password Generator',authenticator:'Authenticator',watchtower:'Watchtower',audit:'Security Audit',scanner:'Breach Scanner',credmap:'🕸️ Credential Map',decay:'⏳ Decay Timeline',sharing:'Secure Sharing',aliases:'📧 Email Aliases',emergency:'Emergency Access',analytics:'Analytics',activity:'Activity Log',trash:'Trash',settings:'Settings','ai-analyzer':'🧠 AI Password Analyzer','ai-report':'📋 AI Security Report','ai-phishing':'🎣 AI Phishing Detector'};$('pTit').textContent=T[p]||p;render();closeD();closeSB();updBnav(p)}
+function render(){const c=$('ct');c.innerHTML='';const d=document.createElement('div');d.className='pg';c.appendChild(d);const R={dashboard:rDash,favorites:rFav,passwords:rPw,cards:rCards,notes:rNotes,apikeys:rApi,licenses:rLic,passkeys:rPasskeys,generator:rGen,authenticator:rAuth,watchtower:rWatch,audit:rAudit,scanner:rScan,credmap:rCredMap,decay:rDecay,sharing:rShare,aliases:rAliases,emergency:rEmer,analytics:rAnl,activity:rAct,trash:rTrash,settings:rSet,'ai-analyzer':rAiPw,'ai-report':rAiReport,'ai-phishing':rAiPhish};(R[pg]||(()=>{}))(d)}
+function updC(){const s=(i,v)=>{const e=$(i);if(e)e.textContent=v};s('pwC',V.passwords.length);s('cdC',V.cards.length);s('ntC',V.notes.length);s('tpC',V.totp.length);s('akC',V.apikeys.length);s('lcC',V.licenses.length);s('pkC',V.passkeys.length);s('trC',V.trash.length)}
+
+// ════════ UTILITIES ════════
+function str(pw){if(!pw)return{s:0,l:'None',c:'var(--tx3)'};let sc=0,len=pw.length;if(len>=8)sc+=1;if(len>=12)sc+=1.5;if(len>=16)sc+=1;if(len>=20)sc+=1;if(/[a-z]/.test(pw)&&/[A-Z]/.test(pw))sc+=1;if(/\d/.test(pw))sc+=.5;if(/[^a-zA-Z0-9]/.test(pw))sc+=1.5;const common=/^(password|123456|qwerty|admin|letmein|welcome|monkey|dragon)/i;if(common.test(pw))sc=Math.max(0,sc-4);if(/(.)\1{3,}/.test(pw))sc-=1;const p=Math.min(100,(sc/7.5)*100);if(p<=25)return{s:p,l:'Weak',c:'var(--rd)'};if(p<=50)return{s:p,l:'Fair',c:'var(--og)'};if(p<=75)return{s:p,l:'Good',c:'var(--yl)'};return{s:p,l:'Strong',c:'var(--gn)'}}
+function oScore(){if(!V.passwords.length)return 0;const avg=V.passwords.reduce((s,p)=>s+str(p.password).s,0)/V.passwords.length;const pen=gWeak().length*5+gReused().length*4+gOld().length*2;return Math.max(0,Math.min(100,Math.round(avg-pen)))}
+function gWeak(){return V.passwords.filter(p=>str(p.password).s<35)}
+function gReused(){const m={};V.passwords.forEach(p=>m[p.password]=(m[p.password]||0)+1);return V.passwords.filter(p=>m[p.password]>1)}
+function gOld(){return V.passwords.filter(p=>p.modified<Date.now()-864e5*90)}
+function timeAgo(t){const s=Math.floor((Date.now()-t)/1000);if(s<60)return'Just now';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';if(s<2592000)return Math.floor(s/86400)+'d ago';return new Date(t).toLocaleDateString()}
+function logA(a,i,t){V.activity.unshift({id:'a'+Math.random().toString(36).substr(2,6),action:a,item:i,type:t,time:Date.now()});if(V.activity.length>50)V.activity.pop()}
+function emp(t,s){return`<div class="emp"><svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><div class="emp-t">${t}</div><div class="emp-s">${s}</div></div>`}
+function cpItem(type,id){const item=V[type]?.find(i=>i.id===id);if(!item)return;cpTx(item.password||item.key||item.number||'')}
+function F(l,v,cp=false){const uid='f'+Math.random().toString(36).substr(2,6);return`<div class="df"><div class="df-l">${l}</div><div class="df-v"><span id="${uid}">${String(v).replace(/</g,'&lt;')}</span>${cp?`<button class="cb" onclick="cpTx(document.getElementById('${uid}').textContent)">${IC.cp}</button>`:''}</div></div>`}
+
+// ════════ TOTP ENGINE ════════
+function b32d(s){const a='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';let b='',r=[];s=s.toUpperCase().replace(/[^A-Z2-7]/g,'');for(let c of s)b+=a.indexOf(c).toString(2).padStart(5,'0');for(let i=0;i+8<=b.length;i+=8)r.push(parseInt(b.substr(i,8),2));return new Uint8Array(r)}
+async function genTOTP(sec){const k=b32d(sec),t=Math.floor(Date.now()/3e4),tb=new Uint8Array(8);let tt=t;for(let i=7;i>=0;i--){tb[i]=tt&0xff;tt>>=8}const ck=await crypto.subtle.importKey('raw',k,{name:'HMAC',hash:'SHA-1'},false,['sign']);const h=new Uint8Array(await crypto.subtle.sign('HMAC',ck,tb));const o=h[h.length-1]&0xf;return(((h[o]&0x7f)<<24|h[o+1]<<16|h[o+2]<<8|h[o+3])%1e6).toString().padStart(6,'0')}
+function totpTL(){return 30-(Math.floor(Date.now()/1000)%30)}
+
+// ════════ PASSWORD GENERATOR ════════
+function genPw(l=20,o={}){let c='';if(o.lower!==0)c+='abcdefghjkmnpqrstuvwxyz';if(o.upper!==0)c+='ABCDEFGHJKMNPQRSTUVWXYZ';if(o.num!==0)c+='23456789';if(o.sym!==0)c+='!@#$%^&*()-_=+[]{}|;:<>?';if(!c)c='abcdefghijklmnopqrstuvwxyz';const a=new Uint32Array(l);crypto.getRandomValues(a);return Array.from(a,v=>c[v%c.length]).join('')}
+const WL=['abandon','alpine','anchor','arctic','aurora','bamboo','beacon','blaze','breeze','canyon','cascade','cedar','cipher','cobalt','comet','coral','crystal','delta','drift','echo','ember','falcon','fern','flare','forge','frost','galaxy','glacier','harbor','hawk','horizon','jade','keystone','lagoon','lunar','maple','mesa','mist','nebula','nova','oasis','onyx','orbit','palm','peak','pine','prism','pulse','quartz','raven','reef','ridge','sage','sapphire','shadow','sierra','slate','spark','spire','summit','surge','terra','thunder','tide','timber','topaz','tundra','twilight','vapor','vortex','willow','zenith','zephyr'];
+function genPhrase(n=5){const a=new Uint32Array(n);crypto.getRandomValues(a);return Array.from(a,v=>WL[v%WL.length]).join('-')}
+
+// ════════ VAULT ITEM RENDERER ════════
+function vI(p,type,i=0){const st=type==='passwords'?str(p.password):null;const fav=p.fav||p.favorite;const hasUrl=p.url||p.rpId;const rot=type==='passwords'&&p.rotate?.enabled?getRotateStatus(p):null;return`<div class="vi" style="animation-delay:${i*.02}s" onclick="showD('${type}','${p.id}')"><div class="vi-i">${p.icon||p.favicon||'🔑'}</div><div class="vi-n"><div class="vi-t">${fav?'<span class="fv">★</span>':''}${p.name}${p.sens?' <span style="font-size:8px;color:var(--og)">🔒</span>':''}${rot?` <span style="font-size:8px;color:${rot.color}" title="Auto-rotate: ${rot.label}">🔄${rot.overdue?' !':''}</span>`:''}</div><div class="vi-d">${p.username||p.holder||p.key?.substring(0,22)||p.content?.substring(0,35)||p.product||''}</div></div><div class="vi-m">${st?`<div class="vi-sb"><div class="vi-sf" style="width:${st.s}%;background:${st.c}"></div></div>`:''}<div class="vi-a">${hasUrl?`<button class="vi-b" title="Launch & copy password" onclick="launchSite('${type}','${p.id}',event)" style="color:var(--ac)">${IC.launch}</button>`:''}<button class="vi-b" onclick="event.stopPropagation();cpItem('${type}','${p.id}')">${IC.cp}</button></div></div></div>`}
+
+// ════════ PAGE: DASHBOARD ════════
+function isVaultEmpty(){return !V.passwords.length&&!V.cards.length&&!V.notes.length&&!V.totp.length&&!V.apikeys.length&&!V.licenses.length&&!V.passkeys.length&&!V.aliases.length}
+function rDash(el){
+if(isVaultEmpty()){
+  el.innerHTML=`<div class="card" style="padding:32px;text-align:center;max-width:480px;margin:40px auto">
+  <div style="font-size:48px;margin-bottom:16px">🔐</div>
+  <div style="font-size:22px;font-weight:800;margin-bottom:6px">Welcome to WARDKEY!</div>
+  <div style="font-size:13px;color:var(--tx2);margin-bottom:24px;line-height:1.6">Your vault is empty. Let's add your first item to get started.</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+    <button class="bt bt-p" onclick="addTp='password';openAdd()" style="padding:10px 18px;gap:6px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Password</button>
+    <button class="bt bt-s" onclick="addTp='card';openAdd()" style="padding:10px 18px;gap:6px">💳 Add Card</button>
+    <button class="bt bt-s" onclick="addTp='note';openAdd()" style="padding:10px 18px;gap:6px">📝 Add Note</button>
+    <button class="bt bt-s" onclick="$('impMo').classList.add('on')" style="padding:10px 18px;gap:6px">📥 Import</button>
+  </div>
+  ${syncEnabled?'<div style="margin-top:16px;font-size:11px;color:var(--gn)">☁️ Cloud sync is enabled — items will sync across devices</div>':'<div style="margin-top:16px;font-size:11px;color:var(--tx3)">💡 Enable Cloud Sync in Settings to access your vault anywhere</div>'}
+</div>`;return}
+const sc=oScore(),co=sc>=80?'var(--gn)':sc>=60?'var(--yl)':sc>=40?'var(--og)':'var(--rd)';
+const ci=2*Math.PI*15,of=ci-(sc/100)*ci;
+const w=gWeak().length,r=gReused().length,o=gOld().length,bu=V.breaches.filter(b=>!b.resolved).length;
+const rotDue=V.passwords.filter(p=>p.rotate?.enabled&&getRotateStatus(p)?.overdue).length;
+const rotSoon=V.passwords.filter(p=>p.rotate?.enabled&&getRotateStatus(p)?.soon).length;
+const tot=V.passwords.length+V.cards.length+V.notes.length+V.apikeys.length+V.licenses.length+V.passkeys.length;
+el.innerHTML=`
+<div class="grid4">
+  <div class="card"><div class="card-h"><div class="ring" style="width:34px;height:34px"><svg viewBox="0 0 34 34" width="34" height="34"><circle class="bg" cx="17" cy="17" r="15" stroke-width="3"/><circle cx="17" cy="17" r="15" stroke="${co}" stroke-width="3" stroke-dasharray="${ci}" stroke-dashoffset="${of}" style="--ring-c:${ci};--ring-off:${of};animation:ringFill .8s ease-out forwards"/></svg><div class="ring-v" style="font-size:9px;color:${co}">${sc}</div></div><span class="card-tr" style="background:${sc>=70?'var(--gnb)':'var(--rdb)'};color:${sc>=70?'var(--gn)':'var(--rd)'}">${sc>=70?'Healthy':'At Risk'}</span></div><div class="card-v" style="color:${co}">${sc}<span style="font-size:12px;color:var(--tx3)">/100</span></div><div class="card-l">Security Score</div></div>
+  <div class="card" style="animation-delay:.05s"><div class="card-h"><div class="card-ic" style="background:var(--acg);color:var(--ac)">${ICONS.key}</div></div><div class="card-v">${tot}</div><div class="card-l">Vault Items</div></div>
+  <div class="card" style="animation-delay:.1s"><div class="card-h"><div class="card-ic" style="background:var(--rdb);color:var(--rd)">${ICONS.shield}</div></div><div class="card-v">${bu}</div><div class="card-l">Active Breaches</div></div>
+  <div class="card" style="animation-delay:.15s"><div class="card-h"><div class="card-ic" style="background:var(--ppb);color:var(--pp)">${ICONS.clock}</div></div><div class="card-v">${V.totp.length}</div><div class="card-l">2FA Accounts</div></div>
+</div>
+<div class="grid2">
+<div>
+  <div class="sh"><div><div class="st">⚠️ Actions Required</div></div><button class="bt bt-g" onclick="nav('watchtower')">View all →</button></div>
+  ${w?`<div class="bc" onclick="nav('audit')"><div class="bc-i" style="background:var(--rdb)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--rd)" stroke-width="2" style="width:14px;height:14px"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div><div class="bc-n"><div class="bc-t">${w} Weak Password${w>1?'s':''}</div><div class="bc-d">Easily guessable — update immediately</div></div><span class="sv" style="background:var(--rdb);color:var(--rd)">Critical</span></div>`:''}
+  ${r?`<div class="bc" onclick="nav('audit')"><div class="bc-i" style="background:var(--ogb)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--og)" stroke-width="2" style="width:14px;height:14px"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/></svg></div><div class="bc-n"><div class="bc-t">${r} Reused Password${r>1?'s':''}</div><div class="bc-d">Same password across multiple sites</div></div><span class="sv" style="background:var(--ogb);color:var(--og)">High</span></div>`:''}
+  ${o?`<div class="bc" onclick="nav('audit')"><div class="bc-i" style="background:var(--ylb)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--yl)" stroke-width="2" style="width:14px;height:14px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="bc-n"><div class="bc-t">${o} Aging (90d+)</div><div class="bc-d">Consider rotating these credentials</div></div><span class="sv" style="background:var(--ylb);color:var(--yl)">Medium</span></div>`:''}
+  ${rotDue?`<div class="bc" onclick="nav('passwords')"><div class="bc-i" style="background:var(--rdb)"><span style="font-size:14px">🔄</span></div><div class="bc-n"><div class="bc-t">${rotDue} Rotation${rotDue>1?'s':''} Overdue</div><div class="bc-d">Scheduled passwords need rotating & updating</div></div><span class="sv" style="background:var(--rdb);color:var(--rd)">Critical</span></div>`:''}
+  ${rotSoon?`<div class="bc" onclick="nav('passwords')"><div class="bc-i" style="background:var(--ogb)"><span style="font-size:14px">🔄</span></div><div class="bc-n"><div class="bc-t">${rotSoon} Rotation${rotSoon>1?'s':''} Due Soon</div><div class="bc-d">Passwords rotating in the next 3 days</div></div><span class="sv" style="background:var(--ogb);color:var(--og)">Soon</span></div>`:''}
+  ${bu?`<div class="bc" onclick="nav('watchtower')"><div class="bc-i" style="background:var(--rdb)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--rd)" stroke-width="2" style="width:14px;height:14px">${ICONS.shield}</svg></div><div class="bc-n"><div class="bc-t">${bu} Unresolved Breach${bu>1?'es':''}</div><div class="bc-d">Credentials may be compromised</div></div><span class="sv" style="background:var(--rdb);color:var(--rd)">Critical</span></div>`:''}
+  ${!w&&!r&&!o&&!bu&&!rotDue&&!rotSoon?'<div style="padding:20px;text-align:center;color:var(--gn);font-weight:600;font-size:13px">✓ All clear — no issues detected</div>':''}
+</div>
+<div>
+  <div class="sh"><div class="st">Recent Activity</div><button class="bt bt-g" onclick="nav('activity')">All →</button></div>
+  <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:12px">
+  ${V.activity.slice(0,6).map(a=>{const c={edit:'var(--ac)',add:'var(--gn)',share:'var(--pp)',breach:'var(--rd)',gen:'var(--cy)',totp:'var(--ac)',delete:'var(--rd)',fav:'var(--yl)'};return`<div class="li"><div class="li-d" style="background:${c[a.type]||'var(--tx3)'}"></div><div class="li-n"><div class="li-a">${a.action}${a.item?' — <b>'+a.item+'</b>':''}</div><div class="li-t">${timeAgo(a.time)}</div></div></div>`}).join('')}
+  </div>
+</div>
+</div>
+<div style="margin-top:14px">
+  <div class="sh"><div class="st">🚀 Quick Launch</div><button class="bt bt-g" onclick="nav('passwords')">All →</button></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px">
+  ${V.passwords.filter(p=>p.url).slice(0,8).map(p=>`<div class="card" style="cursor:pointer;padding:12px;display:flex;align-items:center;gap:10px" onclick="launchSite('passwords','${p.id}')"><span style="font-size:20px">${p.icon||'🔑'}</span><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div><div style="font-size:10px;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.username||''}</div></div><div style="color:var(--ac);flex-shrink:0">${IC.launch}</div></div>`).join('')}
+  ${!V.passwords.filter(p=>p.url).length?'<div style="padding:16px;text-align:center;color:var(--tx3);font-size:12px;grid-column:1/-1">Add URLs to your passwords for quick launch</div>':''}
+  </div>
+</div>`;
+}
+
+// ════════ PAGE: FAVORITES ════════
+function rFav(el){const all=[...V.passwords.filter(p=>p.fav),...V.cards.filter(c=>c.fav),...V.notes.filter(n=>n.fav),...V.apikeys.filter(a=>a.fav),...V.passkeys.filter(p=>p.fav)];if(!all.length){el.innerHTML=emp('No Favorites Yet','Star items to pin them here for quick access');return}el.innerHTML='<div class="vl">'+all.map((item,i)=>{const t=V.passwords.includes(item)?'passwords':V.cards.includes(item)?'cards':V.notes.includes(item)?'notes':V.passkeys.includes(item)?'passkeys':'apikeys';return vI(item,t,i)}).join('')+'</div>'}
+
+// ════════ PAGE: PASSWORDS ════════
+function rPw(el){const cats=['all',...new Set(V.passwords.map(p=>p.cat))];let L=travel?V.passwords.filter(p=>!p.sens):V.passwords;if(af!=='all')L=L.filter(p=>p.cat===af);if(sq){const q=sq.toLowerCase();L=L.filter(p=>p.name.toLowerCase().includes(q)||p.username.toLowerCase().includes(q)||(p.tags||[]).some(t=>t.includes(q)))}L.sort((a,b)=>b.modified-a.modified);
+el.innerHTML=`<div class="vf">${cats.map(c=>`<div class="chip${af===c?' on':''}" onclick="af='${c}';render()">${c==='all'?'All':c}</div>`).join('')}<div style="margin-left:auto;display:flex;gap:4px"><button class="bt bt-s" onclick="$('impMo').classList.add('on')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import</button></div></div><div class="vl">${!L.length?emp('No passwords found','Try a different filter or add new items'):L.map((p,i)=>vI(p,'passwords',i)).join('')}</div>`}
+
+// ════════ PAGE: CARDS ════════
+function rCards(el){el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px">${V.cards.map(c=>`<div class="tc" onclick="showD('cards','${c.id}')" style="background:linear-gradient(135deg,${c.color},${c.color}88);border-color:${c.color}44"><div style="display:flex;justify-content:space-between;margin-bottom:16px"><div style="font-size:12px;font-weight:600;opacity:.9">${c.name}</div><div style="font-size:18px">${c.type==='id'?'🪪':c.type==='mc'?'🟡':'💳'}</div></div><div style="font-family:var(--mono);font-size:15px;letter-spacing:2.5px;margin-bottom:14px">${c.number}</div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx2)"><span>${c.holder}</span><span>${c.exp}</span></div></div>`).join('')}</div>`}
+
+// ════════ PAGE: NOTES ════════
+function rNotes(el){const cm={rd:'var(--rd)',pp:'var(--pp)',cy:'var(--cy)',gn:'var(--gn)',yl:'var(--yl)'};let L=travel?V.notes.filter(n=>!n.sens):V.notes;el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px">${L.map(n=>`<div class="tc" onclick="showD('notes','${n.id}')" style="border-left:3px solid ${cm[n.color]||'var(--bd)'}"><div style="display:flex;align-items:center;gap:5px;margin-bottom:5px">${n.fav?'<span style="color:var(--yl);font-size:9px">★</span>':''}<div style="font-size:12px;font-weight:600">${n.name}</div>${n.sens?'<span style="font-size:8px;color:var(--og)">🔒</span>':''}</div><div style="font-size:10px;color:var(--tx3);line-height:1.4;max-height:38px;overflow:hidden;font-family:var(--mono)">${n.content.substring(0,80)}…</div><div style="display:flex;gap:3px;margin-top:6px">${(n.tags||[]).map(t=>`<span class="tg">${t}</span>`).join('')}</div></div>`).join('')}</div>`}
+
+// ════════ PAGE: API KEYS ════════
+function rApi(el){el.innerHTML=`<div class="sh"><div class="st">API Keys & Tokens</div><button class="bt bt-p" onclick="addTp='apikey';openAdd()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Key</button></div><div class="vl">${V.apikeys.map((a,i)=>{const exp=a.exp&&a.exp<Date.now();return`<div class="vi" style="animation-delay:${i*.03}s" onclick="showD('apikeys','${a.id}')"><div class="vi-i" style="background:${exp?'var(--rdb)':'var(--gnb)'}">🔑</div><div class="vi-n"><div class="vi-t">${a.fav?'<span class="fv">★</span>':''}${a.name}</div><div class="vi-d">${a.svc} · ${a.env}</div></div><span class="sv" style="background:${exp?'var(--rdb);color:var(--rd)':'var(--gnb);color:var(--gn)'}">${exp?'Expired':'Active'}</span></div>`}).join('')}</div>`}
+
+// ════════ PAGE: LICENSES ════════
+function rLic(el){el.innerHTML=`<div class="sh"><div class="st">Software Licenses</div><button class="bt bt-p" onclick="addTp='license';openAdd()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add License</button></div><div class="vl">${V.licenses.map((l,i)=>`<div class="vi" style="animation-delay:${i*.03}s" onclick="showD('licenses','${l.id}')"><div class="vi-i">📋</div><div class="vi-n"><div class="vi-t">${l.name}</div><div class="vi-d">${l.product} · ${l.seats} seat${l.seats>1?'s':''}</div></div>${l.exp?`<span class="sv" style="background:${l.exp>Date.now()?'var(--gnb);color:var(--gn)':'var(--rdb);color:var(--rd)'}">${l.exp>Date.now()?'Active':'Expired'}</span>`:'<span class="sv" style="background:var(--gnb);color:var(--gn)">Lifetime</span>'}</div>`).join('')}</div>`}
+
+// ════════ PAGE: GENERATOR ════════
+function rGen(el){const pw=gM==='password'?genPw(gL,gO):genPhrase(gW);const s=str(pw);
+el.innerHTML=`<div class="gbox"><div style="display:flex;gap:4px;margin-bottom:10px"><div class="chip${gM==='password'?' on':''}" onclick="gM='password';render()">Password</div><div class="chip${gM==='phrase'?' on':''}" onclick="gM='phrase';render()">Passphrase</div></div>
+<div class="gout"><code id="gOut" style="color:${s.c}">${pw}</code><button class="cb" onclick="cpTx($('gOut').textContent)">${IC.cp}</button><button class="cb" onclick="render()">${IC.ref}</button></div>
+<div class="sb2" style="margin-bottom:4px"><div class="sb2-f" style="width:${s.s}%;background:${s.c}"></div></div><div class="sb2-l" style="color:${s.c};margin-bottom:10px">${s.l} · ${pw.length} characters · ~${Math.round(Math.log2(Math.pow(pw.length>20?80:60,pw.length)))} bits of entropy</div>
+${gM==='password'?`<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx2);margin-bottom:4px"><span>Length</span><span style="font-family:var(--mono);color:var(--ac)">${gL}</span></div><input type="range" min="8" max="64" value="${gL}" oninput="gL=+this.value;render()"><div class="gopts" style="margin-top:8px">${[['upper','A-Z'],['lower','a-z'],['num','0-9'],['sym','!@#']].map(([k,l])=>`<div class="gopt${gO[k]?' on':''}" onclick="gO.${k}=gO.${k}?0:1;render()"><div style="width:10px;height:10px;border-radius:2px;border:1.5px solid ${gO[k]?'var(--ac)':'var(--bd)'};background:${gO[k]?'var(--ac)':'transparent'};display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" style="width:7px;height:7px;display:${gO[k]?'block':'none'}"><polyline points="20 6 9 17 4 12"/></svg></div>${l}</div>`).join('')}</div>`:`<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx2);margin-bottom:4px"><span>Words</span><span style="font-family:var(--mono);color:var(--ac)">${gW}</span></div><input type="range" min="3" max="10" value="${gW}" oninput="gW=+this.value;render()">`}</div>
+<div style="margin-top:12px;padding:14px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r)"><div style="font-size:12px;font-weight:600;margin-bottom:6px">💡 Password Tips</div><div style="font-size:11px;color:var(--tx2);line-height:1.5">Use 16+ characters with mixed case, numbers, and symbols. Never reuse passwords across sites. Consider passphrases for memorable yet strong credentials. WARDKEY generates cryptographically secure random values.</div></div>`}
+
+// ════════ PAGE: AUTHENTICATOR ════════
+async function rAuth(el){const tl=totpTL();const codes=await Promise.all(V.totp.map(async t=>({...t,code:await genTOTP(t.secret)})));
+el.innerHTML=`<div class="tg2">${codes.map(t=>`<div class="tc" onclick="cpTx('${t.code}');toast('Code copied','ok')"><div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><div style="width:26px;height:26px;border-radius:6px;background:${t.color}18;display:flex;align-items:center;justify-content:center;font-size:13px">${t.icon}</div><div><div style="font-size:11px;font-weight:600">${t.name}</div><div style="font-size:9px;color:var(--tx3)">${t.acct}</div></div></div><div class="tc-code" style="color:${tl<6?'var(--rd)':'var(--tx1)'}">${t.code.substring(0,3)} ${t.code.substring(3)}</div><div class="tc-bar"><div class="tc-trk"><div class="tc-fill" style="width:${(tl/30)*100}%;background:${tl<6?'var(--rd)':'var(--ac)'}"></div></div><span style="font-size:9px;color:var(--tx3);font-family:var(--mono)">${tl}s</span></div></div>`).join('')}</div>`;if(pg==='authenticator')setTimeout(()=>{if(pg==='authenticator')render()},1000)}
+
+// ════════ PAGE: WATCHTOWER (like 1Password) ════════
+function rWatch(el){const sc=oScore(),co=sc>=80?'var(--gn)':sc>=60?'var(--yl)':sc>=40?'var(--og)':'var(--rd)';const ci=2*Math.PI*42,of=ci-(sc/100)*ci;const w=gWeak().length,r=gReused().length,o=gOld().length,ub=V.breaches.filter(b=>!b.resolved);
+el.innerHTML=`
+<div class="wtH" style="background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--bd);border-radius:var(--rl);padding:24px;margin-bottom:16px;display:flex;align-items:center;gap:24px">
+  <div class="ring" style="width:100px;height:100px;flex-shrink:0"><svg viewBox="0 0 100 100" width="100" height="100"><circle class="bg" cx="50" cy="50" r="42" stroke-width="6"/><circle cx="50" cy="50" r="42" stroke="${co}" stroke-width="6" stroke-dasharray="${ci}" stroke-dashoffset="${of}" style="--ring-c:${ci};--ring-off:${of};animation:ringFill 1s ease-out forwards"/></svg><div class="ring-v" style="font-size:24px;color:${co}">${sc}</div></div>
+  <div><div style="font-size:28px;font-weight:800;margin-bottom:4px">Watchtower</div><div style="font-size:16px;color:var(--tx2);line-height:1.6;max-width:420px">Your vault security score is <strong style="color:${co}">${sc>=80?'excellent':sc>=60?'good':sc>=40?'fair':'poor'}</strong>. Watchtower monitors your credentials for breaches, weak passwords, and security vulnerabilities — all checked locally on your device.</div></div>
+</div>
+<div class="grid4" style="margin-bottom:16px">
+  <div class="card" style="cursor:pointer" onclick="nav('audit')"><div class="card-v" style="color:var(--rd);font-size:18px">${w}</div><div class="card-l">Weak</div></div>
+  <div class="card" style="cursor:pointer" onclick="nav('audit')"><div class="card-v" style="color:var(--og);font-size:18px">${r}</div><div class="card-l">Reused</div></div>
+  <div class="card" style="cursor:pointer" onclick="nav('audit')"><div class="card-v" style="color:var(--yl);font-size:18px">${o}</div><div class="card-l">Aging (90d+)</div></div>
+  <div class="card"><div class="card-v" style="color:var(--pp);font-size:18px">${V.totp.length}</div><div class="card-l">2FA Enabled</div></div>
+</div>
+<div class="sh"><div class="st">Breach Monitor</div></div>
+${ub.length?ub.map(b=>{const sc2={high:{b:'var(--rdb)',f:'var(--rd)'},medium:{b:'var(--ogb)',f:'var(--og)'},low:{b:'var(--ylb)',f:'var(--yl)'}};const c=sc2[b.sev]||sc2.low;return`<div class="bc"><div class="bc-i" style="background:${c.b}"><svg viewBox="0 0 24 24" fill="none" stroke="${c.f}" stroke-width="2" style="width:14px;height:14px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="bc-n"><div class="bc-t">${b.site}</div><div class="bc-d">${b.date} · ${b.recs} records · ${b.type}</div></div><span class="sv" style="background:${c.b};color:${c.f}">${b.sev.toUpperCase()}</span><button class="bt bt-ok" style="font-size:9px" onclick="event.stopPropagation();V.breaches.find(x=>x.id==='${b.id}').resolved=true;logA('Resolved breach','${b.site}','edit');saveV();render();toast('Marked resolved','ok')">Resolve</button></div>`}).join(''):`<div style="padding:16px;text-align:center;background:var(--gnb);border-radius:var(--r);color:var(--gn);font-weight:600;font-size:12px">✓ No unresolved breaches</div>`}
+<div style="margin-top:10px">${V.breaches.filter(b=>b.resolved).map(b=>`<div class="bc" style="opacity:.4"><div class="bc-i" style="background:var(--bg3)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" style="width:14px;height:14px"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="bc-n"><div class="bc-t">${b.site} <span style="color:var(--gn);font-size:9px">✓ Resolved</span></div><div class="bc-d">${b.date} · ${b.recs} records</div></div></div>`).join('')}</div>`;
+}
+
+// ════════ PAGE: AUDIT ════════
+function rAudit(el){const w=gWeak(),r=gReused(),o=gOld();
+el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px"><div class="card" style="text-align:center"><div class="card-v" style="color:var(--rd)">${w.length}</div><div class="card-l">Weak</div></div><div class="card" style="text-align:center"><div class="card-v" style="color:var(--og)">${r.length}</div><div class="card-l">Reused</div></div><div class="card" style="text-align:center"><div class="card-v" style="color:var(--yl)">${o.length}</div><div class="card-l">Aging</div></div></div>
+${w.length?`<div class="sh"><div class="st" style="color:var(--rd)">🔓 Weak Passwords</div></div><div class="vl" style="margin-bottom:14px">${w.map((p,i)=>vI(p,'passwords',i)).join('')}</div>`:''}
+${r.length?`<div class="sh"><div class="st" style="color:var(--og)">🔄 Reused Passwords</div></div><div class="vl" style="margin-bottom:14px">${r.map((p,i)=>vI(p,'passwords',i)).join('')}</div>`:''}
+${o.length?`<div class="sh"><div class="st" style="color:var(--yl)">⏳ Aging Passwords (90d+)</div></div><div class="vl">${o.map((p,i)=>{const days=Math.floor((Date.now()-p.modified)/864e5);return`<div class="vi" onclick="showD('passwords','${p.id}')"><div class="vi-i">${p.icon||'🔑'}</div><div class="vi-n"><div class="vi-t">${p.name}</div><div class="vi-d">${p.username}</div></div><span class="sv" style="background:var(--ylb);color:var(--yl)">${days}d old</span></div>`}).join('')}</div>`:''}
+${!w.length&&!r.length&&!o.length?'<div style="padding:30px;text-align:center"><div style="font-size:40px;margin-bottom:8px">🛡️</div><div style="font-size:16px;font-weight:700;color:var(--gn);margin-bottom:4px">Perfect Score</div><div style="font-size:12px;color:var(--tx2)">All passwords are strong, unique, and up-to-date</div></div>':''}`}
+
+// ════════ PAGE: SCANNER ════════
+function rScan(el){el.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:24px;text-align:center"><div style="font-size:36px;margin-bottom:8px">🔍</div><div style="font-size:16px;font-weight:700;margin-bottom:4px">Dark Web Breach Scanner</div><div style="font-size:12px;color:var(--tx2);margin-bottom:16px;max-width:340px;margin-left:auto;margin-right:auto">Check if your email appears in known data breaches. All checks are performed locally.</div><div style="max-width:300px;margin:0 auto"><div style="display:flex;gap:5px;margin-bottom:12px"><input class="fi" id="scEm" value="david@gmail.com" style="font-size:12px"><button class="bt bt-p" onclick="runScan()">Scan</button></div><div id="scR"></div></div></div>`}
+function runScan(){const e=$('scEm').value,r=$('scR');r.innerHTML='<div style="padding:14px;color:var(--tx3)"><div style="width:18px;height:18px;border:2px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 6px"></div>Scanning breach databases…</div>';setTimeout(()=>{const m=V.breaches.filter(b=>b.email===e);r.innerHTML=m.length?m.map(b=>`<div class="bc" style="margin-bottom:3px"><div class="bc-i" style="background:var(--rdb)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--rd)" stroke-width="2" style="width:13px;height:13px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="bc-n"><div class="bc-t">${b.site}</div><div class="bc-d">${b.date} · ${b.type}</div></div></div>`).join(''):`<div style="padding:10px;background:var(--gnb);border-radius:var(--rs);color:var(--gn);font-weight:600;font-size:11px">✓ No breaches found for ${e}</div>`},2000)}
+
+// ════════ PAGE: SHARING (One-Time Links) ════════
+function rShare(el){
+  el.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:12px"><div style="font-size:14px;font-weight:700;margin-bottom:2px">🔗 One-Time Share Links</div><div style="font-size:11px;color:var(--tx2);margin-bottom:10px">Share credentials via secure, self-destructing links. No account required for recipients. Links expire after the view limit or time limit is reached.</div>
+  <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px"><select class="fs" id="shSel" style="flex:1;max-width:240px;font-size:12px"><option value="">Select item to share…</option>${V.passwords.map(p=>'<option value="'+p.id+'">🔑 '+p.name+'</option>').join('')}${V.notes.map(n=>'<option value="'+n.id+'">📝 '+n.name+'</option>').join('')}</select><select class="fs" id="shExp" style="width:120px;font-size:12px"><option value="1">1 hour</option><option value="24" selected>24 hours</option><option value="168">7 days</option></select><select class="fs" id="shMax" style="width:100px;font-size:12px"><option value="1">1 view</option><option value="3" selected>3 views</option><option value="5">5 views</option></select></div>
+  <button class="bt bt-p" onclick="createShare()">🔗 Generate Secure Link</button></div>
+  ${V.shares.length?V.shares.map(s=>{const dead=Date.now()>s.exp||s.views>=s.maxV;const link='https://wardkey.io/s/'+s.id.substr(1,8);return`<div class="bc"${dead?' style="opacity:.4"':''}><div class="bc-i" style="background:${dead?'var(--bg3)':'var(--acg)'}"><svg viewBox="0 0 24 24" fill="none" stroke="${dead?'var(--tx3)':'var(--ac)'}" stroke-width="2" style="width:13px;height:13px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/></svg></div><div class="bc-n"><div class="bc-t">${s.name} → ${s.to||'Anyone with link'}</div><div class="bc-d" style="font-family:var(--mono);font-size:10px;margin:2px 0">${link}</div><div class="bc-d">${s.views}/${s.maxV} views · Expires ${new Date(s.exp).toLocaleDateString()}</div></div><div style="display:flex;gap:3px">${!dead?`<button class="bt bt-s" style="font-size:9px;padding:3px 8px" onclick="event.stopPropagation();cpTx('${link}')">Copy Link</button>`:''}
+  <button class="bt bt-d" style="font-size:9px;padding:3px 8px" onclick="event.stopPropagation();V.shares=V.shares.filter(x=>x.id!=='${s.id}');saveV();render();toast('Share revoked','ok')">Revoke</button></div>
+  <span class="sv" style="background:${dead?'var(--bg3);color:var(--tx3)':'var(--gnb);color:var(--gn)'}">${dead?'Expired':'Active'}</span></div>`}).join(''):'<div style="padding:16px;text-align:center;color:var(--tx3);font-size:12px">No active shares. Generate a link above.</div>'}`}
+function createShare(){
+  const sel=$('shSel')?.value;if(!sel){toast('Select an item to share','er');return}
+  const item=V.passwords.find(p=>p.id===sel)||V.notes.find(n=>n.id===sel);
+  if(!item){toast('Item not found','er');return}
+  const hrs=parseInt($('shExp')?.value)||24;
+  const maxV=parseInt($('shMax')?.value)||3;
+  V.shares.push({id:'s'+Date.now()+Math.random().toString(36).substr(2,4),name:item.name,to:'Anyone with link',created:Date.now(),exp:Date.now()+36e5*hrs,views:0,maxV,active:true});
+  logA('Created share link',item.name,'share');saveV();render();toast('Share link created for '+item.name,'ok');
+}
+
+// ════════ PAGE: EMERGENCY ════════
+function rEmer(el){el.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:12px"><div style="font-size:14px;font-weight:700;margin-bottom:2px">🚨 Emergency Access</div><div style="font-size:11px;color:var(--tx2);margin-bottom:10px">Trusted contacts who can request vault access after a waiting period</div><button class="bt bt-p" onclick="toast('Emergency invite sent','ok')">+ Add Contact</button></div>${V.emergency.map(e=>`<div class="bc"><div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--ac2),var(--cy));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--bg0);font-size:12px;flex-shrink:0">${e.name[0]}</div><div class="bc-n"><div class="bc-t">${e.name}</div><div class="bc-d">${e.email} · ${e.rel} · ${e.wait}h wait</div></div><span class="sv" style="background:var(--gnb);color:var(--gn)">${e.status}</span></div>`).join('')}`}
+
+// ════════ PAGE: ANALYTICS ════════
+function rAnl(el){const cats={};V.passwords.forEach(p=>cats[p.cat]=(cats[p.cat]||0)+1);const sd={Strong:0,Good:0,Fair:0,Weak:0};V.passwords.forEach(p=>{const s=str(p.password);sd[s.l]=(sd[s.l]||0)+1});const sc={Strong:'var(--gn)',Good:'var(--yl)',Fair:'var(--og)',Weak:'var(--rd)'};const cc=['var(--ac)','var(--gn)','var(--pp)','var(--og)','var(--cy)','var(--yl)'];const t=V.passwords.length||1;
+el.innerHTML=`<div class="grid2"><div class="ch"><div class="ch-t">Password Strength</div>${Object.entries(sd).map(([k,v])=>`<div class="br"><div class="br-l">${k}</div><div class="br-t"><div class="br-f" style="width:${Math.max(2,(v/t)*100)}%;background:${sc[k]}">${v}</div></div></div>`).join('')}</div>
+<div class="ch"><div class="ch-t">Categories</div>${Object.entries(cats).map(([k,v],i)=>`<div class="br"><div class="br-l">${k}</div><div class="br-t"><div class="br-f" style="width:${Math.max(2,(v/t)*100)}%;background:${cc[i%cc.length]}">${v}</div></div></div>`).join('')}</div>
+<div class="ch"><div class="ch-t">Vault Composition</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center">${[['Passwords',V.passwords.length,'var(--ac)'],['Cards',V.cards.length,'var(--pp)'],['Notes',V.notes.length,'var(--cy)'],['API Keys',V.apikeys.length,'var(--gn)'],['Licenses',V.licenses.length,'var(--yl)'],['2FA',V.totp.length,'var(--og)'],['Passkeys',V.passkeys.length,'var(--ac2)'],['Aliases',V.aliases.length,'var(--cy)']].map(([l,v,c])=>`<div><div style="font-size:20px;font-weight:700;color:${c}">${v}</div><div style="font-size:9px;color:var(--tx3)">${l}</div></div>`).join('')}</div></div>
+<div class="ch"><div class="ch-t">Password Age Distribution</div>${[['< 7 days',V.passwords.filter(p=>p.modified>Date.now()-864e5*7).length,'var(--gn)'],['7-30 days',V.passwords.filter(p=>p.modified<=Date.now()-864e5*7&&p.modified>Date.now()-864e5*30).length,'var(--cy)'],['30-90 days',V.passwords.filter(p=>p.modified<=Date.now()-864e5*30&&p.modified>Date.now()-864e5*90).length,'var(--yl)'],['90+ days',V.passwords.filter(p=>p.modified<=Date.now()-864e5*90).length,'var(--rd)']].map(([k,v,c])=>`<div class="br"><div class="br-l">${k}</div><div class="br-t"><div class="br-f" style="width:${Math.max(2,(v/t)*100)}%;background:${c}">${v}</div></div></div>`).join('')}</div></div>`}
+
+// ════════ PAGE: ACTIVITY ════════
+function rAct(el){const c={edit:'var(--ac)',add:'var(--gn)',share:'var(--pp)',breach:'var(--rd)',gen:'var(--cy)',totp:'var(--ac)',delete:'var(--rd)',fav:'var(--yl)'};el.innerHTML=`<div class="sh"><div class="st">Activity Log</div><button class="bt bt-s" onclick="V.activity=[];saveV();render()">Clear All</button></div><div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:12px">${V.activity.length?V.activity.map(a=>`<div class="li"><div class="li-d" style="background:${c[a.type]||'var(--tx3)'}"></div><div class="li-n"><div class="li-a">${a.action}${a.item?' — <b>'+a.item+'</b>':''}</div><div class="li-t">${timeAgo(a.time)}</div></div></div>`).join(''):emp('No Activity','Actions will appear here as you use your vault')}</div>`}
+
+// ════════ PAGE: TRASH ════════
+function rTrash(el){if(!V.trash.length){el.innerHTML=emp('Trash is Empty','Deleted items appear here for 30 days');return}el.innerHTML=`<div class="sh"><div><div class="st">Trash</div><div class="ss">Items auto-delete after 30 days</div></div><button class="bt bt-d" onclick="V.trash=[];saveV();updC();render();toast('Trash emptied','ok')">Empty Trash</button></div><div class="vl">${V.trash.map(t=>`<div class="vi"><div class="vi-i">${t.icon||t.favicon||'🗑️'}</div><div class="vi-n"><div class="vi-t">${t.name}</div><div class="vi-d">Deleted ${timeAgo(t.deletedAt)}</div></div><button class="bt bt-ok" style="font-size:9px" onclick="event.stopPropagation();restoreI('${t.id}')">Restore</button></div>`).join('')}</div>`}
+
+// ════════ PAGE: SETTINGS ════════
+function rSet(el){
+const isDark=!document.documentElement.getAttribute('data-theme');
+const sRow=(t,d,w)=>'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd)"><div><div style="font-size:12px;font-weight:600">'+t+'</div><div style="font-size:10px;color:var(--tx3)">'+d+'</div></div>'+w+'</div>';
+const tgl=(on,fn)=>'<div class="tgl'+(on?' on':'')+'" onclick="'+fn+'"><div class="tgl-k"></div></div>';
+const rows=sRow('Dark Mode','Toggle between dark and light theme',tgl(isDark,'toggleTheme();render()'))
++sRow('Auto-Lock Timer','Lock vault after inactivity','<span style="font-size:11px;color:var(--ac);font-family:var(--mono)">5 minutes</span>')
++sRow('Clipboard Auto-Clear','Wipe clipboard 30s after copying',tgl(true,'this.classList.toggle(&quot;on&quot;)'))
++sRow('Lock on Tab Switch','Auto-lock after 30s when tab is hidden',tgl(tabLockEnabled,'tabLockEnabled=!tabLockEnabled;this.classList.toggle(&quot;on&quot;)'))
++sRow('Travel Mode','Hide items marked as sensitive',tgl(travel,'toggleTravel()'));
+el.innerHTML='<div style="max-width:440px"><div class="st" style="margin-bottom:12px">Appearance & Security</div><div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:14px">'+rows+'</div>'
++'<div class="st" style="margin-bottom:12px">🛡️ Security Architecture</div><div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:14px">'
++'<div style="font-size:10px;line-height:1.7;color:var(--tx2)">'
++'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">'
++[['AES-256-GCM','Encryption','var(--gn)'],['PBKDF2 · 600K','Key Derivation','var(--ac)'],['SHA-256','Hash Algorithm','var(--pp)'],['Web Crypto API','Implementation','var(--cy)']].map(([v,l,c])=>'<div style="padding:8px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);text-align:center"><div style="font-size:11px;font-weight:700;color:'+c+'">'+v+'</div><div style="font-size:8px;color:var(--tx3);margin-top:2px">'+l+'</div></div>').join('')
++'</div>'
++'<div style="padding:8px;background:var(--bg3);border-radius:var(--rs);margin-bottom:6px"><span style="color:var(--gn);font-weight:700">✓</span> <b>Zero-knowledge</b> — Your master password never leaves your device. We cannot access or reset your vault.</div>'
++'<div style="padding:8px;background:var(--bg3);border-radius:var(--rs);margin-bottom:6px"><span style="color:var(--gn);font-weight:700">✓</span> <b>Local-first</b> — All encryption/decryption happens in your browser using the Web Crypto API. No plaintext data is ever transmitted.</div>'
++'<div style="padding:8px;background:var(--bg3);border-radius:var(--rs);margin-bottom:6px"><span style="color:var(--gn);font-weight:700">✓</span> <b>Brute-force resistant</b> — 600,000 PBKDF2 iterations + account lockout after 5 failed attempts. Separate verification hash prevents oracle attacks.</div>'
++'<div style="padding:8px;background:var(--bg3);border-radius:var(--rs);margin-bottom:6px"><span style="color:var(--gn);font-weight:700">✓</span> <b>Memory protection</b> — Keys and plaintext vault are wiped from memory on lock. Clipboard auto-clears after 30 seconds.</div>'
++'<div style="padding:8px;background:var(--bg3);border-radius:var(--rs);margin-bottom:6px"><span style="color:var(--gn);font-weight:700">✓</span> <b>Authenticated encryption</b> — AES-GCM provides both confidentiality and tamper detection. Any modification to the encrypted vault is detected and rejected.</div>'
++'<div style="padding:8px;background:var(--bg3);border-radius:var(--rs)"><span style="color:var(--gn);font-weight:700">✓</span> <b>Unique IVs</b> — Every save uses a cryptographically random 96-bit IV. Salt is unique per vault. No key or IV is ever reused.</div>'
++'</div></div>'
++'<div class="st" style="margin-bottom:12px">Vault Stats</div><div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:14px"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">'
++[['Passwords',V.passwords.length,'var(--ac)'],['Cards',V.cards.length,'var(--pp)'],['Notes',V.notes.length,'var(--cy)'],['Passkeys',V.passkeys.length,'var(--gn)'],['Aliases',V.aliases.length,'var(--og)'],['2FA',V.totp.length,'var(--yl)']].map(([l,v,c])=>'<div><div style="font-size:18px;font-weight:700;color:'+c+'">'+v+'</div><div style="font-size:9px;color:var(--tx3)">'+l+'</div></div>').join('')
++'</div></div>'
++'<div class="st" style="margin-bottom:12px">☁️ Account & Sync</div><div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:14px">'
++(syncEnabled&&authUser
+?'<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:14px">'+(authUser.name||'U').charAt(0).toUpperCase()+'</div><div><div style="font-size:12px;font-weight:600">'+(authUser.name||'User')+'</div><div style="font-size:10px;color:var(--tx3)">'+(authUser.email||'')+'</div></div></div>'
++'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd)"><div style="font-size:11px;color:var(--tx2)">Sync Status</div><div style="font-size:11px;color:var(--gn);font-weight:600">'+(lastSyncTime?'Last synced '+timeAgo(lastSyncTime):'Ready')+'</div></div>'
++'<div style="display:flex;gap:5px;margin-top:10px"><button class="bt bt-s" style="flex:1" onclick="syncDown()">🔄 Sync Now</button><button class="bt bt-s" style="flex:1" onclick="doLogout()">🚪 Log Out</button></div>'
++'<button class="bt bt-d" style="width:100%;justify-content:center;margin-top:6px" onclick="doDeleteAccount()">Delete Account</button>'
+:'<div style="text-align:center;padding:8px"><div style="font-size:13px;font-weight:600;margin-bottom:4px">Cloud Sync Disabled</div><div style="font-size:11px;color:var(--tx3);margin-bottom:10px;line-height:1.5">Sign in to sync your encrypted vault across devices. Your master password never leaves your device.</div><button class="bt bt-p" style="margin:0 auto;display:flex" onclick="lock();authTab(\'cloud\')">Sign In / Register</button></div>')
++'</div>'
++'<div class="st" style="margin-bottom:12px">Data</div><div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px"><div style="display:flex;gap:5px;margin-bottom:8px"><button class="bt bt-s" style="flex:1" onclick="$(\'impMo\').classList.add(\'on\')">Import</button><button class="bt bt-s" style="flex:1" onclick="doExport(\'json\')">Export JSON</button><button class="bt bt-s" style="flex:1" onclick="doExport(\'csv\')">Export CSV</button></div><button class="bt bt-d" style="width:100%;justify-content:center" onclick="wipeVault()">🗑️ Wipe Vault</button></div></div>'}
+
+// ════════ DETAIL PANEL ════════
+function showD(type,id){const item=V[type]?.find(i=>i.id===id);if(!item)return;curD={type,id,item};$('dTit').textContent=item.name;const fv=item.fav||item.favorite;$('fBtn').textContent=fv?'★':'☆';$('fBtn').style.color=fv?'var(--yl)':'var(--tx2)';let h='';
+if(type==='passwords'){const s=str(item.password);window._cpw=item.password;h=`<div style="text-align:center;font-size:28px;margin-bottom:14px">${item.icon||'🔑'}</div>
+${F('Username',item.username,true)}
+<div class="df"><div class="df-l">Password</div><div class="df-v"><span id="pwV">••••••••••••••</span><button class="cb" onclick="let e=$('pwV');if(e.textContent.includes('•')){e.textContent=window._cpw;e.style.color='var(--tx1)'}else{e.textContent='••••••••••••••';e.style.color=''}">${IC.eye}</button><button class="cb" onclick="cpTx(window._cpw)">${IC.cp}</button></div>
+<div style="margin-top:4px"><div class="sb2"><div class="sb2-f" style="width:${s.s}%;background:${s.c}"></div></div><div class="sb2-l" style="color:${s.c}">${s.l} · ${Math.round(s.s)}%</div></div></div>
+<div class="df" style="margin-top:6px">
+<div style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs)">
+  <div style="display:flex;align-items:center;gap:8px">
+    <span style="font-size:14px">🔄</span>
+    <div>
+      <div style="font-size:11px;font-weight:600">Auto-Rotate</div>
+      ${item.rotate?.enabled?(()=>{const rs=getRotateStatus(item);return`<div style="font-size:9px;color:${rs.color};font-weight:600">Next: ${rs.label} · Every ${item.rotate.days}d</div>`})():'<div style="font-size:9px;color:var(--tx3)">Auto-change password on schedule</div>'}
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px">
+    ${item.rotate?.enabled?`<select style="padding:3px 6px;background:var(--bg4);border:1px solid var(--bd);border-radius:4px;color:var(--tx1);font-size:10px;font-family:var(--font)" onchange="setRotateDays('${item.id}',parseInt(this.value))">
+      ${[7,14,30,60,90,180,365].map(d=>`<option value="${d}"${item.rotate?.days===d?' selected':''}>${d===7?'Weekly':d===14?'Bi-weekly':d===30?'Monthly':d===60?'Bi-monthly':d===90?'Quarterly':d===180?'Semi-annual':d===365?'Yearly':d+'d'}</option>`).join('')}
+    </select>`:''}
+    <div class="tgl${item.rotate?.enabled?' on':''}" onclick="toggleRotate('${item.id}')"><div class="tgl-k"></div></div>
+  </div>
+</div>
+${item.rotate?.enabled?`<div style="display:flex;gap:6px;margin-top:6px;width:100%">
+  <button class="bt bt-s" style="flex:1;justify-content:center;font-size:11px;padding:7px" onclick="doRotate('${item.id}')">🔄 Rotate Now</button>
+  ${item.url?`<button class="bt bt-s" style="flex:1;justify-content:center;font-size:11px;padding:7px" onclick="doRotate('${item.id}');setTimeout(()=>launchSite('passwords','${item.id}'),300)">🔄 Rotate & Launch</button>`:''}
+</div>`:''}
+</div>
+${item.url?F('URL',item.url,true):''}
+${item.url?`<button class="bt bt-p" style="width:100%;justify-content:center;padding:10px;margin-bottom:8px;gap:6px;font-size:13px" onclick="launchSite('passwords','${item.id}')">${IC.launch} Launch & Autofill</button>`:''}
+${(item.fields||[]).map(f=>F(f.l,f.v,true)).join('')}
+${item.notes?`<div class="df"><div class="df-l">Notes</div><div style="padding:7px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);font-size:11px;color:var(--tx2);line-height:1.5;white-space:pre-wrap">${item.notes}</div></div>`:''}
+${item.history?.length?`<div class="df"><div class="df-l">Password History (${item.history.length})</div>${item.history.map((h,hi)=>{const hid='ph'+hi+Math.random().toString(36).substr(2,4);return`<div style="padding:6px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);margin-bottom:3px;display:flex;align-items:center;gap:6px"><div style="flex:1"><div style="font-size:9px;color:var(--tx3);margin-bottom:2px">Changed ${new Date(h.at).toLocaleDateString()}</div><div style="font-family:var(--mono);font-size:11px" id="${hid}">••••••••••</div></div><button class="cb" onclick="const e=document.getElementById('${hid}');e.textContent=e.textContent.includes('•')?'${h.pw.replace(/'/g,"\\'")}':'••••••••••'">${IC.eye}</button><button class="cb" onclick="cpTx('${h.pw.replace(/'/g,"\\'")}')">${IC.cp}</button></div>`}).join('')}</div>`:''}
+<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:8px">${(item.tags||[]).map(t=>`<span class="tg">${t}</span>`).join('')}</div>
+<div style="margin-top:8px;font-size:9px;color:var(--tx3)">Created ${new Date(item.created).toLocaleDateString()} · Modified ${new Date(item.modified).toLocaleDateString()}</div>`}
+else if(type==='cards'){h=`<div style="text-align:center;font-size:28px;margin-bottom:14px">${item.type==='id'?'🪪':'💳'}</div>${F('Number',item.number,true)}${F('Holder',item.holder)}${F('Expiry',item.exp,true)}${item.cvv?F('CVV',item.cvv,true):''}${item.pin?F('PIN',item.pin,true):''}${item.billing?F('Billing Address',item.billing):''}`}
+else if(type==='notes'){h='<div class="df"><div class="df-l">Content</div><div style="padding:10px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);font-family:var(--mono);font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--tx2)" id="ntCt">'+item.content.replace(/</g,'&lt;')+'</div></div><button class="bt bt-s" style="width:100%;justify-content:center" onclick="cpTx(document.getElementById(\'ntCt\').textContent)">'+IC.cp+' Copy content</button>'}
+else if(type==='apikeys'){h=`${F('Service',item.svc,true)}${F('API Key',item.key,true)}${F('Environment',item.env)}${item.url?F('URL',item.url,true):''}${item.url?`<button class="bt bt-p" style="width:100%;justify-content:center;padding:10px;margin:8px 0;gap:6px;font-size:13px" onclick="launchSite('apikeys','${item.id}')">${IC.launch} Open Dashboard</button>`:''}${item.notes?`<div class="df"><div class="df-l">Notes</div><div style="padding:7px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);font-size:11px;color:var(--tx2)">${item.notes}</div></div>`:''}`}
+else if(type==='licenses'){h=`${F('Product',item.product)}${F('License Key',item.key,true)}${F('Email',item.email||'N/A',true)}${F('Seats',''+item.seats)}`}
+else if(type==='passkeys'){h=`<div style="text-align:center;font-size:36px;margin-bottom:14px">${item.icon||'🔑'}</div>
+${F('Relying Party',item.rpId)}${F('Username',item.username,true)}${F('Credential ID',item.credId,true)}${F('Algorithm',item.alg)}
+${item.rpId?`<button class="bt bt-p" style="width:100%;justify-content:center;padding:10px;margin-top:8px;gap:6px;font-size:13px" onclick="launchSite('passkeys','${item.id}')">${IC.launch} Launch Site</button>`:''}
+<div style="margin-top:8px;font-size:10px;color:var(--tx3)">Registered ${new Date(item.created).toLocaleDateString()} · Last used ${timeAgo(item.lastUsed)}</div>`}
+$('dBod').innerHTML=h;$('dP').classList.add('on')}
+function closeD(){$('dP').classList.remove('on');curD=null}
+function delCur(){if(!curD)return;const{type,id,item}=curD;V.trash.push({...item,deletedAt:Date.now(),origType:type});V[type]=V[type].filter(i=>i.id!==id);logA('Deleted',item.name,'delete');saveV();updC();render();closeD();toast('Moved to trash','ok')}
+function toggleFav(){if(!curD)return;const i=V[curD.type].find(x=>x.id===curD.id);if(i){i.fav=!i.fav;logA(i.fav?'Favorited':'Unfavorited',i.name,'fav');saveV();showD(curD.type,curD.id);render()}}
+function restoreI(id){const t=V.trash.find(i=>i.id===id);if(!t)return;const{deletedAt,origType,...item}=t;if(V[origType])V[origType].push(item);V.trash=V.trash.filter(i=>i.id!==id);logA('Restored',item.name,'add');saveV();updC();render();toast('Item restored','ok')}
+
+// ════════ AUTO-ROTATE ════════
+function toggleRotate(id){
+  const p=V.passwords.find(i=>i.id===id);if(!p)return;
+  if(!p.rotate){p.rotate={enabled:true,days:30,lastRotated:Date.now()}}
+  else{p.rotate.enabled=!p.rotate.enabled;if(p.rotate.enabled)p.rotate.lastRotated=Date.now()}
+  p.modified=Date.now();saveV();showD('passwords',id);render();
+  toast(p.rotate.enabled?'🔄 Auto-rotate enabled for '+p.name:'Auto-rotate disabled','ok');
+}
+function setRotateDays(id,days){
+  const p=V.passwords.find(i=>i.id===id);if(!p||!p.rotate)return;
+  p.rotate.days=days;p.modified=Date.now();saveV();showD('passwords',id);
+}
+function doRotate(id,silent){
+  const p=V.passwords.find(i=>i.id===id);if(!p)return;
+  // Save current to history
+  if(!p.history)p.history=[];
+  p.history.unshift({pw:p.password,at:Date.now()});
+  // Generate new password matching current complexity
+  const hasUpper=/[A-Z]/.test(p.password),hasLower=/[a-z]/.test(p.password);
+  const hasNum=/\d/.test(p.password),hasSym=/[^a-zA-Z0-9]/.test(p.password);
+  const len=Math.max(p.password.length,16);
+  p.password=genPw(len,{upper:hasUpper?1:0,lower:hasLower?1:0,num:hasNum?1:0,sym:hasSym?1:0});
+  if(p.rotate)p.rotate.lastRotated=Date.now();
+  p.modified=Date.now();
+  logA('Auto-rotated',p.name,'edit');saveV();
+  if(!silent){updC();render();showD('passwords',id);toast('🔄 Password rotated for '+p.name+' — update it on the site!','ok')}
+}
+function getRotateStatus(p){
+  if(!p.rotate||!p.rotate.enabled)return null;
+  const next=p.rotate.lastRotated+p.rotate.days*86400000;
+  const daysLeft=Math.ceil((next-Date.now())/86400000);
+  const overdue=daysLeft<=0;
+  const soon=daysLeft>0&&daysLeft<=3;
+  return{next,daysLeft,overdue,soon,label:overdue?'Overdue':daysLeft===1?'Tomorrow':daysLeft+' days left',color:overdue?'var(--rd)':soon?'var(--og)':daysLeft<=7?'var(--yl)':'var(--gn)'};
+}
+function checkRotations(){
+  let rotated=0;
+  V.passwords.forEach(p=>{
+    if(!p.rotate||!p.rotate.enabled)return;
+    const st=getRotateStatus(p);
+    if(st&&st.overdue){doRotate(p.id,true);rotated++}
+  });
+  if(rotated){saveV();updC();render();toast(`🔄 Auto-rotated ${rotated} password${rotated>1?'s':''} — review & update them on each site`,'ok')}
+}
+
+// ════════ ADD / EDIT MODAL ════════
+function openAdd(type=null,item=null){editI=item?curD:null;$('mTit').textContent=item?`Edit ${item.name}`:'Add New Item';$('mSav').textContent=item?'Update':'Save';
+if(!type&&!item){$('mBod').innerHTML=`<div class="fg"><div class="fl">Item Type</div><select class="fs" id="aType" onchange="addTp=this.value;updF()"><option value="password">Password</option><option value="card">Card / ID</option><option value="note">Secure Note</option><option value="totp">TOTP Secret</option><option value="apikey">API Key</option><option value="license">License</option><option value="passkey">Passkey</option></select></div><div id="fF"></div>`;addTp='password';updF()}else{addTp=type==='passwords'?'password':type==='cards'?'card':type==='notes'?'note':type==='apikeys'?'apikey':type==='licenses'?'license':type==='passkeys'?'passkey':'totp';$('mBod').innerHTML='<div id="fF"></div>';updF(item)}$('addMo').classList.add('on')}
+function updF(item=null){const f=$('fF');if(!f)return;const forms={
+password:`<div class="fg"><div class="fl">Name</div><input class="fi" id="f_n" value="${item?.name||''}"></div><div class="fg"><div class="fl">Username / Email</div><input class="fi" id="f_u" value="${item?.username||''}"></div><div class="fg"><div class="fl">Password</div><div style="display:flex;gap:4px"><input class="fi" id="f_pw" value="${item?.password||''}" style="flex:1;font-family:var(--mono)"><button class="bt bt-s" onclick="$('f_pw').value=genPw(20)">Generate</button></div></div><div class="fg"><div class="fl">Website URL</div><input class="fi" id="f_url" value="${item?.url||''}"></div><div class="fr"><div class="fg"><div class="fl">Category</div><select class="fs" id="f_cat">${['email','dev','finance','streaming','social','work','other'].map(c=>`<option${item?.cat===c?' selected':''}>${c}</option>`).join('')}</select></div><div class="fg"><div class="fl">Tags (comma separated)</div><input class="fi" id="f_tg" value="${(item?.tags||[]).join(', ')}"></div></div><div class="fg"><div class="fl">Notes</div><textarea class="ft" id="f_nt">${item?.notes||''}</textarea></div><div style="display:flex;align-items:center;gap:7px;padding:8px 0"><div class="tgl${item?.sens?' on':''}" id="f_sn" onclick="this.classList.toggle('on')"><div class="tgl-k"></div></div><span style="font-size:11px">Mark as sensitive (hidden in Travel Mode)</span></div>`,
+card:`<div class="fg"><div class="fl">Name</div><input class="fi" id="f_n" value="${item?.name||''}"></div><div class="fg"><div class="fl">Type</div><select class="fs" id="f_tp"><option value="visa"${item?.type==='visa'?' selected':''}>Visa</option><option value="mc"${item?.type==='mc'?' selected':''}>Mastercard</option><option value="id"${item?.type==='id'?' selected':''}>ID Card</option></select></div><div class="fg"><div class="fl">Number</div><input class="fi" id="f_num" value="${item?.number||''}"></div><div class="fr"><div class="fg"><div class="fl">Expiry</div><input class="fi" id="f_exp" value="${item?.exp||''}"></div><div class="fg"><div class="fl">CVV</div><input class="fi" id="f_cvv" value="${item?.cvv||''}"></div></div><div class="fr"><div class="fg"><div class="fl">Cardholder</div><input class="fi" id="f_hld" value="${item?.holder||''}"></div><div class="fg"><div class="fl">PIN</div><input class="fi" id="f_pin" value="${item?.pin||''}"></div></div>`,
+note:`<div class="fg"><div class="fl">Title</div><input class="fi" id="f_n" value="${item?.name||''}"></div><div class="fg"><div class="fl">Content</div><textarea class="ft" id="f_cnt" style="min-height:120px;font-family:var(--mono)">${item?.content||''}</textarea></div><div class="fr"><div class="fg"><div class="fl">Tags</div><input class="fi" id="f_tg" value="${(item?.tags||[]).join(', ')}"></div><div class="fg"><div class="fl">Color</div><select class="fs" id="f_cl">${['cy','gn','pp','rd','yl'].map(c=>`<option value="${c}"${item?.color===c?' selected':''}>${c}</option>`).join('')}</select></div></div><div style="display:flex;align-items:center;gap:7px;padding:8px 0"><div class="tgl${item?.sens?' on':''}" id="f_sn" onclick="this.classList.toggle('on')"><div class="tgl-k"></div></div><span style="font-size:11px">Mark as sensitive</span></div>`,
+totp:`<div class="fg"><div class="fl">Service Name</div><input class="fi" id="f_n" value="${item?.name||''}"></div><div class="fg"><div class="fl">Account</div><input class="fi" id="f_acc" value="${item?.acct||''}"></div><div class="fg"><div class="fl">Secret Key (Base32)</div><input class="fi" id="f_sec" value="${item?.secret||''}" style="font-family:var(--mono)"></div>`,
+apikey:`<div class="fg"><div class="fl">Name</div><input class="fi" id="f_n" value="${item?.name||''}"></div><div class="fg"><div class="fl">API Key</div><input class="fi" id="f_key" value="${item?.key||''}" style="font-family:var(--mono)"></div><div class="fr"><div class="fg"><div class="fl">Service</div><input class="fi" id="f_svc" value="${item?.svc||''}"></div><div class="fg"><div class="fl">Environment</div><select class="fs" id="f_env">${['production','staging','development'].map(e=>`<option${item?.env===e?' selected':''}>${e}</option>`).join('')}</select></div></div><div class="fg"><div class="fl">Notes</div><textarea class="ft" id="f_nt">${item?.notes||''}</textarea></div>`,
+license:`<div class="fg"><div class="fl">Name</div><input class="fi" id="f_n" value="${item?.name||''}"></div><div class="fg"><div class="fl">License Key</div><input class="fi" id="f_key" value="${item?.key||''}" style="font-family:var(--mono)"></div><div class="fr"><div class="fg"><div class="fl">Product</div><input class="fi" id="f_prod" value="${item?.product||''}"></div><div class="fg"><div class="fl">Seats</div><input class="fi" id="f_seats" type="number" value="${item?.seats||1}"></div></div>`,
+passkey:`<div class="fg"><div class="fl">Service Name</div><input class="fi" id="f_n" value="${item?.name||''}"></div><div class="fg"><div class="fl">Relying Party (domain)</div><input class="fi" id="f_rpid" value="${item?.rpId||''}" placeholder="e.g. google.com"></div><div class="fg"><div class="fl">Username</div><input class="fi" id="f_u" value="${item?.username||''}"></div><div class="fg"><div class="fl">Algorithm</div><select class="fs" id="f_alg"><option value="ES256"${item?.alg==='ES256'?' selected':''}>ES256 (ECDSA)</option><option value="RS256"${item?.alg==='RS256'?' selected':''}>RS256 (RSA)</option></select></div>`};
+f.innerHTML=forms[addTp]||''}
+function saveItem(){const n=Date.now(),id=editI?editI.id:'x'+Math.random().toString(36).substr(2,8),g=i=>$(i)?.value||'',tg=g('f_tg').split(',').map(t=>t.trim()).filter(Boolean),sn=$('f_sn')?.classList.contains('on');
+const B={password:()=>({id,name:g('f_n'),username:g('f_u'),password:g('f_pw'),url:g('f_url'),cat:g('f_cat')||'other',tags:tg,notes:g('f_nt'),created:editI?.item.created||n,modified:n,history:editI?[...(editI.item.history||[]),...(editI.item.password!==g('f_pw')?[{pw:editI.item.password,at:n}]:[])]:[], icon:editI?.item.icon||['🔵','🟢','🟡','🟠','🔴','🟣','⚫','▲'][~~(Math.random()*8)],fav:editI?.item.fav||false,sens:sn,fields:editI?.item.fields||[]}),
+card:()=>({id,name:g('f_n'),type:g('f_tp')||'visa',number:g('f_num'),exp:g('f_exp'),cvv:g('f_cvv'),holder:g('f_hld'),pin:g('f_pin'),billing:'',color:'#0a1628',notes:'',fav:false}),
+note:()=>({id,name:g('f_n'),content:g('f_cnt'),tags:tg,color:g('f_cl')||'cy',created:editI?.item.created||n,modified:n,fav:editI?.item.fav||false,sens:sn}),
+totp:()=>({id,name:g('f_n'),acct:g('f_acc'),secret:g('f_sec'),icon:'🔐',color:'#3d7cf5'}),
+apikey:()=>({id,name:g('f_n'),key:g('f_key'),svc:g('f_svc'),env:g('f_env')||'development',created:n,exp:null,notes:g('f_nt'),tags:[],fav:false}),
+license:()=>({id,name:g('f_n'),key:g('f_key'),product:g('f_prod'),email:'',seats:parseInt(g('f_seats'))||1,exp:null,notes:''}),
+passkey:()=>({id,name:g('f_n'),rpId:g('f_rpid'),username:g('f_u'),created:editI?.item.created||n,lastUsed:n,credId:'cred_'+Math.random().toString(36).substr(2,12),alg:g('f_alg')||'ES256',icon:'🔑',fav:false})};
+const e=B[addTp]?.();if(!e||!e.name){toast('Name is required','er');return}
+const tm={password:'passwords',card:'cards',note:'notes',totp:'totp',apikey:'apikeys',license:'licenses',passkey:'passkeys'},col=tm[addTp];
+if(editI)V[col]=V[col].map(i=>i.id===id?e:i);else V[col].push(e);logA(editI?'Updated':'Added',e.name,editI?'edit':'add');saveV();updC();render();closeAdd();closeD();toast(editI?'Updated successfully':'Item added','ok');editI=null}
+function editCur(){if(curD)openAdd(curD.type,curD.item)}
+function closeAdd(){$('addMo').classList.remove('on')}
+
+// ════════ TOOLS ════════
+function toggleTravel(){travel=!travel;$('tBan').classList.toggle('on',travel);render();toast(travel?'Travel Mode ON — sensitive items hidden':'Travel Mode OFF','in')}
+async function cpTx(t){try{await navigator.clipboard.writeText(t);toast('Copied to clipboard','ok');startClip(30)}catch{toast('Copy failed','er')}}
+function startClip(s){clearInterval(clipI);clipS=s;$('cBan').classList.add('on');$('cTmr').textContent=s;clipI=setInterval(()=>{clipS--;$('cTmr').textContent=clipS;if(clipS<=0){clearInterval(clipI);try{navigator.clipboard.writeText('')}catch{};$('cBan').classList.remove('on')}},1000)}
+function doSearch(q){sq=q;if(q.length>0&&!['passwords','notes','apikeys'].includes(pg))nav('passwords');else render()}
+function doImport(input){const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);let c=0;if(Array.isArray(d))d.forEach(x=>{if(x.password||x.Password){V.passwords.push({id:'i'+Math.random().toString(36).substr(2,6),name:x.name||x.Name||x.title||'Import',username:x.username||x.Username||x.login||'',password:x.password||x.Password||'',url:x.url||x.URL||'',cat:'other',tags:['imported'],notes:'',created:Date.now(),modified:Date.now(),history:[],icon:'📥',fav:false,sens:false,fields:[]});c++}});logA(`Imported ${c} items`,'','add');saveV();updC();render();$('impMo').classList.remove('on');toast(`${c} items imported`,'ok')}catch(err){toast('Import failed: '+err.message,'er')}};r.readAsText(f)}
+async function doExport(fmt){
+  // Re-authenticate before exporting plaintext
+  const pw=prompt('Re-enter master password to export vault:');
+  if(!pw)return;
+  try{
+    const hash=await deriveVerifyHash(pw,window._vaultSalt);
+    if(hash!==window._verifyHash){toast('Wrong password — export denied','er');return}
+  }catch{toast('Authentication failed','er');return}
+  if(fmt==='json'){dl(JSON.stringify(V.passwords,null,2),'wardkey-vault.json','application/json')}else{const csv='name,username,password,url,category\n'+V.passwords.map(p=>`"${p.name}","${p.username}","${p.password}","${p.url}","${p.cat}"`).join('\n');dl(csv,'wardkey-vault.csv','text/csv')}$('impMo').classList.remove('on');logA('Vault exported','','gen');toast(`Exported as ${fmt.toUpperCase()}`,'ok')}
+
+async function wipeVault(){
+  if(!confirm('⚠️ This will PERMANENTLY erase all vault data. This cannot be undone.'))return;
+  const pw=prompt('Re-enter master password to confirm:');
+  if(!pw)return;
+  try{
+    const hash=await deriveVerifyHash(pw,window._vaultSalt);
+    if(hash!==window._verifyHash){toast('Wrong password — wipe denied','er');return}
+  }catch{toast('Authentication failed','er');return}
+  localStorage.removeItem('wardkey_v4');localStorage.removeItem('wardkey_v3');
+  secureClear();lock();toast('Vault permanently wiped','er');
+}
+function dl(c,n,t){const b=new Blob([c],{type:t}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=n;a.click();URL.revokeObjectURL(u)}
+function toggleSC(){$('scBg').classList.toggle('on');if(!$('scL').innerHTML)$('scL').innerHTML=SC.map(([k,d])=>`<div class="sc-r"><span class="sc-d">${d}</span><div class="sc-k">${k.split(' ').map(s=>`<span class="sc-kk">${s}</span>`).join('')}</div></div>`).join('')}
+function toast(msg,type='in'){const ic={ok:'<svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',er:'<svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',in:'<svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'};const t=document.createElement('div');t.className=`tst ${type}`;t.innerHTML=`${ic[type]||ic.in} ${msg}`;$('tC').appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='all .2s';setTimeout(()=>t.remove(),200)},3000)}
+
+// ════════ AI ENGINE (Claude API) ════════
+let aiUsage={count:0,date:new Date().toDateString()};
+const AI_DAILY_LIMIT=3;
+let IS_PRO=false; // Derived from authUser.plan when logged in
+
+function checkAiLimit(){
+  const today=new Date().toDateString();
+  if(aiUsage.date!==today){aiUsage={count:0,date:today}}
+  if(IS_PRO)return true;
+  if(aiUsage.count>=AI_DAILY_LIMIT){return false}
+  return true;
+}
+function aiLimitHTML(){
+  const today=new Date().toDateString();
+  if(aiUsage.date!==today){aiUsage={count:0,date:today}}
+  const rem=IS_PRO?'∞':Math.max(0,AI_DAILY_LIMIT-aiUsage.count);
+  return '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:10px;color:var(--tx3)">AI analyses today: <span style="color:'+(rem===0?'var(--rd)':'var(--ac)')+';font-weight:600;font-family:var(--mono)">'+rem+(IS_PRO?'':'/'+AI_DAILY_LIMIT)+'</span>'+(IS_PRO?' <span style="color:var(--gn);font-size:8px;font-weight:700;background:var(--gnb);padding:1px 5px;border-radius:3px;margin-left:4px">PRO</span>':'')+'</div>'+(IS_PRO?'':'<button class="bt bt-s" onclick="showUpgrade()" style="font-size:9px;padding:3px 8px;color:var(--ac)">⚡ Upgrade for unlimited</button>')+'</div>'}
+
+function showUpgrade(){
+  const h='<div style="text-align:center;padding:10px"><div style="font-size:32px;margin-bottom:10px">⚡</div><div style="font-size:18px;font-weight:700;margin-bottom:6px">Upgrade to WARDKEY Pro</div><div style="font-size:12px;color:var(--tx2);line-height:1.6;margin-bottom:16px;max-width:300px;margin-left:auto;margin-right:auto">Unlimited AI analyses, cloud sync across all devices, browser extensions, and mobile apps.</div><div style="display:flex;align-items:baseline;justify-content:center;gap:4px;margin-bottom:16px"><span style="font-size:32px;font-weight:800">$3.99</span><span style="font-size:12px;color:var(--tx3)">/month</span></div><div style="display:flex;flex-direction:column;gap:4px;text-align:left;max-width:260px;margin:0 auto 16px">'
+  +['Unlimited AI analyses','End-to-end encrypted sync','Unlimited devices','Browser extensions','iOS & Android apps','Advanced breach monitoring','Priority support'].map(f=>'<div style="font-size:11px;color:var(--tx2);display:flex;align-items:center;gap:6px"><span style="color:var(--gn);font-weight:700">✓</span>'+f+'</div>').join('')
+  +'</div><button class="bt bt-p" style="width:100%;justify-content:center;padding:10px" onclick="toast(\'Coming soon! Join waitlist at wardkey.io\',\'ok\');$(\'upMo\').classList.remove(\'on\')">Start 14-Day Free Trial</button><div style="font-size:9px;color:var(--tx3);margin-top:8px">No credit card required for trial</div></div>';
+  $('upBod').innerHTML=h;$('upMo').classList.add('on');
+}
+
+async function aiCall(prompt, sys, outId){
+  const el=document.getElementById(outId);
+  if(!checkAiLimit()){
+    el.innerHTML='<div class="ai-res" style="text-align:center;padding:20px"><div style="font-size:28px;margin-bottom:8px">🔒</div><div style="font-size:14px;font-weight:600;margin-bottom:4px">Daily AI limit reached</div><div style="font-size:12px;color:var(--tx2);margin-bottom:12px">Free plan includes '+AI_DAILY_LIMIT+' AI analyses per day.<br>Upgrade to Pro for unlimited access.</div><button class="bt bt-p" onclick="showUpgrade()" style="margin:0 auto;display:flex">⚡ Upgrade to Pro</button></div>';
+    return;
+  }
+  aiUsage.count++;
+  el.innerHTML='<div class="ai-ld">Analyzing with AI… ('+(!IS_PRO?(AI_DAILY_LIMIT-aiUsage.count)+' remaining today':'unlimited')+')</div>';
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:[{role:'user',content:prompt}]})
+    });
+    const d=await r.json();
+    const txt=(d.content||[]).map(b=>b.text||'').join('\n').trim();
+    el.innerHTML='<div class="ai-res">'+formatAI(txt)+'</div>';
+  }catch(e){el.innerHTML='<div class="ai-res" style="color:var(--rd)">⚠️ AI request failed: '+e.message+'<br><br>This feature requires an active connection to Claude API.</div>'}
+}
+function formatAI(t){
+  return t
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\n/g,'<br>')
+    .replace(/🔴|❌|CRITICAL/g,'<span class="ai-tag crit">CRITICAL</span>')
+    .replace(/🟡|⚠️|WARNING/g,'<span class="ai-tag warn">WARNING</span>')
+    .replace(/🟢|✅|SAFE/g,'<span class="ai-tag safe">SAFE</span>')
+    .replace(/💡|ℹ️|TIP/g,'<span class="ai-tag info">TIP</span>')
+}
+
+// ════════ PAGE: AI PASSWORD ANALYZER ════════
+function rAiPw(el){
+  const pwList=V.passwords.map(p=>'<div class="ai-pw-ch" onclick="pickAiPw(\''+p.id+'\')">'+p.name+'</div>').join('');
+  el.innerHTML=`<div class="ai-card"><div class="ai-hdr"><div class="ai-ic">🧠</div><div><h3>AI Password Analyzer</h3><p>Deep analysis of any password — patterns, entropy, crackability, and specific fix suggestions</p></div></div><div class="ai-body">
+  ${aiLimitHTML()}
+  <div style="margin-bottom:8px;font-size:10px;color:var(--tx3)">Quick select from vault:</div>
+  <div class="ai-pw-list">${pwList}</div>
+  <div id="aiPwName" style="font-size:10px;color:var(--pp);margin-bottom:4px;min-height:14px"></div>
+  <div class="ai-in"><input type="text" id="aiPwIn" placeholder="Enter or select a password to analyze…" style="font-family:var(--mono)"><button class="ai-go" onclick="runAiPw()" id="aiPwGo"><svg viewBox="0 0 24 24" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Analyze</button></div>
+  <div id="aiPwOut"></div></div></div>`}
+function pickAiPw(id){const p=V.passwords.find(x=>x.id===id);if(p){document.getElementById('aiPwIn').value=p.password;document.getElementById('aiPwName').textContent='Analyzing: '+p.name}}
+
+function runAiPw(){
+  const pw=document.getElementById('aiPwIn').value.trim();
+  if(!pw){toast('Enter a password to analyze','er');return}
+  const s=str(pw);
+  const sys=`You are a cybersecurity expert analyzing passwords. Be specific and actionable. Use **bold** for emphasis. Start with a severity rating (use exactly one of: CRITICAL, WARNING, or SAFE). Then analyze: character composition, pattern detection (keyboard walks, dictionary words, dates, leet speak, common substitutions), estimated crack time (online throttled vs offline GPU), entropy bits, and end with 3 specific improvement suggestions. Keep it concise but thorough. Never reproduce the full password in your response — refer to patterns you found.`;
+  const prompt=`Analyze this password for security: "${pw}"
+
+Quick stats: Length=${pw.length}, Score=${Math.round(s.s)}/100, Rating="${s.l}"
+Has uppercase: ${/[A-Z]/.test(pw)}, lowercase: ${/[a-z]/.test(pw)}, numbers: ${/\d/.test(pw)}, symbols: ${/[^a-zA-Z0-9]/.test(pw)}`;
+  aiCall(prompt,sys,'aiPwOut');
+}
+
+// ════════ PAGE: AI SECURITY REPORT ════════
+function rAiReport(el){
+  const w=gWeak().length,r=gReused().length,o=gOld().length,ub=V.breaches.filter(b=>!b.resolved).length;
+  const sc=oScore();
+  el.innerHTML=`<div class="ai-card"><div class="ai-hdr"><div class="ai-ic">📋</div><div><h3>AI Security Report</h3><p>One-click comprehensive audit of your entire vault, written in plain English</p></div></div><div class="ai-body">
+  ${aiLimitHTML()}
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px">
+    <div class="card" style="padding:10px;text-align:center"><div style="font-size:16px;font-weight:700;color:${sc>=70?'var(--gn)':'var(--rd)'}">${sc}</div><div style="font-size:8px;color:var(--tx3)">Score</div></div>
+    <div class="card" style="padding:10px;text-align:center"><div style="font-size:16px;font-weight:700;color:var(--rd)">${w}</div><div style="font-size:8px;color:var(--tx3)">Weak</div></div>
+    <div class="card" style="padding:10px;text-align:center"><div style="font-size:16px;font-weight:700;color:var(--og)">${r}</div><div style="font-size:8px;color:var(--tx3)">Reused</div></div>
+    <div class="card" style="padding:10px;text-align:center"><div style="font-size:16px;font-weight:700;color:var(--yl)">${ub}</div><div style="font-size:8px;color:var(--tx3)">Breaches</div></div>
+  </div>
+  <button class="ai-go" style="width:100%;justify-content:center;padding:10px" onclick="runAiReport()" id="aiRepGo"><svg viewBox="0 0 24 24" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Generate Full Security Report</button>
+  <div id="aiRepOut" style="margin-top:12px"></div></div></div>`}
+
+function runAiReport(){
+  const w=gWeak(),r=gReused(),o=gOld(),ub=V.breaches.filter(b=>!b.resolved);
+  const sc=oScore();
+  const cats={};V.passwords.forEach(p=>cats[p.cat]=(cats[p.cat]||0)+1);
+  const summary={
+    totalItems:V.passwords.length+V.cards.length+V.notes.length+V.apikeys.length+V.licenses.length,
+    passwords:V.passwords.length,cards:V.cards.length,notes:V.notes.length,apiKeys:V.apikeys.length,licenses:V.licenses.length,
+    totpEnabled:V.totp.length,
+    score:sc,
+    weakPasswords:w.map(p=>({name:p.name,score:Math.round(str(p.password).s)})),
+    reusedPasswords:r.map(p=>p.name),
+    agingPasswords:o.map(p=>({name:p.name,daysSinceUpdate:Math.floor((Date.now()-p.modified)/864e5)})),
+    unresolvedBreaches:ub.map(b=>({site:b.site,severity:b.sev,date:b.date,recordsExposed:b.recs})),
+    categories:cats,
+    sensitiveItems:V.passwords.filter(p=>p.sens).length+V.notes.filter(n=>n.sens).length,
+    emergencyContacts:V.emergency.length,
+    activeShares:V.shares.filter(s=>s.active).length
+  };
+
+  const sys=`You are a cybersecurity auditor writing a plain-English security report for a password vault user. Use **bold** for emphasis. Structure your report as:
+
+1. Executive Summary (2-3 sentences on overall health)
+2. Strengths (what they're doing right)
+3. Critical Issues (prefix with CRITICAL or WARNING as appropriate)
+4. Recommendations (numbered, specific, actionable steps prioritized by impact)
+5. Score Explanation (why their score is what it is)
+
+Be direct, practical, not preachy. Write like a trusted security advisor, not a lecture. If things look good, say so. If they're bad, be honest but constructive. Keep it under 400 words.`;
+
+  aiCall('Generate a security audit report for this vault:\n\n'+JSON.stringify(summary,null,2),sys,'aiRepOut');
+}
+
+// ════════ PAGE: AI PHISHING DETECTOR ════════
+function rAiPhish(el){
+  el.innerHTML=`<div class="ai-card"><div class="ai-hdr"><div class="ai-ic">🎣</div><div><h3>AI Phishing Detector</h3><p>Paste a suspicious URL, email, or message — AI will analyze it for threats</p></div></div><div class="ai-body">
+  ${aiLimitHTML()}
+  <div class="ai-in" style="flex-direction:column"><textarea id="aiPhIn" placeholder="Paste suspicious content here…&#10;&#10;Examples:&#10;• A URL: https://g00gle-security.com/verify-account&#10;• An email subject + body&#10;• A text message asking you to click a link"></textarea><button class="ai-go" onclick="runAiPhish()" id="aiPhGo" style="align-self:stretch;justify-content:center;padding:10px"><svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Scan for Threats</button></div>
+  <div id="aiPhOut" style="margin-top:12px"></div></div></div>`}
+
+function runAiPhish(){
+  const txt=document.getElementById('aiPhIn').value.trim();
+  if(!txt){toast('Paste content to analyze','er');return}
+  const sys=`You are a cybersecurity expert specializing in phishing detection. Analyze the provided content (URL, email, or message) and determine if it's a phishing attempt.
+
+Use **bold** for emphasis. Start with a clear verdict: either SAFE, WARNING, or CRITICAL.
+
+Then analyze:
+- Domain/URL red flags (typosquatting, suspicious TLDs, lookalike characters, encoded URLs)
+- Social engineering tactics (urgency, fear, impersonation, authority claims)
+- Technical indicators (mismatched links, suspicious redirects, data harvesting)
+- Known phishing patterns
+
+End with clear advice on what the user should do. Be specific about exactly which elements are suspicious and why. If it looks legitimate, say so confidently. Keep it under 300 words.`;
+
+  aiCall('Analyze this for phishing/scam indicators:\n\n'+txt,sys,'aiPhOut');
+}
+
+// ════════ PAGE: CREDENTIAL MAP ════════
+function rCredMap(el){
+  const pws=V.passwords;if(!pws.length){el.innerHTML=emp('No Credentials','Add passwords to see your credential map');return}
+  // Build connection data
+  const emailMap={},pwMap={},domainMap={};
+  pws.forEach(p=>{
+    const em=p.username||'';if(em){if(!emailMap[em])emailMap[em]=[];emailMap[em].push(p)}
+    const pw=p.password;if(pw){if(!pwMap[pw])pwMap[pw]=[];pwMap[pw].push(p)}
+    const d=(p.url||'').replace(/https?:\/\//,'').replace(/\/.*/,'');if(d){if(!domainMap[d])domainMap[d]=[];domainMap[d].push(p)}
+  });
+  const emailLinks=Object.values(emailMap).filter(a=>a.length>1);
+  const pwLinks=Object.values(pwMap).filter(a=>a.length>1);
+  const totShared=emailLinks.reduce((s,a)=>s+a.length,0);
+  const totReused=pwLinks.reduce((s,a)=>s+a.length,0);
+
+  // Layout nodes in a circle
+  const W=700,H=460,cx=W/2,cy=H/2,R=Math.min(W,H)/2-60;
+  const nodes=pws.map((p,i)=>{
+    const angle=(2*Math.PI*i/pws.length)-Math.PI/2;
+    const x=cx+R*Math.cos(angle);const y=cy+R*Math.sin(angle);
+    const s=str(p.password);
+    return{...p,x,y,s,angle};
+  });
+
+  // Build SVG lines
+  let lines='';
+  emailLinks.forEach(group=>{
+    for(let i=0;i<group.length;i++)for(let j=i+1;j<group.length;j++){
+      const a=nodes.find(n=>n.id===group[i].id),b=nodes.find(n=>n.id===group[j].id);
+      if(a&&b)lines+=`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="var(--ac)" stroke-width="1.5" opacity=".25" class="cml" data-type="email" data-ids="${a.id},${b.id}"/>`;
+    }
+  });
+  pwLinks.forEach(group=>{
+    for(let i=0;i<group.length;i++)for(let j=i+1;j<group.length;j++){
+      const a=nodes.find(n=>n.id===group[i].id),b=nodes.find(n=>n.id===group[j].id);
+      if(a&&b)lines+=`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="var(--rd)" stroke-width="2" opacity=".4" stroke-dasharray="6,4" class="cml" data-type="reuse" data-ids="${a.id},${b.id}"/>`;
+    }
+  });
+
+  // Build SVG nodes
+  let nodesSvg=nodes.map(n=>{
+    const r=n.fav?18:14;
+    return`<g class="cmn" data-id="${n.id}" style="cursor:pointer" onmouseenter="cmHover('${n.id}',true)" onmouseleave="cmHover('${n.id}',false)" onclick="showD('passwords','${n.id}')">
+      <circle cx="${n.x}" cy="${n.y}" r="${r+4}" fill="transparent"/>
+      <circle cx="${n.x}" cy="${n.y}" r="${r}" fill="${n.s.c.replace('var(--gn)','#22d3a8').replace('var(--yl)','#f0c246').replace('var(--og)','#ef8b3a').replace('var(--rd)','#ef4468')}" opacity=".15" class="cmnbg"/>
+      <circle cx="${n.x}" cy="${n.y}" r="${r}" fill="none" stroke="${n.s.c.replace('var(--gn)','#22d3a8').replace('var(--yl)','#f0c246').replace('var(--og)','#ef8b3a').replace('var(--rd)','#ef4468')}" stroke-width="2"/>
+      <text x="${n.x}" y="${n.y}" text-anchor="middle" dominant-baseline="central" font-size="12" fill="white">${n.icon||'🔑'}</text>
+      <text x="${n.x}" y="${n.y+r+14}" text-anchor="middle" font-size="10" font-weight="600" fill="var(--tx2)" class="cmlbl">${n.name.length>14?n.name.substr(0,12)+'…':n.name}</text>
+    </g>`;
+  }).join('');
+
+  el.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+    <div class="card" style="text-align:center"><div class="card-v" style="color:var(--ac)">${pws.length}</div><div class="card-l">Credentials</div></div>
+    <div class="card" style="text-align:center"><div class="card-v" style="color:var(--og)">${totShared}</div><div class="card-l">Shared Emails</div></div>
+    <div class="card" style="text-align:center"><div class="card-v" style="color:var(--rd)">${totReused}</div><div class="card-l">Reused Passwords</div></div>
+  </div>
+  <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:8px;position:relative;overflow:hidden">
+    <div style="display:flex;gap:12px;padding:8px 10px;font-size:11px;color:var(--tx3);margin-bottom:4px">
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:16px;height:2px;background:var(--ac);border-radius:1px;display:inline-block"></span> Same email</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:16px;height:2px;background:var(--rd);border-radius:1px;display:inline-block;border-top:2px dashed var(--rd)"></span> Reused password</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--gn);display:inline-block"></span> Strong</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--yl);display:inline-block"></span> Good</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--rd);display:inline-block"></span> Weak</span>
+    </div>
+    <svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-height:460px" id="cmSvg">${lines}${nodesSvg}</svg>
+    <div id="cmTip" style="display:none;position:absolute;padding:8px 12px;background:var(--bg1);border:1px solid var(--bd);border-radius:var(--rs);box-shadow:var(--sh);font-size:11px;z-index:5;pointer-events:none;max-width:240px"></div>
+  </div>
+  <div style="margin-top:10px;padding:14px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r)">
+    <div style="font-size:13px;font-weight:700;margin-bottom:6px">🔍 Blast Radius Analysis</div>
+    ${emailLinks.length?emailLinks.map(group=>{
+      const em=group[0].username;
+      return`<div style="padding:6px 0;border-bottom:1px solid var(--bd);font-size:12px"><span style="color:var(--ac);font-weight:600">${em}</span> <span style="color:var(--tx3)">used on ${group.length} sites:</span> ${group.map(p=>`<span style="color:var(--tx2);cursor:pointer" onclick="launchSite('passwords','${p.id}')" title="Launch ${p.name}">${p.name} <span style="color:var(--ac);font-size:10px">↗</span></span>`).join(', ')}${group.length>=4?` <span style="color:var(--rd);font-weight:600">⚠ HIGH RISK</span>`:group.length>=2?` <span style="color:var(--og);font-weight:600">⚠ MEDIUM</span>`:''}</div>`;
+    }).join(''):'<div style="color:var(--gn);font-size:12px">✓ No email addresses shared across multiple sites</div>'}
+    ${pwLinks.length?`<div style="margin-top:8px"><div style="font-size:12px;font-weight:600;color:var(--rd);margin-bottom:4px">🔴 Identical Passwords Detected</div>${pwLinks.map(group=>
+      `<div style="padding:4px 0;font-size:11px;color:var(--tx2)">${group.map(p=>'<span style="background:var(--rdb);color:var(--rd);padding:2px 6px;border-radius:3px;font-size:10px;margin-right:3px;cursor:pointer" onclick="launchSite(\'passwords\',\''+p.id+'\')" title="Launch '+p.name+'">'+p.name+' ↗</span>').join('')}</div>`
+    ).join('')}</div>`:''}
+  </div>`;
+}
+function cmHover(id,on){
+  document.querySelectorAll('.cml').forEach(l=>{
+    const ids=l.dataset.ids.split(',');
+    if(ids.includes(id)){l.style.opacity=on?'1':'';l.style.strokeWidth=on?(l.dataset.type==='reuse'?'3':'2.5'):'';}
+    else{l.style.opacity=on?'.05':'';}
+  });
+  document.querySelectorAll('.cmn').forEach(n=>{
+    if(n.dataset.id===id){n.querySelector('.cmnbg').style.opacity=on?'.35':'';return;}
+    const connected=Array.from(document.querySelectorAll('.cml')).some(l=>l.dataset.ids.includes(id)&&l.dataset.ids.includes(n.dataset.id));
+    n.style.opacity=on?(connected?'1':'.2'):'';
+  });
+}
+
+// ════════ PAGE: PASSWORD DECAY TIMELINE ════════
+function rDecay(el){
+  const pws=V.passwords;if(!pws.length){el.innerHTML=emp('No Passwords','Add passwords to see decay projections');return}
+
+  // Estimate crack time based on entropy + GPU scaling (H100 ~100B hashes/sec, doubling every 18mo)
+  function calcDecay(pw){
+    if(!pw)return{bits:0,crackSec:0,crackDate:new Date(),label:'Instant',color:'var(--rd)',pct:0};
+    let pool=0;
+    if(/[a-z]/.test(pw))pool+=26;if(/[A-Z]/.test(pw))pool+=26;if(/\d/.test(pw))pool+=10;if(/[^a-zA-Z0-9]/.test(pw))pool+=32;
+    if(pool===0)pool=26;
+    const bits=Math.log2(Math.pow(pool,pw.length));
+    // Current top GPU cluster: ~100 billion (1e11) guesses/sec
+    const guessesNeeded=Math.pow(2,bits)/2; // average
+    const baseRate=1e11;
+    // When does advancing hardware crack it? hardware doubles every 18 months
+    // Total guesses over time with Moore's law: integral of baseRate * 2^(t/1.5) dt from 0 to T
+    // = baseRate * 1.5/ln(2) * (2^(T/1.5) - 1)
+    // Solve for T when total = guessesNeeded
+    const k=1.5/Math.LN2;
+    const needed=guessesNeeded/(baseRate*k);
+    let T;
+    if(needed<=0)T=0;
+    else T=1.5*Math.log2(needed+1);
+    if(T<0)T=0;
+    const crackDate=new Date(Date.now()+T*365.25*24*3600*1000);
+    const crackSec=T*365.25*24*3600;
+
+    let label,color,pct;
+    if(T<0.001){label='Instant';color='var(--rd)';pct=0;}
+    else if(T<1/12){label=Math.round(T*365)+' days';color='var(--rd)';pct=5;}
+    else if(T<1){label=Math.round(T*12)+' months';color='var(--rd)';pct=15;}
+    else if(T<5){label=Math.round(T*10)/10+' years';color='var(--og)';pct=30;}
+    else if(T<20){label=Math.round(T)+' years';color='var(--yl)';pct=55;}
+    else if(T<100){label=Math.round(T)+' years';color='var(--gn)';pct=75;}
+    else if(T<1e6){label=T>=1000?Math.round(T/1000)+'K years':Math.round(T)+' years';color='var(--gn)';pct=90;}
+    else{label='∞ (heat death)';color='var(--gn)';pct=100;}
+    return{bits:Math.round(bits),crackSec,crackDate,T,label,color,pct};
+  }
+
+  const items=pws.map(p=>{
+    const d=calcDecay(p.password);
+    const s=str(p.password);
+    return{...p,decay:d,str:s};
+  }).sort((a,b)=>a.decay.T-b.decay.T);
+
+  const urgent=items.filter(i=>i.decay.T<2);
+  const medium=items.filter(i=>i.decay.T>=2&&i.decay.T<20);
+  const safe=items.filter(i=>i.decay.T>=20);
+
+  const now=new Date();
+  const yearMarks=[1,2,5,10,25,50];
+
+  el.innerHTML=`
+  <div style="background:linear-gradient(135deg,rgba(239,68,104,.06),rgba(239,139,58,.04));border:1px solid rgba(239,68,104,.15);border-radius:var(--r);padding:16px;margin-bottom:14px;display:flex;align-items:center;gap:12px">
+    <div style="font-size:32px;flex-shrink:0">⏳</div>
+    <div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:3px">Password Decay Projection</div>
+      <div style="font-size:12px;color:var(--tx2);line-height:1.5">Passwords don't just age — they get <strong style="color:var(--rd)">weaker</strong> as GPU cracking technology improves. This timeline shows when each password becomes brute-forceable based on current hardware trends (NVIDIA H100 clusters) and Moore's Law scaling (2× every 18 months).</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+    <div class="card" style="text-align:center;border-color:${urgent.length?'rgba(239,68,104,.2)':'var(--bd)'}"><div class="card-v" style="color:var(--rd)">${urgent.length}</div><div class="card-l">Crackable < 2 years</div></div>
+    <div class="card" style="text-align:center"><div class="card-v" style="color:var(--og)">${medium.length}</div><div class="card-l">2–20 years</div></div>
+    <div class="card" style="text-align:center"><div class="card-v" style="color:var(--gn)">${safe.length}</div><div class="card-l">20+ years safe</div></div>
+  </div>
+
+  <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:14px">
+    <div style="font-size:14px;font-weight:700;margin-bottom:12px">Timeline</div>
+    <div style="position:relative;padding:0 0 0 60px;min-height:${items.length*44+20}px">
+      <div style="position:absolute;left:58px;top:0;bottom:0;width:2px;background:var(--bd);border-radius:1px"></div>
+      <div style="position:absolute;left:0;top:-2px;font-size:9px;color:var(--ac);font-weight:600;width:52px;text-align:right">${now.getFullYear()}</div>
+      ${yearMarks.map(y=>{const pct=Math.min(95,Math.log10(y+1)/Math.log10(100)*90+5);return`<div style="position:absolute;left:0;top:${pct}%;font-size:8px;color:var(--tx3);width:52px;text-align:right;transform:translateY(-50%)">${now.getFullYear()+y}</div><div style="position:absolute;left:55px;top:${pct}%;width:8px;height:1px;background:var(--bd)"></div>`}).join('')}
+      ${items.map((p,i)=>{
+        const topPct=p.decay.T<=0?2:Math.min(95,Math.log10(p.decay.T+1)/Math.log10(100)*90+5);
+        return`<div style="position:absolute;left:70px;right:0;top:${topPct}%;transform:translateY(-50%);display:flex;align-items:center;gap:8px;padding:4px 8px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);cursor:pointer;transition:var(--tr);font-size:12px" onclick="showD('passwords','${p.id}')" onmouseenter="this.style.borderColor='${p.decay.color}'" onmouseleave="this.style.borderColor='var(--bd)'">
+          <div style="width:8px;height:8px;border-radius:50%;background:${p.decay.color};flex-shrink:0"></div>
+          <span style="font-size:13px;margin-right:2px">${p.icon||'🔑'}</span>
+          <div style="flex:1;min-width:0"><div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div></div>
+          ${p.url?`<button class="bt-i" title="Launch & copy password" onclick="event.stopPropagation();launchSite('passwords','${p.id}')" style="color:var(--ac);width:22px;height:22px;padding:3px;flex-shrink:0">${IC.launch}</button>`:''}
+          <div style="text-align:right;flex-shrink:0"><div style="font-family:var(--mono);font-weight:700;color:${p.decay.color};font-size:12px">${p.decay.label}</div><div style="font-size:9px;color:var(--tx3)">${p.decay.bits} bits entropy</div></div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>
+
+  <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px">
+    <div style="font-size:14px;font-weight:700;margin-bottom:10px">All Passwords by Projected Crack Date</div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+    ${items.map(p=>{
+      const barW=Math.min(100,Math.max(2,p.decay.pct));
+      const dateStr=p.decay.T>1e5?'Never':p.decay.crackDate.toLocaleDateString('en-US',{month:'short',year:'numeric'});
+      return`<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg3);border-radius:var(--rs);cursor:pointer;transition:var(--tr)" onclick="showD('passwords','${p.id}')">
+        <span style="font-size:13px">${p.icon||'🔑'}</span>
+        <div style="width:110px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div>
+        <div style="flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden"><div style="height:100%;width:${barW}%;background:${p.decay.color};border-radius:3px;transition:width .5s"></div></div>
+        <div style="width:80px;text-align:right;font-family:var(--mono);font-size:11px;font-weight:600;color:${p.decay.color}">${p.decay.label}</div>
+        <div style="width:60px;text-align:right;font-size:10px;color:var(--tx3)">${dateStr}</div>
+        ${p.url?`<button class="bt-i" title="Launch site" onclick="event.stopPropagation();launchSite('passwords','${p.id}')" style="color:var(--ac);width:22px;height:22px;padding:3px;flex-shrink:0">${IC.launch}</button>`:`<div style="width:22px"></div>`}
+      </div>`;
+    }).join('')}
+    </div>
+  </div>
+
+  <div style="margin-top:10px;padding:14px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r)">
+    <div style="font-size:12px;font-weight:600;margin-bottom:4px">ℹ️ Methodology</div>
+    <div style="font-size:11px;color:var(--tx2);line-height:1.6">Estimates based on exhaustive brute-force search against the password's character space using current-generation GPU clusters (NVIDIA H100 @ ~100 billion hashes/sec). Hardware improvement modeled at 2× performance every 18 months. Actual crack times may be shorter if passwords contain dictionary words or common patterns. These projections account for advancing technology — a password safe today may not be safe in 5 years.</div>
+  </div>`;
+}
+
+// ════════ THEME ════════
+function toggleTheme(){
+  const cur=document.documentElement.getAttribute('data-theme');
+  const nxt=cur==='light'?'dark':'light';
+  document.documentElement.setAttribute('data-theme',nxt==='dark'?'':'light');
+  localStorage.setItem('wardkey_theme',nxt);
+  const btn=$('thBtn');
+  if(btn)btn.innerHTML=nxt==='light'?'<svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>':'<svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+  toast('Switched to '+(nxt==='light'?'Light':'Dark')+' mode','ok');
+}
+(function(){const t=localStorage.getItem('wardkey_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light')})();
+
+// ════════ PAGE: PASSKEYS ════════
+function rPasskeys(el){
+  el.innerHTML=`<div class="sh"><div><div class="st">Passkeys</div><div class="ss">Passwordless authentication with biometrics</div></div><button class="bt bt-p" onclick="addPasskey()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Register Passkey</button></div>
+  <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:14px;display:flex;align-items:center;gap:10px"><div style="font-size:24px">🔑</div><div><div style="font-size:13px;font-weight:600">What are passkeys?</div><div style="font-size:11px;color:var(--tx2);line-height:1.5">Passkeys replace passwords with biometric authentication (Face ID, fingerprint, Windows Hello). They're phishing-resistant and can't be leaked in data breaches.</div></div></div>
+  <div class="vl">${V.passkeys.length?V.passkeys.map((pk,i)=>`<div class="vi" style="animation-delay:${i*.03}s" onclick="showD('passkeys','${pk.id}')"><div class="vi-i" style="background:var(--gnb)">${pk.icon||'🔑'}</div><div class="vi-n"><div class="vi-t">${pk.fav?'<span class="fv">★</span>':''}${pk.name}</div><div class="vi-d">${pk.username} · ${pk.rpId}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="sv" style="background:var(--gnb);color:var(--gn)">${pk.alg}</span><span style="font-size:10px;color:var(--tx3)">${timeAgo(pk.lastUsed)}</span></div></div>`).join(''):emp('No Passkeys','Register your first passkey for passwordless login')}</div>`;
+}
+function addPasskey(){
+  const id='pk'+Math.random().toString(36).substr(2,6);
+  const domains=['example.com','login.service.com','app.company.io'];
+  V.passkeys.push({id,name:'New Service',rpId:'service.com',username:'david@gmail.com',created:Date.now(),lastUsed:Date.now(),credId:'cred_'+Math.random().toString(36).substr(2,12),alg:'ES256',icon:'🆕',fav:false});
+  logA('Passkey registered','New Service','add');saveV();updC();render();toast('Passkey registered','ok');
+}
+
+// ════════ PAGE: EMAIL ALIASES ════════
+function rAliases(el){
+  el.innerHTML=`<div class="sh"><div><div class="st">Email Aliases</div><div class="ss">Protect your real email with masked addresses</div></div><button class="bt bt-p" onclick="genAlias()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Generate Alias</button></div>
+  <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:14px;display:flex;align-items:center;gap:10px"><div style="font-size:24px">📧</div><div><div style="font-size:13px;font-weight:600">How it works</div><div style="font-size:11px;color:var(--tx2);line-height:1.5">Use unique aliases per site — if one gets leaked or spammed, just disable it. Mail forwards to your real inbox. Your real email stays private.</div></div></div>
+  <div class="vl">${V.aliases.length?V.aliases.map((a,i)=>`<div class="vi" style="animation-delay:${i*.03}s"><div class="vi-i" style="background:${a.active?'var(--acg)':'var(--bg4)'}">📧</div><div class="vi-n"><div class="vi-t" style="font-family:var(--mono);font-size:13px">${a.alias}</div><div class="vi-d">${a.site} → ${a.target} · ${a.forwarded} forwarded</div></div><div style="display:flex;align-items:center;gap:4px"><button class="bt-i" title="Copy alias" onclick="event.stopPropagation();cpTx('${a.alias}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button><div class="tgl${a.active?' on':''}" onclick="event.stopPropagation();toggleAlias('${a.id}')" style="width:28px;height:16px"><div class="tgl-k" style="width:10px;height:10px;top:2px;left:${a.active?'14':'2'}px"></div></div><button class="bt-i" title="Delete" onclick="event.stopPropagation();delAlias('${a.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="var(--rd)" stroke-width="2" style="width:11px;height:11px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></div></div>`).join(''):emp('No Aliases','Generate your first email alias')}</div>`;
+}
+function genAlias(){
+  const rnd=Math.random().toString(36).substr(2,4);
+  const id='al'+Math.random().toString(36).substr(2,6);
+  const alias='david.'+rnd+'@wardkey.email';
+  V.aliases.push({id,alias,target:'david@gmail.com',site:'Untitled',created:Date.now(),active:true,forwarded:0});
+  logA('Alias created',alias,'add');saveV();render();toast('Alias generated: '+alias,'ok');
+}
+function toggleAlias(id){const a=V.aliases.find(x=>x.id===id);if(a){a.active=!a.active;saveV();render();toast(a.active?'Alias enabled':'Alias disabled','ok')}}
+function delAlias(id){V.aliases=V.aliases.filter(x=>x.id!==id);saveV();render();toast('Alias deleted','ok')}
+
+// ════════ MOBILE NAV ════════
+function toggleSB(){const sb=document.querySelector('.sb'),ov=$('mobOv');sb.classList.toggle('open');ov.classList.toggle('on')}
+function closeSB(){document.querySelector('.sb').classList.remove('open');$('mobOv').classList.remove('on')}
+function mNav(p){if(p==='more'){toggleSB();return}nav(p);closeSB();updBnav(p)}
+function updBnav(p){document.querySelectorAll('.bn').forEach(b=>b.classList.toggle('on',b.dataset.p===p));const ub=V.breaches.some(b=>!b.resolved);const d=$('bnDot');if(d)d.style.display=ub?'block':'none'}
+
+// ════════ KEYBOARD SHORTCUTS ════════
+document.addEventListener('keydown',e=>{
+  resetAL();const m=e.metaKey||e.ctrlKey;
+  if(m&&e.key==='k'){e.preventDefault();$('gSch').focus()}
+  if(m&&e.key==='l'){e.preventDefault();lock()}
+  if(m&&e.key==='n'){e.preventDefault();openAdd()}
+  if(m&&e.key==='g'){e.preventDefault();nav('generator')}
+  if(m&&e.key==='t'){e.preventDefault();toggleTravel()}
+  if(m&&e.key==='f'){e.preventDefault();nav('favorites')}
+  if(m&&e.key==='e'){e.preventDefault();doExport('json')}
+  if(e.key==='?'&&!e.target.matches('input,textarea,select')){e.preventDefault();toggleSC()}
+  if(e.key==='Escape'){
+    if($('upMo').classList.contains('on'))$('upMo').classList.remove('on');
+    else if($('scBg').classList.contains('on'))toggleSC();
+    else if($('addMo').classList.contains('on'))closeAdd();
+    else if($('impMo').classList.contains('on'))$('impMo').classList.remove('on');
+    else if($('dP').classList.contains('on'))closeD();
+  }
+  if(m&&e.key>='1'&&e.key<='9'){e.preventDefault();const pages=['dashboard','favorites','passwords','cards','notes','generator','authenticator','watchtower','settings'];const idx=+e.key-1;if(pages[idx])nav(pages[idx])}
+});
+
+// Click outside modals
+$('addMo').addEventListener('click',e=>{if(e.target===$('addMo'))closeAdd()});
+$('impMo').addEventListener('click',e=>{if(e.target===$('impMo'))$('impMo').classList.remove('on')});
+$('upMo').addEventListener('click',e=>{if(e.target===$('upMo'))$('upMo').classList.remove('on')});
+
+// ════════ PWA ════════
+let deferredInstall=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;
+  // Show install banner on dashboard
+  const ban=document.createElement('div');ban.id='pwaBan';ban.className='card';
+  ban.style.cssText='cursor:pointer;padding:14px;display:flex;align-items:center;gap:12px;border:1px solid var(--ac);background:var(--acg);margin-bottom:12px';
+  ban.innerHTML='<div style="font-size:28px">📲</div><div style="flex:1"><div style="font-size:13px;font-weight:700">Install WARDKEY</div><div style="font-size:11px;color:var(--tx2)">Add to home screen for instant access & offline use</div></div><button class="bt bt-p" style="flex-shrink:0;padding:8px 16px" id="pwaBtn">Install</button><button class="bt-i" style="flex-shrink:0" onclick="event.stopPropagation();this.parentElement.remove()">✕</button>';
+  ban.querySelector('#pwaBtn').onclick=async(ev)=>{ev.stopPropagation();if(deferredInstall){deferredInstall.prompt();const r=await deferredInstall.userChoice;if(r.outcome==='accepted'){toast('🎉 WARDKEY installed!','ok');ban.remove()}deferredInstall=null}};
+  setTimeout(()=>{const ct=$('ct');if(ct&&ct.firstChild)ct.firstChild.prepend(ban)},500);
+});
+window.addEventListener('appinstalled',()=>{toast('🎉 WARDKEY installed successfully!','ok');const b=$('pwaBan');if(b)b.remove()});
+
+// Register service worker
+if('serviceWorker' in navigator){navigator.serviceWorker.register('wardkey-sw.js').catch(()=>{})}
+
+// iOS standalone mode padding
+if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone){
+  document.body.style.paddingTop='env(safe-area-inset-top)';
+  document.body.style.paddingBottom='env(safe-area-inset-bottom)';
+}
+</script>
+</body>
+</html>

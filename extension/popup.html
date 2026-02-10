@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg0:#06060b;--bg1:#0c0c14;--bg2:#12121c;--bg3:#1a1a28;--bg4:#222236;
+  --tx1:#e8e8f0;--tx2:#9d9db8;--tx3:#6b6b85;
+  --ac:#3d7cf5;--ac2:#22d3a8;--gn:#22d3a8;--yl:#f0c246;--og:#ef8b3a;--rd:#ef4468;
+  --bd:#1e1e32;--r:10px;--rs:6px;--mono:'JetBrains Mono',monospace;
+  --font:'DM Sans',system-ui,sans-serif;
+}
+body{width:380px;max-height:520px;background:var(--bg0);color:var(--tx1);font-family:var(--font);font-size:13px;overflow:hidden}
+.lock{display:flex;flex-direction:column;align-items:center;justify-content:center;height:400px;padding:24px;text-align:center}
+.lock h1{font-size:22px;font-weight:800;margin:12px 0 4px;background:linear-gradient(135deg,#fff 40%,var(--ac));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.lock p{font-size:11px;color:var(--tx3);margin-bottom:20px}
+.inp{width:100%;padding:10px 14px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx1);font-family:var(--font);font-size:13px;outline:none;transition:.2s}
+.inp:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(61,124,245,.15)}
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:var(--rs);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;border:none;transition:.15s;width:100%}
+.btn-p{background:var(--ac);color:#fff}.btn-p:hover{filter:brightness(1.1)}
+.btn-s{background:var(--bg3);color:var(--tx1);border:1px solid var(--bd)}.btn-s:hover{border-color:var(--ac)}
+.btn-g{background:transparent;color:var(--ac);padding:4px 8px;font-size:11px;width:auto}.btn-g:hover{background:var(--bg3)}
+
+/* App */
+.app{display:none;flex-direction:column;height:520px}
+.app.on{display:flex}
+.hdr{padding:10px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--bd);background:var(--bg1);flex-shrink:0}
+.hdr-logo{font-size:14px;font-weight:800;background:linear-gradient(135deg,#fff,var(--ac));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hdr-site{font-size:10px;color:var(--tx3);flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hdr-btn{width:26px;height:26px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);cursor:pointer;color:var(--tx2);transition:.15s;flex-shrink:0}
+.hdr-btn:hover{border-color:var(--ac);color:var(--ac)}
+.hdr-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+
+.sch{padding:8px 14px;border-bottom:1px solid var(--bd);flex-shrink:0}
+.sch input{width:100%;padding:8px 10px 8px 30px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx1);font-size:12px;outline:none}
+.sch input:focus{border-color:var(--ac)}
+.sch-w{position:relative}
+.sch-w svg{position:absolute;left:8px;top:50%;transform:translateY(-50%);width:14px;height:14px;fill:none;stroke:var(--tx3);stroke-width:2}
+
+.tabs{display:flex;padding:0 14px;gap:2px;border-bottom:1px solid var(--bd);flex-shrink:0}
+.tab{padding:8px 10px;font-size:11px;font-weight:600;color:var(--tx3);cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
+.tab:hover{color:var(--tx2)}
+.tab.on{color:var(--ac);border-bottom-color:var(--ac)}
+
+.list{flex:1;overflow-y:auto;padding:6px}
+.list::-webkit-scrollbar{width:4px}
+.list::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+
+.item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--rs);cursor:pointer;transition:.12s;border:1px solid transparent}
+.item:hover{background:var(--bg2);border-color:var(--bd)}
+.item-ic{font-size:18px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border-radius:var(--rs);flex-shrink:0}
+.item-info{flex:1;min-width:0}
+.item-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-user{font-size:10px;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-acts{display:flex;gap:3px;opacity:0;transition:.12s;flex-shrink:0}
+.item:hover .item-acts{opacity:1}
+.act{width:26px;height:26px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--bd);border-radius:4px;cursor:pointer;color:var(--tx2);transition:.12s}
+.act:hover{border-color:var(--ac);color:var(--ac)}
+.act svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.act-fill{background:var(--ac);border-color:var(--ac);color:#fff}
+.act-fill:hover{filter:brightness(1.15)}
+
+.match-banner{padding:8px 12px;margin:6px;background:linear-gradient(135deg,rgba(61,124,245,.08),rgba(34,211,168,.05));border:1px solid rgba(61,124,245,.15);border-radius:var(--rs);font-size:11px;color:var(--ac);font-weight:600;display:flex;align-items:center;gap:6px}
+.match-banner svg{width:14px;height:14px;fill:none;stroke:var(--ac);stroke-width:2;flex-shrink:0}
+
+.empty{padding:40px 20px;text-align:center;color:var(--tx3)}
+.empty-ic{font-size:32px;margin-bottom:8px}
+.empty-t{font-size:13px;font-weight:600;margin-bottom:4px;color:var(--tx2)}
+.empty-d{font-size:11px}
+
+/* Generator Panel */
+.gen{display:none;flex-direction:column;padding:14px}
+.gen.on{display:flex}
+.gen-out{font-family:var(--mono);font-size:15px;font-weight:600;padding:14px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--rs);text-align:center;word-break:break-all;margin-bottom:12px;min-height:48px;display:flex;align-items:center;justify-content:center;letter-spacing:.5px}
+.gen-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.gen-row label{font-size:11px;color:var(--tx2);width:60px;flex-shrink:0}
+.gen-row input[type=range]{flex:1;accent-color:var(--ac)}
+.gen-row span{font-family:var(--mono);font-size:12px;color:var(--ac);width:24px;text-align:right}
+.gen-opts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.gen-opt{padding:4px 10px;font-size:11px;border-radius:4px;background:var(--bg3);border:1px solid var(--bd);cursor:pointer;color:var(--tx2);transition:.12s}
+.gen-opt.on{background:rgba(61,124,245,.1);border-color:var(--ac);color:var(--ac)}
+
+/* Toast */
+.toast{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);padding:8px 16px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);font-size:11px;font-weight:600;z-index:99;animation:fadeUp .2s;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+@keyframes fadeUp{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+.sb{height:3px;border-radius:1.5px;overflow:hidden;width:60px}
+.sb-f{height:100%;border-radius:1.5px;transition:width .3s}
+
+/* Footer */
+.ftr{padding:8px 14px;border-top:1px solid var(--bd);display:flex;align-items:center;gap:6px;flex-shrink:0;background:var(--bg1)}
+.ftr-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px;border-radius:var(--rs);cursor:pointer;color:var(--tx3);transition:.12s;background:none;border:none;font-family:var(--font)}
+.ftr-btn:hover{color:var(--ac);background:var(--bg2)}
+.ftr-btn.on{color:var(--ac)}
+.ftr-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.ftr-btn span{font-size:8px;font-weight:600}
+</style>
+</head>
+<body>
+
+<!-- LOCK SCREEN -->
+<div class="lock" id="lockScreen">
+  <div style="font-size:40px">🔐</div>
+  <h1>WARDKEY</h1>
+  <p>Enter master password to unlock</p>
+  <input class="inp" type="password" id="masterPw" placeholder="Master password" autofocus>
+  <div style="height:8px"></div>
+  <button class="btn btn-p" id="unlockBtn">Unlock Vault</button>
+  <div style="margin-top:12px;font-size:10px;color:var(--tx3)">Ctrl+Shift+L to open anytime</div>
+</div>
+
+<!-- APP -->
+<div class="app" id="appView">
+  <!-- Header -->
+  <div class="hdr">
+    <div class="hdr-logo">🔐 WARDKEY</div>
+    <div class="hdr-site" id="curSite"></div>
+    <button class="hdr-btn" id="lockBtn" title="Lock vault">
+      <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+    </button>
+  </div>
+
+  <!-- Search -->
+  <div class="sch">
+    <div class="sch-w">
+      <svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Search vault...">
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab on" data-tab="matches">For this site</div>
+    <div class="tab" data-tab="all">All items</div>
+    <div class="tab" data-tab="gen">Generator</div>
+  </div>
+
+  <!-- Match Banner -->
+  <div class="match-banner" id="matchBanner" style="display:none">
+    <svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    <span id="matchCount">0 credentials found for this site</span>
+  </div>
+
+  <!-- List -->
+  <div class="list" id="itemList"></div>
+
+  <!-- Generator -->
+  <div class="gen" id="genPanel">
+    <div class="gen-out" id="genOut">Click generate</div>
+    <div class="gen-row">
+      <label>Length</label>
+      <input type="range" id="genLen" min="8" max="64" value="20">
+      <span id="genLenV">20</span>
+    </div>
+    <div class="gen-opts">
+      <div class="gen-opt on" data-opt="upper">A-Z</div>
+      <div class="gen-opt on" data-opt="lower">a-z</div>
+      <div class="gen-opt on" data-opt="nums">0-9</div>
+      <div class="gen-opt on" data-opt="syms">!@#</div>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-p" id="genBtn" style="flex:2">⚡ Generate</button>
+      <button class="btn btn-s" id="genCopy" style="flex:1">Copy</button>
+      <button class="btn btn-s" id="genFill" style="flex:1">Fill</button>
+    </div>
+    <div style="margin-top:10px;display:flex;align-items:center;gap:6px">
+      <div class="sb" style="flex:1"><div class="sb-f" id="genStr" style="width:0%;background:var(--rd)"></div></div>
+      <span style="font-size:10px;color:var(--tx3)" id="genStrL">—</span>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="ftr">
+    <button class="ftr-btn on" data-nav="matches">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span>Vault</span>
+    </button>
+    <button class="ftr-btn" data-nav="gen">
+      <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      <span>Generate</span>
+    </button>
+    <button class="ftr-btn" data-nav="settings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09"/></svg>
+      <span>Settings</span>
+    </button>
+  </div>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>
