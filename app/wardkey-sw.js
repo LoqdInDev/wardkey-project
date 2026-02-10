@@ -1,5 +1,5 @@
 // WARDKEY Service Worker v1.0
-const CACHE_NAME = 'wardkey-v1';
+const CACHE_NAME = 'wardkey-v2';
 const ASSETS = [
   './',
   './wardkey.html',
@@ -29,8 +29,9 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
-  // Skip non-GET and chrome-extension requests
+  // Skip non-GET, cross-origin API, and chrome-extension requests
   if (e.request.method !== 'GET') return;
+  if (url.origin !== self.location.origin && !url.hostname.includes('googleapis') && !url.hostname.includes('gstatic')) return;
   if (url.protocol === 'chrome-extension:') return;
 
   // Network-first for API calls
