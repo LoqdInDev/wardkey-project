@@ -479,7 +479,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
       <input type="password" id="mpIn" placeholder="Master password" autofocus>
       <button class="lock-go" onclick="unlock()"><svg viewBox="0 0 24 24" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
     </div>
-    <div class="lock-hint">Enter your master password (4+ characters)</div>
+    <div id="mpConfWrap" style="display:none;margin-top:8px">
+      <input type="password" class="lock-fi" id="mpConf" placeholder="Confirm master password" style="font-family:var(--mono);letter-spacing:2px">
+    </div>
+    <div class="lock-hint" id="mpHint">Enter your master password (4+ characters)</div>
     <div class="lock-info">Your vault stays on this device. No account needed.</div>
   </div>
   <!-- CLOUD SYNC PANEL -->
@@ -841,16 +844,30 @@ function seed(){
 }
 
 // ════════ AUTH ════════
+function checkFirstRun(){
+  const hasVault=!!(localStorage.getItem('wardkey_v4')||localStorage.getItem('wardkey_v3'));
+  const wrap=$('mpConfWrap'),hint=$('mpHint');
+  if(!hasVault){wrap.style.display='block';hint.textContent='Choose a master password (4+ characters)'}
+  else{wrap.style.display='none';hint.textContent='Enter your master password (4+ characters)'}
+}
+checkFirstRun();
 async function unlock(){
   const pw=$('mpIn').value;
   if(pw.length<4){$('lErr').textContent='Password must be at least 4 characters';$('lErr').style.display='block';shake($('mpIn'));return}
+  // First-time setup: require confirmation
+  const hasVault=!!(localStorage.getItem('wardkey_v4')||localStorage.getItem('wardkey_v3'));
+  if(!hasVault){
+    const conf=$('mpConf').value;
+    if(!conf){$('lErr').textContent='Please confirm your master password';$('lErr').style.display='block';shake($('mpConf'));return}
+    if(pw!==conf){$('lErr').textContent='Passwords do not match';$('lErr').style.display='block';shake($('mpConf'));$('mpConf').value='';$('mpConf').focus();return}
+  }
   // Brute force protection
   if(Date.now()<lockoutUntil){const sec=Math.ceil((lockoutUntil-Date.now())/1000);$('lErr').textContent=`Too many attempts. Try again in ${sec}s`;$('lErr').style.display='block';shake($('mpIn'));return}
   $('lErr').style.display='none';
   try{
     await loadV(pw);
     failedAttempts=0;
-    $('LS').classList.add('out');$('app').classList.add('on');buildNav();render();updC();updateSidebar();resetAL();setTimeout(checkRotations,500);
+    $('LS').classList.add('out');$('app').classList.add('on');$('mpConfWrap').style.display='none';$('mpConf').value='';buildNav();render();updC();updateSidebar();resetAL();setTimeout(checkRotations,500);
   const isLight=document.documentElement.getAttribute('data-theme')==='light';
   const btn=$('thBtn');if(btn)btn.innerHTML=isLight?'<svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>':'<svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
   }catch(e){
@@ -872,6 +889,7 @@ function resetVault(e){
   failedAttempts=0;lockoutUntil=0;
   $('lErr').style.display='none';$('mpIn').value='';$('mpIn').focus();
   toast('Vault reset — enter a new master password','ok');
+  checkFirstRun();
 }
 // ════════ AUTH UI FUNCTIONS ════════
 function authTab(mode){
@@ -958,13 +976,14 @@ async function doDeleteAccount(){
 
 function shake(el){el.style.animation='none';el.offsetHeight;el.style.animation='shake .4s'}
 function lock(){secureClear();$('LS').classList.remove('out');$('app').classList.remove('on');$('mpIn').value='';
-  // Clear cloud form fields
-  ['alEmail','alPw','alMp','arName','arEmail','arPw','arPwC','arMp'].forEach(id=>{const el=$(id);if(el)el.value=''});
+  // Clear form fields
+  ['alEmail','alPw','alMp','arName','arEmail','arPw','arPwC','arMp','mpConf'].forEach(id=>{const el=$(id);if(el)el.value=''});
   // If user was logged in, show cloud tab
   if(syncEnabled){authTab('cloud');authMode('login')}
   setTimeout(()=>{if(syncEnabled)$('alMp')?.focus();else $('mpIn')?.focus()},600);
 }
-$('mpIn').addEventListener('keydown',e=>{if(e.key==='Enter')unlock()});
+$('mpIn').addEventListener('keydown',e=>{if(e.key==='Enter'){const wrap=$('mpConfWrap');if(wrap&&wrap.style.display!=='none')$('mpConf').focus();else unlock()}});
+$('mpConf').addEventListener('keydown',e=>{if(e.key==='Enter')unlock()});
 // Cloud form enter-key handlers
 ['alMp'].forEach(id=>{const el=$(id);if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()})});
 ['arMp'].forEach(id=>{const el=$(id);if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter')doRegister()})});
