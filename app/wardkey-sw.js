@@ -1,5 +1,5 @@
-// WARDKEY Service Worker v1.0
-const CACHE_NAME = 'wardkey-v2';
+// WARDKEY Service Worker v3
+const CACHE_NAME = 'wardkey-v3';
 const ASSETS = [
   './',
   './wardkey.html',
@@ -25,43 +25,28 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Fetch — cache-first for app shell, network-first for API/fonts
+// Fetch — only handle same-origin GET requests + font CDN
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
+  const isFont = url.hostname.includes('googleapis') || url.hostname.includes('gstatic');
+  const isSameOrigin = url.origin === self.location.origin;
 
-  // Skip non-GET, cross-origin API, and chrome-extension requests
+  // ONLY intercept same-origin GETs and font requests — let everything else pass through untouched
   if (e.request.method !== 'GET') return;
-  if (url.origin !== self.location.origin && !url.hostname.includes('googleapis') && !url.hostname.includes('gstatic')) return;
-  if (url.protocol === 'chrome-extension:') return;
+  if (!isSameOrigin && !isFont) return;
 
-  // Network-first for API calls
-  if (url.pathname.startsWith('/api/')) {
-    e.respondWith(
-      fetch(e.request)
-        .then(res => {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
-          return res;
-        })
-        .catch(() => caches.match(e.request))
-    );
-    return;
-  }
-
-  // Cache-first for everything else (app shell, fonts, etc.)
+  // Cache-first for app shell and fonts
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
       return fetch(e.request).then(res => {
-        // Only cache same-origin and font requests
-        if (res.ok && (url.origin === self.location.origin || url.hostname.includes('googleapis') || url.hostname.includes('gstatic'))) {
+        if (res.ok) {
           const clone = res.clone();
           caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
         }
         return res;
       });
     }).catch(() => {
-      // Offline fallback
       if (e.request.mode === 'navigate') {
         return caches.match('./wardkey.html');
       }
