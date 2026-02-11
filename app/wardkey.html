@@ -922,7 +922,7 @@ async function doRegister(){
     authToken=data.token;authUser=data.user||{name,email,plan:'free'};syncEnabled=true;
     saveAuth();
     // Now unlock vault with master password
-    $('mpIn').value=mp;
+    $('mpIn').value=mp;$('mpConf').value=mp;
     await unlock();
     toast('Account created — vault syncing enabled','ok');
   }catch(e){showAuthErr(e.message)}
@@ -950,7 +950,7 @@ async function doLogin(){
         }
       }
     }catch{}
-    $('mpIn').value=mp;
+    $('mpIn').value=mp;$('mpConf').value=mp;
     await unlock();
     toast('Logged in — vault synced','ok');
   }catch(e){showAuthErr(e.message)}
