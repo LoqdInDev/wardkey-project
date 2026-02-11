@@ -17,6 +17,7 @@ let syncInProgress = false;
 let failedAttempts = 0;
 let lockoutUntil = 0;
 let mfaTempToken = null;
+let lockTimeout = 0; // 0=every time, ms value, or -1=browser session
 
 // ═══════ CRYPTO (v4 — compatible with web app) ═══════
 async function deriveKey(pw, salt) {
@@ -232,8 +233,8 @@ $('unlockBtn').onclick = async () => {
   $('unlockBtn').textContent = 'Unlock Vault';
   $('unlockBtn').disabled = false;
 
-  // Store session for auto-unlock
-  chrome.storage.session?.set({ wardkey_session: Date.now() });
+  // Store session for auto-unlock (pw in session storage — extension-only, cleared on browser close)
+  chrome.storage.session?.set({ wardkey_session: { ts: Date.now(), pw } });
   chrome.runtime.sendMessage({ type: 'WARDKEY_ACTIVITY' });
 
   getCurrentSite();
@@ -254,6 +255,7 @@ $('lockBtn').onclick = () => {
   window._salt = null;
   window._verify = null;
   window._masterPw = null;
+  chrome.storage.session?.remove('wardkey_session'); // clear auto-unlock session
   $('appView').classList.remove('on');
   $('lockScreen').style.display = '';
   $('masterPw').value = '';
@@ -480,6 +482,21 @@ function renderAccount() {
   const panel = $('acctPanel');
   panel.classList.add('on');
 
+  // Lock timeout setting (shown for all users)
+  const lockOptHtml = LOCK_OPTIONS.map(o =>
+    `<option value="${o.value}"${o.value === lockTimeout ? ' selected' : ''}>${o.label}</option>`
+  ).join('');
+  const lockSettingHtml = `
+    <div class="acct-title" style="margin-top:14px">Settings</div>
+    <div class="acct-card">
+      <div class="acct-row">
+        <div class="acct-row-l">Auto-lock</div>
+        <select id="lockTimeoutSel" style="background:var(--bg3);color:var(--tx1);border:1px solid var(--bd);border-radius:4px;padding:4px 6px;font-size:12px;font-family:var(--font);outline:none;cursor:pointer">
+          ${lockOptHtml}
+        </select>
+      </div>
+    </div>`;
+
   if (syncEnabled && authUser) {
     panel.innerHTML = `
       <div class="acct-title">Account</div>
@@ -492,7 +509,8 @@ function renderAccount() {
       <div style="display:flex;gap:6px">
         <button class="btn btn-s" style="flex:1" id="acctSyncBtn">🔄 Sync Now</button>
         <button class="btn btn-d" style="flex:1" id="acctLogoutBtn">Log Out</button>
-      </div>`;
+      </div>
+      ${lockSettingHtml}`;
 
     $('acctSyncBtn').onclick = () => { syncDown(); toast('Syncing...'); };
     $('acctLogoutBtn').onclick = () => {
@@ -511,11 +529,24 @@ function renderAccount() {
         <div style="font-size:11px;color:var(--tx3);margin-bottom:16px;line-height:1.5">Sign in to sync your encrypted vault across all your devices. Your master password never leaves your device.</div>
         <button class="btn btn-p" id="acctLoginBtn" style="margin-bottom:8px">Sign In</button>
         <button class="btn btn-s" id="acctRegBtn">Create Account</button>
-      </div>`;
+      </div>
+      ${lockSettingHtml}`;
 
     $('acctLoginBtn').onclick = () => showAuth('login');
     $('acctRegBtn').onclick = () => showAuth('register');
   }
+
+  // Bind lock timeout change
+  $('lockTimeoutSel').onchange = (e) => {
+    const val = parseInt(e.target.value);
+    saveLockTimeout(val);
+    if (val === 0) {
+      chrome.storage.session?.remove('wardkey_session');
+      toast('Will ask every time');
+    } else {
+      toast('Auto-lock updated');
+    }
+  };
 }
 
 // ═══════ AUTH UI ═══════
@@ -1081,20 +1112,70 @@ $('themeBtn').onclick = async () => {
   await chrome.storage.local.set({ wardkey_theme: currentTheme });
 };
 
+// ═══════ LOCK TIMEOUT SETTING ═══════
+const LOCK_OPTIONS = [
+  { value: 0, label: 'Every time' },
+  { value: 900000, label: '15 minutes' },
+  { value: 3600000, label: '1 hour' },
+  { value: 86400000, label: '1 day' },
+  { value: 604800000, label: '1 week' },
+  { value: -1, label: 'Browser session (until closed)' }
+];
+
+async function loadLockTimeout() {
+  const data = await chrome.storage.local.get('wardkey_lockTimeout');
+  lockTimeout = data.wardkey_lockTimeout ?? 0;
+}
+
+async function saveLockTimeout(val) {
+  lockTimeout = val;
+  await chrome.storage.local.set({ wardkey_lockTimeout: val });
+}
+
+// ═══════ AUTO-UNLOCK ═══════
+async function tryAutoUnlock() {
+  if (lockTimeout === 0) return; // every time = always ask
+
+  const data = await chrome.storage.session?.get('wardkey_session');
+  if (!data?.wardkey_session?.pw) return;
+
+  const session = data.wardkey_session;
+  const elapsed = Date.now() - session.ts;
+
+  // Check if session is still valid
+  if (lockTimeout === -1 || elapsed < lockTimeout) {
+    // Try to unlock with stored password
+    $('lockErr').textContent = '';
+    const hasVault = (await chrome.storage.local.get('wardkey_v4')).wardkey_v4;
+    if (!hasVault) return;
+
+    const ok = await loadVault(session.pw);
+    if (!ok) {
+      // Stored pw no longer valid (vault changed?) — clear session
+      chrome.storage.session?.remove('wardkey_session');
+      return;
+    }
+
+    unlocked = true;
+    window._masterPw = session.pw;
+    $('lockScreen').style.display = 'none';
+    $('appView').classList.add('on');
+
+    // Refresh session timestamp
+    chrome.storage.session?.set({ wardkey_session: { ts: Date.now(), pw: session.pw } });
+
+    getCurrentSite();
+    renderList();
+    updateSyncDot();
+    checkPendingSave();
+    if (syncEnabled && authToken) syncDown();
+  }
+}
+
 // ═══════ INIT ═══════
 loadTheme();
 loadAuth();
-
-// Auto-unlock from session
-chrome.storage.session?.get('wardkey_session', data => {
-  if (data?.wardkey_session) {
-    const elapsed = Date.now() - data.wardkey_session;
-    if (elapsed < 5 * 60 * 1000) {
-      // Session still active — show lock screen but indicate recent activity
-      $('masterPw').focus();
-    }
-  }
-});
+loadLockTimeout().then(() => tryAutoUnlock());
 
 // Keyboard shortcuts
 document.addEventListener('keydown', e => {

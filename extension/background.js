@@ -77,13 +77,18 @@ async function updateBadge(tab) {
 chrome.alarms.create('wardkey-autolock', { periodInMinutes: 1 });
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === 'wardkey-autolock') {
-    chrome.storage.session?.get('wardkey_session', (data) => {
-      if (data?.wardkey_session) {
-        const elapsed = Date.now() - data.wardkey_session;
-        if (elapsed > 5 * 60 * 1000) {
-          chrome.storage.session?.remove('wardkey_session');
+    chrome.storage.local.get('wardkey_lockTimeout', (settings) => {
+      const timeout = settings.wardkey_lockTimeout ?? 0;
+      // 0 = every time (no session), -1 = browser session (never expire via timer)
+      if (timeout === 0 || timeout === -1) return;
+      chrome.storage.session?.get('wardkey_session', (data) => {
+        if (data?.wardkey_session?.ts) {
+          const elapsed = Date.now() - data.wardkey_session.ts;
+          if (elapsed > timeout) {
+            chrome.storage.session?.remove('wardkey_session');
+          }
         }
-      }
+      });
     });
   }
 });
