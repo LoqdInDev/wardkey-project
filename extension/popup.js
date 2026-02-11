@@ -235,7 +235,6 @@ $('unlockBtn').onclick = async () => {
   clearLockout();
   $('lockAttempts').textContent = '';
   unlocked = true;
-  window._masterPw = pw;
   $('lockScreen').style.display = 'none';
   $('appView').classList.add('on');
   $('unlockBtn').textContent = 'Unlock Vault';
@@ -262,7 +261,6 @@ $('lockBtn').onclick = () => {
   window._mk = null;
   window._salt = null;
   window._verify = null;
-  window._masterPw = null;
   genPw = '';
   editingItem = null;
   mfaTempToken = null;
@@ -289,10 +287,15 @@ async function getCurrentSite() {
 
 function getMatches() {
   if (!currentDomain || !vault.passwords) return [];
+  const domain = currentDomain.toLowerCase();
   return vault.passwords.filter(p => {
-    const url = (p.url || '').toLowerCase().replace('https://', '').replace('http://', '').replace('www.', '');
-    const domain = currentDomain.toLowerCase();
-    return url.includes(domain) || domain.includes(url.split('/')[0]);
+    try {
+      let raw = (p.url || '').trim().toLowerCase();
+      if (!raw) return false;
+      if (!/^https?:\/\//.test(raw)) raw = 'https://' + raw;
+      const host = new URL(raw).hostname.replace('www.', '');
+      return host === domain || host.endsWith('.' + domain) || domain.endsWith('.' + host);
+    } catch { return false; }
   });
 }
 
@@ -902,10 +905,12 @@ async function autofill(item) {
   }
 }
 
+let clipClearTimer = 0;
 function copyPw(pw) {
   navigator.clipboard.writeText(pw);
   toast('Copied');
-  setTimeout(() => { navigator.clipboard.writeText('').catch(() => {}); }, 30000);
+  clearTimeout(clipClearTimer);
+  clipClearTimer = setTimeout(() => { navigator.clipboard.writeText('').catch(() => {}); }, 30000);
 }
 
 function launchSite(item) {
@@ -965,7 +970,12 @@ function showPanel(panel) {
   document.querySelectorAll('.ftr-btn').forEach(b => b.classList.toggle('on', b.dataset.nav === panel));
   if (panel === 'vault') {
     activeTab = 'matches';
-    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === 'matches'));
+    document.querySelectorAll('.tab').forEach(t => {
+      const sel = t.dataset.tab === 'matches';
+      t.classList.toggle('on', sel);
+      t.setAttribute('aria-selected', sel);
+      t.tabIndex = sel ? 0 : -1;
+    });
   }
   renderList();
 }
@@ -974,8 +984,21 @@ function showPanel(panel) {
 document.querySelectorAll('.tab').forEach(tab => {
   tab.onclick = () => {
     activeTab = tab.dataset.tab;
-    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t === tab));
+    document.querySelectorAll('.tab').forEach(t => {
+      const sel = t === tab;
+      t.classList.toggle('on', sel);
+      t.setAttribute('aria-selected', sel);
+      t.tabIndex = sel ? 0 : -1;
+    });
     renderList();
+  };
+  tab.onkeydown = (e) => {
+    const tabs = [...document.querySelectorAll('.tab')];
+    const idx = tabs.indexOf(tab);
+    let next = -1;
+    if (e.key === 'ArrowRight') next = (idx + 1) % tabs.length;
+    else if (e.key === 'ArrowLeft') next = (idx - 1 + tabs.length) % tabs.length;
+    if (next >= 0) { e.preventDefault(); tabs[next].click(); tabs[next].focus(); }
   };
 });
 
@@ -993,16 +1016,25 @@ let addItemType = null;
 
 $('addBtn').onclick = (e) => {
   e.stopPropagation();
-  $('addDrop').classList.toggle('on');
+  const open = $('addDrop').classList.toggle('on');
+  $('addBtn').setAttribute('aria-expanded', open);
+  if (open) {
+    const first = $('addDrop').querySelector('[role="menuitem"]');
+    if (first) first.focus();
+  }
 };
 
 // Close dropdown on outside click
-document.addEventListener('click', () => { $('addDrop').classList.remove('on'); });
+document.addEventListener('click', () => {
+  $('addDrop').classList.remove('on');
+  $('addBtn').setAttribute('aria-expanded', 'false');
+});
 
 document.querySelectorAll('.add-drop-item').forEach(item => {
   item.onclick = (e) => {
     e.stopPropagation();
     $('addDrop').classList.remove('on');
+    $('addBtn').setAttribute('aria-expanded', 'false');
     openAddForm(item.dataset.type);
   };
 });
@@ -1230,6 +1262,8 @@ function toast(msg) {
   if (existing) existing.remove();
   const t = document.createElement('div');
   t.className = 'toast';
+  t.setAttribute('role', 'status');
+  t.setAttribute('aria-live', 'polite');
   t.textContent = msg;
   document.body.appendChild(t);
   clearTimeout(toastTimer);
@@ -1306,7 +1340,6 @@ async function tryAutoUnlock() {
     }
 
     unlocked = true;
-    window._masterPw = session.pw;
     $('lockScreen').style.display = 'none';
     $('appView').classList.add('on');
 

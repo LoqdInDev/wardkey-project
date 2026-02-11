@@ -201,11 +201,13 @@
 
     const overlay = document.createElement('div');
     overlay.id = 'wardkey-save-dialog';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-labelledby', 'wardkey-dialog-title');
     overlay.innerHTML = `
       <div class="wardkey-dialog-card">
         <div class="wardkey-dialog-header">
-          <span class="wardkey-dialog-title">Add to WARDKEY?</span>
-          <button class="wardkey-dialog-close">✕</button>
+          <span class="wardkey-dialog-title" id="wardkey-dialog-title">Add to WARDKEY?</span>
+          <button class="wardkey-dialog-close" aria-label="Close dialog">✕</button>
         </div>
         <div class="wardkey-dialog-body">
           <div class="wardkey-dialog-site">
@@ -219,30 +221,62 @@
         <div class="wardkey-dialog-footer">
           <span class="wardkey-dialog-brand">🔐 WARDKEY</span>
           <div class="wardkey-dialog-actions">
-            <button class="wardkey-dialog-btn wardkey-dialog-skip">Not now</button>
-            <button class="wardkey-dialog-btn wardkey-dialog-save">Add password</button>
+            <button class="wardkey-dialog-btn wardkey-dialog-skip" aria-label="Dismiss">Not now</button>
+            <button class="wardkey-dialog-btn wardkey-dialog-save" aria-label="Save password">Add password</button>
           </div>
         </div>
       </div>
     `;
     document.body.appendChild(overlay);
 
+    // Focus trap: remember what was focused, focus first button
+    const prevFocus = document.activeElement;
+    const saveBtn = overlay.querySelector('.wardkey-dialog-save');
+    const skipBtn = overlay.querySelector('.wardkey-dialog-skip');
+    const closeBtn = overlay.querySelector('.wardkey-dialog-close');
+    const focusable = [closeBtn, skipBtn, saveBtn];
+    saveBtn.focus();
+
+    const trapFocus = (e) => {
+      if (e.key === 'Tab') {
+        const idx = focusable.indexOf(document.activeElement);
+        if (e.shiftKey) {
+          e.preventDefault();
+          focusable[(idx - 1 + focusable.length) % focusable.length].focus();
+        } else {
+          e.preventDefault();
+          focusable[(idx + 1) % focusable.length].focus();
+        }
+      }
+    };
+    overlay.addEventListener('keydown', trapFocus);
+
     const closeDialog = () => {
+      overlay.removeEventListener('keydown', trapFocus);
       const card = overlay.querySelector('.wardkey-dialog-card');
       if (card) { card.style.opacity = '0'; card.style.transform = 'translateY(-10px) scale(.98)'; }
       setTimeout(() => overlay.remove(), 200);
+      if (prevFocus && prevFocus.focus) prevFocus.focus();
     };
 
-    overlay.querySelector('.wardkey-dialog-save').onclick = () => {
+    // Escape key to close
+    overlay.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        chrome.runtime.sendMessage({ type: 'WARDKEY_DISMISS_PENDING' }).catch(() => {});
+        closeDialog();
+      }
+    });
+
+    saveBtn.onclick = () => {
       chrome.runtime.sendMessage({ type: 'WARDKEY_SAVE_CONFIRM', ...data }).catch(() => {});
-      closeDialog(); // Don't clear pendingSave — background just set it
+      closeDialog();
     };
 
-    overlay.querySelector('.wardkey-dialog-skip').onclick = () => {
+    skipBtn.onclick = () => {
       chrome.runtime.sendMessage({ type: 'WARDKEY_DISMISS_PENDING' }).catch(() => {});
       closeDialog();
     };
-    overlay.querySelector('.wardkey-dialog-close').onclick = () => {
+    closeBtn.onclick = () => {
       chrome.runtime.sendMessage({ type: 'WARDKEY_DISMISS_PENDING' }).catch(() => {});
       closeDialog();
     };

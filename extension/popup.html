@@ -68,7 +68,7 @@ body.ready{opacity:1}
 .item-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .item-user{font-size:11px;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .item-acts{display:flex;gap:3px;opacity:0;transition:.12s;flex-shrink:0}
-.item:hover .item-acts{opacity:1}
+.item:hover .item-acts,.item:focus-within .item-acts{opacity:1}
 .act{width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--bd);border-radius:4px;cursor:pointer;color:var(--tx2);transition:.12s}
 .act:hover{border-color:var(--ac);color:var(--ac)}
 .act svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
@@ -174,6 +174,8 @@ body.ready{opacity:1}
 .ftr-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 .ftr-btn span{font-size:9px;font-weight:600}
 .ftr-badge{position:absolute;top:2px;right:12px;min-width:14px;height:14px;border-radius:7px;background:var(--rd);color:#fff;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px}
+
+button:focus-visible,.tab:focus-visible,.item:focus-visible,.act:focus-visible,.inp:focus-visible,.ftr-btn:focus-visible,.add-drop-item:focus-visible,.gen-opt:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 </style>
 </head>
 <body>
@@ -183,7 +185,7 @@ body.ready{opacity:1}
   <div style="font-size:40px">🔐</div>
   <h1>WARDKEY</h1>
   <p>Enter master password to unlock</p>
-  <input class="inp" type="password" id="masterPw" placeholder="Master password" autofocus>
+  <input class="inp" type="password" id="masterPw" placeholder="Master password" aria-label="Master password" autofocus>
   <div class="err-msg" id="lockErr"></div>
   <div style="height:4px"></div>
   <button class="btn btn-p" id="unlockBtn">Unlock Vault</button>
@@ -199,34 +201,34 @@ body.ready{opacity:1}
     <div class="hdr-site" id="curSite"></div>
     <div class="hdr-sync" id="syncDot" title="Sync status"></div>
     <div class="add-wrap">
-      <button class="add-btn" id="addBtn" title="Add item">+</button>
-      <div class="add-drop" id="addDrop">
-        <div class="add-drop-item" data-type="password"><span class="add-drop-ic">🔑</span>Add password</div>
-        <div class="add-drop-item" data-type="card"><span class="add-drop-ic">💳</span>Add payment card</div>
-        <div class="add-drop-item" data-type="note"><span class="add-drop-ic">📝</span>Add secure note</div>
-        <div class="add-drop-item" data-type="totp"><span class="add-drop-ic">🔢</span>Add TOTP key</div>
+      <button class="add-btn" id="addBtn" title="Add item" aria-label="Add new item" aria-expanded="false" aria-haspopup="true">+</button>
+      <div class="add-drop" id="addDrop" role="menu">
+        <div class="add-drop-item" data-type="password" role="menuitem" tabindex="-1"><span class="add-drop-ic">🔑</span>Add password</div>
+        <div class="add-drop-item" data-type="card" role="menuitem" tabindex="-1"><span class="add-drop-ic">💳</span>Add payment card</div>
+        <div class="add-drop-item" data-type="note" role="menuitem" tabindex="-1"><span class="add-drop-ic">📝</span>Add secure note</div>
+        <div class="add-drop-item" data-type="totp" role="menuitem" tabindex="-1"><span class="add-drop-ic">🔢</span>Add TOTP key</div>
       </div>
     </div>
-    <button class="theme-btn" id="themeBtn" title="Toggle theme">🌙</button>
-    <button class="hdr-btn" id="lockBtn" title="Lock vault">
-      <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+    <button class="theme-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme">🌙</button>
+    <button class="hdr-btn" id="lockBtn" title="Lock vault" aria-label="Lock vault">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
     </button>
   </div>
 
   <!-- Search -->
   <div class="sch" id="searchBar">
     <div class="sch-w">
-      <svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="searchInput" placeholder="Search vault...">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Search vault..." aria-label="Search vault">
     </div>
   </div>
 
   <!-- Tabs -->
-  <div class="tabs" id="tabBar">
-    <div class="tab on" data-tab="matches">For this site</div>
-    <div class="tab" data-tab="all">All items</div>
-    <div class="tab" data-tab="favorites">Favorites</div>
-    <div class="tab" data-tab="recents">Recents</div>
+  <div class="tabs" id="tabBar" role="tablist">
+    <div class="tab on" data-tab="matches" role="tab" aria-selected="true" tabindex="0">For this site</div>
+    <div class="tab" data-tab="all" role="tab" aria-selected="false" tabindex="-1">All items</div>
+    <div class="tab" data-tab="favorites" role="tab" aria-selected="false" tabindex="-1">Favorites</div>
+    <div class="tab" data-tab="recents" role="tab" aria-selected="false" tabindex="-1">Recents</div>
   </div>
 
   <!-- Save Prompt Banner -->
@@ -240,8 +242,8 @@ body.ready{opacity:1}
   </div>
 
   <!-- Match Banner -->
-  <div class="match-banner" id="matchBanner" style="display:none">
-    <svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+  <div class="match-banner" id="matchBanner" style="display:none" aria-live="polite" aria-atomic="true">
+    <svg viewBox="0 0 24 24" stroke-linecap="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
     <span id="matchCount">0 credentials found for this site</span>
   </div>
 
@@ -253,7 +255,7 @@ body.ready{opacity:1}
     <div class="gen-out" id="genOut">Click generate</div>
     <div class="gen-row">
       <label>Length</label>
-      <input type="range" id="genLen" min="8" max="64" value="20">
+      <input type="range" id="genLen" min="8" max="64" value="20" aria-label="Password length">
       <span id="genLenV">20</span>
     </div>
     <div class="gen-opts">
@@ -294,8 +296,8 @@ body.ready{opacity:1}
     <h2>Sign In</h2>
     <p>Sync your vault across devices</p>
     <div class="auth-form">
-      <input class="inp" type="email" id="authEmail" placeholder="Email">
-      <input class="inp" type="password" id="authPw" placeholder="Password">
+      <input class="inp" type="email" id="authEmail" placeholder="Email" aria-label="Email address">
+      <input class="inp" type="password" id="authPw" placeholder="Password" aria-label="Account password">
       <div class="err-msg" id="authErr"></div>
       <button class="btn btn-p" id="authLoginBtn">Sign In</button>
     </div>
@@ -307,10 +309,10 @@ body.ready{opacity:1}
     <h2>Create Account</h2>
     <p>Free encrypted cloud sync</p>
     <div class="auth-form">
-      <input class="inp" type="text" id="regName" placeholder="Name (optional)">
-      <input class="inp" type="email" id="regEmail" placeholder="Email">
-      <input class="inp" type="password" id="regPw" placeholder="Password (8+ chars)">
-      <input class="inp" type="password" id="regPwConf" placeholder="Confirm password">
+      <input class="inp" type="text" id="regName" placeholder="Name (optional)" aria-label="Your name">
+      <input class="inp" type="email" id="regEmail" placeholder="Email" aria-label="Email address">
+      <input class="inp" type="password" id="regPw" placeholder="Password (8+ chars)" aria-label="Account password">
+      <input class="inp" type="password" id="regPwConf" placeholder="Confirm password" aria-label="Confirm password">
       <div class="err-msg" id="regErr"></div>
       <button class="btn btn-p" id="authRegBtn">Create Account</button>
     </div>
@@ -322,7 +324,7 @@ body.ready{opacity:1}
     <h2>Two-Factor Auth</h2>
     <p>Enter the 6-digit code from your authenticator app</p>
     <div class="auth-form">
-      <input class="inp" type="text" id="auth2faCode" placeholder="000000" maxlength="6" style="text-align:center;font-family:var(--mono);font-size:22px;letter-spacing:8px">
+      <input class="inp" type="text" id="auth2faCode" placeholder="000000" maxlength="6" aria-label="Two-factor authentication code" style="text-align:center;font-family:var(--mono);font-size:22px;letter-spacing:8px">
       <div class="err-msg" id="auth2faErr"></div>
       <button class="btn btn-p" id="auth2faBtn">Verify</button>
       <button class="btn btn-g" id="auth2faCancel">Cancel</button>
@@ -332,19 +334,19 @@ body.ready{opacity:1}
   <!-- Footer -->
   <div class="ftr">
     <button class="ftr-btn on" data-nav="vault">
-      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       <span>Vault</span>
     </button>
     <button class="ftr-btn" data-nav="gen">
-      <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
       <span>Generate</span>
     </button>
     <button class="ftr-btn" data-nav="alerts">
-      <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       <span>Alerts</span>
     </button>
     <button class="ftr-btn" data-nav="account">
-      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <span>Account</span>
     </button>
   </div>
