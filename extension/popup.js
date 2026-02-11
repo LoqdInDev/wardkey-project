@@ -296,6 +296,7 @@ function renderList() {
   gen.classList.remove('on');
   alerts.classList.remove('on');
   acct.classList.remove('on');
+  $('addForm').classList.remove('on');
   hideAuth();
   $('searchBar').style.display = '';
   $('tabBar').style.display = '';
@@ -842,6 +843,163 @@ document.querySelectorAll('.ftr-btn').forEach(btn => {
 });
 
 $('searchInput').oninput = () => renderList();
+
+// ═══════ ADD ITEM (+) BUTTON ═══════
+let addItemType = null;
+
+$('addBtn').onclick = (e) => {
+  e.stopPropagation();
+  $('addDrop').classList.toggle('on');
+};
+
+// Close dropdown on outside click
+document.addEventListener('click', () => { $('addDrop').classList.remove('on'); });
+
+document.querySelectorAll('.add-drop-item').forEach(item => {
+  item.onclick = (e) => {
+    e.stopPropagation();
+    $('addDrop').classList.remove('on');
+    openAddForm(item.dataset.type);
+  };
+});
+
+const ADD_FORMS = {
+  password: {
+    icon: '🔑', title: 'Add Password',
+    fields: [
+      { id: 'addName', placeholder: 'Name (e.g. Google)', type: 'text' },
+      { id: 'addUrl', placeholder: 'Website URL', type: 'url' },
+      { id: 'addUsername', placeholder: 'Username / Email', type: 'text' },
+      { id: 'addPassword', placeholder: 'Password', type: 'password' }
+    ]
+  },
+  card: {
+    icon: '💳', title: 'Add Payment Card',
+    fields: [
+      { id: 'addName', placeholder: 'Card name (e.g. Visa ending 4242)', type: 'text' },
+      { id: 'addHolder', placeholder: 'Cardholder name', type: 'text' },
+      { id: 'addNumber', placeholder: 'Card number', type: 'text' },
+      { id: 'addExp', placeholder: 'Expiry (MM/YY)', type: 'text' },
+      { id: 'addCvv', placeholder: 'CVV', type: 'password' }
+    ]
+  },
+  note: {
+    icon: '📝', title: 'Add Secure Note',
+    fields: [
+      { id: 'addName', placeholder: 'Note title', type: 'text' },
+      { id: 'addContent', placeholder: 'Note content', type: 'textarea' }
+    ]
+  },
+  totp: {
+    icon: '🔢', title: 'Add TOTP Key',
+    fields: [
+      { id: 'addName', placeholder: 'Name (e.g. GitHub)', type: 'text' },
+      { id: 'addIssuer', placeholder: 'Issuer', type: 'text' },
+      { id: 'addSecret', placeholder: 'Secret key (base32)', type: 'text' }
+    ]
+  }
+};
+
+function openAddForm(type) {
+  addItemType = type;
+  const config = ADD_FORMS[type];
+  $('addFormIcon').textContent = config.icon;
+  $('addFormTitle').textContent = config.title;
+
+  // Auto-fill URL with current site for passwords
+  let html = '';
+  config.fields.forEach(f => {
+    if (f.type === 'textarea') {
+      html += `<textarea class="inp" id="${f.id}" placeholder="${f.placeholder}" style="min-height:80px;resize:vertical"></textarea>`;
+    } else {
+      html += `<input class="inp" id="${f.id}" placeholder="${f.placeholder}" type="${f.type}">`;
+    }
+  });
+  $('addFormFields').innerHTML = html;
+
+  // Pre-fill URL for password type
+  if (type === 'password' && currentDomain) {
+    const urlField = $('addUrl');
+    if (urlField) urlField.value = 'https://' + currentDomain;
+  }
+
+  // Show form panel
+  activePanel = 'addform';
+  $('addForm').classList.add('on');
+  $('itemList').style.display = 'none';
+  $('genPanel').classList.remove('on');
+  $('alertsPanel').classList.remove('on');
+  $('acctPanel').classList.remove('on');
+  hideAuth();
+  $('searchBar').style.display = 'none';
+  $('tabBar').style.display = 'none';
+  $('matchBanner').style.display = 'none';
+
+  // Focus first field
+  const firstField = $('addFormFields').querySelector('.inp');
+  if (firstField) firstField.focus();
+}
+
+$('addFormCancel').onclick = () => {
+  $('addForm').classList.remove('on');
+  addItemType = null;
+  showPanel('vault');
+};
+
+$('addFormSave').onclick = async () => {
+  if (!addItemType) return;
+
+  if (addItemType === 'password') {
+    const name = $('addName')?.value.trim();
+    const url = $('addUrl')?.value.trim();
+    const username = $('addUsername')?.value.trim();
+    const password = $('addPassword')?.value;
+    if (!name) { shake($('addName')); return; }
+    if (!password) { shake($('addPassword')); return; }
+    vault.passwords.push({
+      id: crypto.randomUUID(), name, url: url || '', username: username || '', password,
+      cat: '', tags: [], notes: '', created: Date.now(), modified: Date.now(),
+      history: [], icon: '🔑', fav: false, sens: false, fields: []
+    });
+  } else if (addItemType === 'card') {
+    const name = $('addName')?.value.trim();
+    const holder = $('addHolder')?.value.trim();
+    const number = $('addNumber')?.value.trim();
+    const exp = $('addExp')?.value.trim();
+    const cvv = $('addCvv')?.value;
+    if (!name) { shake($('addName')); return; }
+    if (!vault.cards) vault.cards = [];
+    vault.cards.push({
+      id: crypto.randomUUID(), name, number: number || '', holder: holder || '',
+      exp: exp || '', cvv: cvv || '', pin: '', type: '', billing: '', icon: '💳'
+    });
+  } else if (addItemType === 'note') {
+    const name = $('addName')?.value.trim();
+    const content = $('addContent')?.value;
+    if (!name) { shake($('addName')); return; }
+    if (!vault.notes) vault.notes = [];
+    vault.notes.push({
+      id: crypto.randomUUID(), name, content: content || '',
+      created: Date.now(), modified: Date.now(), icon: '📝'
+    });
+  } else if (addItemType === 'totp') {
+    const name = $('addName')?.value.trim();
+    const issuer = $('addIssuer')?.value.trim();
+    const secret = $('addSecret')?.value.trim();
+    if (!name) { shake($('addName')); return; }
+    if (!secret) { shake($('addSecret')); return; }
+    if (!vault.totp) vault.totp = [];
+    vault.totp.push({
+      id: crypto.randomUUID(), name, secret, issuer: issuer || '', icon: '🔢'
+    });
+  }
+
+  await saveVault();
+  $('addForm').classList.remove('on');
+  addItemType = null;
+  showPanel('vault');
+  toast('Item saved');
+};
 
 // ═══════ IMPORT FROM WEB APP ═══════
 chrome.runtime.onMessage.addListener((msg) => {

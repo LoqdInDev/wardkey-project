@@ -185,53 +185,58 @@
     }
   }, true);
 
-  // ═══════ SAVE PASSWORD NOTIFICATION BAR ═══════
+  // ═══════ SAVE PASSWORD DIALOG (LastPass-style) ═══════
   function showSaveBar(data) {
-    const existing = document.getElementById('wardkey-save-bar');
+    const existing = document.getElementById('wardkey-save-dialog');
     if (existing) existing.remove();
 
-    const bar = document.createElement('div');
-    bar.id = 'wardkey-save-bar';
-    bar.innerHTML = `
-      <div class="wardkey-save-inner">
-        <span class="wardkey-save-logo">🔐</span>
-        <span class="wardkey-save-text">
-          <strong>WARDKEY</strong> — Save password for <strong>${escapeHtml(data.domain)}</strong>?
-          ${data.username ? '<br><small>' + escapeHtml(data.username) + '</small>' : ''}
-        </span>
-        <button class="wardkey-save-btn wardkey-save-yes">Save</button>
-        <button class="wardkey-save-btn wardkey-save-never">Never</button>
-        <button class="wardkey-save-close">✕</button>
+    const overlay = document.createElement('div');
+    overlay.id = 'wardkey-save-dialog';
+    overlay.innerHTML = `
+      <div class="wardkey-dialog-card">
+        <div class="wardkey-dialog-header">
+          <span class="wardkey-dialog-title">Add to WARDKEY?</span>
+          <button class="wardkey-dialog-close">✕</button>
+        </div>
+        <div class="wardkey-dialog-body">
+          <div class="wardkey-dialog-site">
+            <div class="wardkey-dialog-favicon">🔐</div>
+            <div class="wardkey-dialog-info">
+              <div class="wardkey-dialog-domain">${escapeHtml(data.domain)}</div>
+              <div class="wardkey-dialog-user">${escapeHtml(data.username || 'New credentials')}</div>
+            </div>
+          </div>
+        </div>
+        <div class="wardkey-dialog-footer">
+          <span class="wardkey-dialog-brand">🔐 WARDKEY</span>
+          <div class="wardkey-dialog-actions">
+            <button class="wardkey-dialog-btn wardkey-dialog-skip">Not now</button>
+            <button class="wardkey-dialog-btn wardkey-dialog-save">Add password</button>
+          </div>
+        </div>
       </div>
     `;
-    document.body.appendChild(bar);
+    document.body.appendChild(overlay);
 
-    bar.querySelector('.wardkey-save-yes').onclick = () => {
+    const dismiss = () => {
+      const card = overlay.querySelector('.wardkey-dialog-card');
+      if (card) { card.style.opacity = '0'; card.style.transform = 'translateY(-10px) scale(.98)'; }
+      setTimeout(() => overlay.remove(), 200);
+    };
+
+    overlay.querySelector('.wardkey-dialog-save').onclick = () => {
       chrome.runtime.sendMessage({ type: 'WARDKEY_SAVE_CONFIRM', ...data }).catch(() => {});
-      bar.style.transform = 'translateY(-100%)';
-      setTimeout(() => bar.remove(), 300);
+      dismiss();
     };
 
-    bar.querySelector('.wardkey-save-never').onclick = () => {
-      chrome.runtime.sendMessage({ type: 'WARDKEY_SAVE_NEVER', domain: data.domain }).catch(() => {});
-      bar.style.transform = 'translateY(-100%)';
-      setTimeout(() => bar.remove(), 300);
-    };
+    overlay.querySelector('.wardkey-dialog-skip').onclick = dismiss;
+    overlay.querySelector('.wardkey-dialog-close').onclick = dismiss;
 
-    bar.querySelector('.wardkey-save-close').onclick = () => {
-      bar.style.transform = 'translateY(-100%)';
-      setTimeout(() => bar.remove(), 300);
-    };
+    // Click outside card to dismiss
+    overlay.onclick = (e) => { if (e.target === overlay) dismiss(); };
 
-    // Auto-dismiss after 15 seconds
-    setTimeout(() => {
-      if (document.getElementById('wardkey-save-bar')) {
-        bar.style.transition = 'opacity .3s, transform .3s';
-        bar.style.opacity = '0';
-        bar.style.transform = 'translateY(-100%)';
-        setTimeout(() => bar.remove(), 300);
-      }
-    }, 15000);
+    // Auto-dismiss after 20 seconds
+    setTimeout(() => { if (document.getElementById('wardkey-save-dialog')) dismiss(); }, 20000);
   }
 
   function escapeHtml(s) {

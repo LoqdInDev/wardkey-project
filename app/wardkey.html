@@ -1081,7 +1081,7 @@ function doLogout(){
   if(!confirm('Log out? Your vault will remain on this device but cloud sync will stop.'))return;
   authToken=null;authUser=null;syncEnabled=false;lastSyncTime=null;IS_PRO=false;
   localStorage.removeItem('wardkey_auth');
-  updateSidebar();updateSyncIcon('');render();toast('Logged out — local mode active','ok');
+  lock();toast('Logged out','ok');
 }
 async function doDeleteAccount(){
   if(!confirm('Delete your account? This will remove your cloud data. Your local vault will be kept.'))return;
