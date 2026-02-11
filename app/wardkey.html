@@ -584,6 +584,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <!-- ════════ UPGRADE MODAL ════════ -->
 <div class="mo" id="upMo"><div class="mo-c" style="width:380px"><div class="mo-h"><div class="mo-t">⚡ Upgrade</div><button class="mo-x" onclick="$('upMo').classList.remove('on')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="mo-b" id="upBod"></div></div></div>
 
+<!-- ════════ 2FA MODAL ════════ -->
+<div class="mo" id="mfaMo"><div class="mo-c" style="width:420px"><div class="mo-h"><div class="mo-t">Two-Factor Authentication</div><button class="mo-x" onclick="$('mfaMo').classList.remove('on')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="mo-b" id="mfaMoBody"></div></div></div>
+
 <!-- ════════ SHORTCUTS ════════ -->
 <div class="sc-bg" id="scBg" onclick="if(event.target===this)toggleSC()"><div class="sc-box"><div class="sc-t">⌨️ Keyboard Shortcuts</div><div id="scL"></div></div></div>
 
@@ -840,6 +843,110 @@ function secureClear() {
   try { navigator.clipboard.writeText(''); } catch {}
   // Note: authToken/authUser/syncEnabled are preserved across locks (session persistence)
   // They are only cleared on explicit logout or vault wipe
+  window._pendingMp=null;
+  mfaPendingToken=null;
+}
+
+// ════════ 2FA ════════
+let mfaPendingToken=null;
+
+function show2faLogin(){
+  const panel=$('lpLogin');
+  panel.innerHTML='<div style="text-align:center;padding:10px 0"><div style="font-size:28px;margin-bottom:8px">🔐</div><div style="font-size:16px;font-weight:700;margin-bottom:4px">Two-Factor Authentication</div><div style="font-size:12px;color:var(--tx3);margin-bottom:14px">Enter the 6-digit code from your authenticator app</div><input type="text" class="lock-fi" id="mfa2faCode" placeholder="000000" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" style="text-align:center;font-family:var(--mono);font-size:20px;letter-spacing:8px"><button class="lock-bt lock-bt-p" style="margin-top:8px" onclick="verify2faLogin()">Verify & Unlock</button><button class="bt bt-g" style="width:100%;margin-top:6px;justify-content:center;font-size:12px" onclick="cancel2faLogin()">Back to login</button></div>';
+  setTimeout(()=>$('mfa2faCode')?.focus(),100);
+  $('mfa2faCode')?.addEventListener('keydown',e=>{if(e.key==='Enter')verify2faLogin()});
+}
+
+async function verify2faLogin(){
+  const code=$('mfa2faCode')?.value.trim();
+  if(!code||code.length!==6){showAuthErr('Enter a 6-digit code');return}
+  const mp=window._pendingMp;
+  if(!mp){showAuthErr('Session expired — please log in again');cancel2faLogin();return}
+  showAuthErr('');
+  try{
+    const res=await fetch(API+'/api/auth/2fa/verify-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tempToken:mfaPendingToken,totpCode:code})});
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||'Verification failed');
+    authToken=data.token;authUser=data.user||{email:'',plan:'free'};syncEnabled=true;
+    mfaPendingToken=null;
+    saveAuth();
+    // Download vault then unlock
+    try{
+      const vRes=await fetch(API+'/api/vault',{headers:{'Authorization':'Bearer '+authToken}});
+      if(vRes.ok){const vData=await vRes.json();if(vData.data){localStorage.setItem('wardkey_v4',JSON.stringify(vData));lastSyncTime=Date.now()}}
+    }catch{}
+    restore2faLoginPanel();
+    $('mpIn').value=mp;$('mpConf').value=mp;
+    window._pendingMp=null;
+    await unlock();
+    toast('Logged in — vault synced','ok');
+  }catch(e){showAuthErr(e.message)}
+}
+
+function cancel2faLogin(){
+  mfaPendingToken=null;window._pendingMp=null;
+  restore2faLoginPanel();
+}
+
+function restore2faLoginPanel(){
+  $('lpLogin').innerHTML='<input type="email" class="lock-fi" id="alEmail" placeholder="Email address" autocomplete="email"><input type="password" class="lock-fi" id="alPw" placeholder="Account password" autocomplete="current-password"><input type="password" class="lock-fi" id="alMp" placeholder="Master password (vault decryption)" style="font-family:var(--mono);letter-spacing:2px"><button class="lock-bt lock-bt-p" onclick="doLogin()">Login & Unlock</button><div class="lock-info">Sync your encrypted vault across devices.</div>';
+  // Re-attach enter key handler
+  const el=$('alMp');if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+}
+
+function show2faSetupOffer(){
+  $('mfaMoBody').innerHTML='<div style="text-align:center;padding:10px 0"><div style="font-size:36px;margin-bottom:10px">🛡️</div><div style="font-size:16px;font-weight:700;margin-bottom:6px">Protect Your Account</div><div style="font-size:13px;color:var(--tx2);margin-bottom:16px;line-height:1.5">Add two-factor authentication for extra security. You\'ll need an authenticator app like Google Authenticator or Authy.</div><div style="display:flex;gap:6px"><button class="bt bt-p" style="flex:1;justify-content:center" onclick="start2faSetup()">Set Up 2FA</button><button class="bt bt-s" style="flex:1;justify-content:center" onclick="$(\'mfaMo\').classList.remove(\'on\')">Skip for Now</button></div></div>';
+  $('mfaMo').classList.add('on');
+}
+
+async function start2faSetup(){
+  $('mfaMo').classList.add('on');
+  $('mfaMoBody').innerHTML='<div style="text-align:center;padding:20px 0"><div style="animation:spin 1s linear infinite;width:24px;height:24px;border:3px solid var(--bd);border-top-color:var(--ac);border-radius:50%;margin:0 auto"></div><div style="font-size:13px;color:var(--tx3);margin-top:10px">Generating secret...</div></div>';
+  try{
+    const res=await fetch(API+'/api/auth/2fa/setup',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken}});
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||'Setup failed');
+    $('mfaMoBody').innerHTML='<div style="text-align:center;padding:6px 0"><div style="font-size:14px;font-weight:700;margin-bottom:10px">Scan this QR code</div><div style="font-size:12px;color:var(--tx3);margin-bottom:12px">Use Google Authenticator, Authy, or any TOTP app</div><img src="'+data.qrDataUri+'" style="width:200px;height:200px;margin:0 auto;display:block;border-radius:var(--r);border:1px solid var(--bd)"><div style="margin:12px 0;padding:8px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs)"><div style="font-size:10px;color:var(--tx3);margin-bottom:2px">Manual entry key</div><div style="font-family:var(--mono);font-size:12px;word-break:break-all;user-select:all">'+data.secret+'</div></div><div style="font-size:12px;color:var(--tx2);margin-bottom:8px">Enter the 6-digit code from your app to confirm:</div><input type="text" class="lock-fi" id="mfaConfCode" placeholder="000000" maxlength="6" inputmode="numeric" pattern="[0-9]*" style="text-align:center;font-family:var(--mono);font-size:18px;letter-spacing:6px"><div style="display:flex;gap:6px;margin-top:8px"><button class="bt bt-p" style="flex:1;justify-content:center" onclick="confirm2faSetup()">Verify & Enable</button><button class="bt bt-s" style="flex:1;justify-content:center" onclick="$(\'mfaMo\').classList.remove(\'on\')">Cancel</button></div><div id="mfaSetupErr" style="color:var(--rd);font-size:12px;margin-top:8px;display:none"></div></div>';
+    setTimeout(()=>{$('mfaConfCode')?.focus();$('mfaConfCode')?.addEventListener('keydown',e=>{if(e.key==='Enter')confirm2faSetup()})},100);
+  }catch(e){
+    $('mfaMoBody').innerHTML='<div style="text-align:center;padding:20px 0;color:var(--rd)">'+e.message+'<br><button class="bt bt-s" style="margin-top:10px" onclick="$(\'mfaMo\').classList.remove(\'on\')">Close</button></div>';
+  }
+}
+
+async function confirm2faSetup(){
+  const code=$('mfaConfCode')?.value.trim();
+  if(!code||code.length!==6){const err=$('mfaSetupErr');if(err){err.textContent='Enter a 6-digit code';err.style.display='block'}return}
+  try{
+    const res=await fetch(API+'/api/auth/2fa/confirm',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},body:JSON.stringify({totpCode:code})});
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||'Verification failed');
+    if(authUser)authUser.mfa_enabled=1;
+    saveAuth();
+    $('mfaMo').classList.remove('on');
+    toast('2FA enabled — your account is now protected','ok');
+    if(pg==='settings')render();
+  }catch(e){const err=$('mfaSetupErr');if(err){err.textContent=e.message;err.style.display='block'}}
+}
+
+function disable2fa(){
+  $('mfaMoBody').innerHTML='<div style="text-align:center;padding:10px 0"><div style="font-size:28px;margin-bottom:8px">🔓</div><div style="font-size:16px;font-weight:700;margin-bottom:6px">Disable Two-Factor Authentication</div><div style="font-size:13px;color:var(--tx2);margin-bottom:14px">Enter your current 2FA code to confirm.</div><input type="text" class="lock-fi" id="mfaDisCode" placeholder="000000" maxlength="6" inputmode="numeric" pattern="[0-9]*" style="text-align:center;font-family:var(--mono);font-size:18px;letter-spacing:6px"><div style="display:flex;gap:6px;margin-top:8px"><button class="bt bt-d" style="flex:1;justify-content:center" onclick="confirmDisable2fa()">Disable 2FA</button><button class="bt bt-s" style="flex:1;justify-content:center" onclick="$(\'mfaMo\').classList.remove(\'on\')">Cancel</button></div><div id="mfaDisErr" style="color:var(--rd);font-size:12px;margin-top:8px;display:none"></div></div>';
+  $('mfaMo').classList.add('on');
+  setTimeout(()=>{$('mfaDisCode')?.focus();$('mfaDisCode')?.addEventListener('keydown',e=>{if(e.key==='Enter')confirmDisable2fa()})},100);
+}
+
+async function confirmDisable2fa(){
+  const code=$('mfaDisCode')?.value.trim();
+  if(!code||code.length!==6){const err=$('mfaDisErr');if(err){err.textContent='Enter a 6-digit code';err.style.display='block'}return}
+  try{
+    const res=await fetch(API+'/api/auth/2fa/disable',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},body:JSON.stringify({totpCode:code})});
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||'Disable failed');
+    if(authUser)authUser.mfa_enabled=0;
+    saveAuth();
+    $('mfaMo').classList.remove('on');
+    toast('2FA disabled','ok');
+    if(pg==='settings')render();
+  }catch(e){const err=$('mfaDisErr');if(err){err.textContent=e.message;err.style.display='block'}}
 }
 
 // ════════ VAULT INIT ════════
@@ -929,6 +1036,8 @@ async function doRegister(){
     $('mpIn').value=mp;$('mpConf').value=mp;
     await unlock();
     toast('Account created — vault syncing enabled','ok');
+    // Offer 2FA setup after a brief delay
+    setTimeout(show2faSetupOffer,500);
   }catch(e){showAuthErr(e.message)}
 }
 async function doLogin(){
@@ -936,10 +1045,17 @@ async function doLogin(){
   if(!email||!pw){showAuthErr('Email and account password are required');return}
   if(mp.length<4){showAuthErr('Master password must be at least 4 characters');return}
   showAuthErr('');
+  window._pendingMp=mp;
   try{
     const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
     const data=await res.json();
     if(!res.ok)throw new Error(data.error||'Login failed');
+    // If 2FA required, show code input
+    if(data.requires2fa){
+      mfaPendingToken=data.tempToken;
+      show2faLogin();
+      return;
+    }
     authToken=data.token;authUser=data.user||{email,plan:'free'};syncEnabled=true;
     saveAuth();
     // Try to download vault from server before unlocking
@@ -955,6 +1071,7 @@ async function doLogin(){
       }
     }catch{}
     $('mpIn').value=mp;$('mpConf').value=mp;
+    window._pendingMp=null;
     await unlock();
     toast('Logged in — vault synced','ok');
   }catch(e){showAuthErr(e.message)}
@@ -1225,6 +1342,7 @@ el.innerHTML='<div style="max-width:720px"><div class="st" style="margin-bottom:
 +(syncEnabled&&authUser
 ?'<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:14px">'+(authUser.name||'U').charAt(0).toUpperCase()+'</div><div><div style="font-size:14px;font-weight:600">'+(authUser.name||'User')+'</div><div style="font-size:12px;color:var(--tx3)">'+(authUser.email||'')+'</div></div></div>'
 +'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd)"><div style="font-size:13px;color:var(--tx2)">Sync Status</div><div style="font-size:13px;color:var(--gn);font-weight:600">'+(lastSyncTime?'Last synced '+timeAgo(lastSyncTime):'Ready')+'</div></div>'
++'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd)"><div><div style="font-size:13px;color:var(--tx2)">Two-Factor Auth</div><div style="font-size:11px;color:var(--tx3);margin-top:1px">'+(authUser?.mfa_enabled?'Enabled — extra login security':'Not enabled')+'</div></div><button class="bt '+(authUser?.mfa_enabled?'bt-d':'bt-p')+'" style="padding:6px 12px;font-size:12px" onclick="'+(authUser?.mfa_enabled?'disable2fa()':'start2faSetup()')+'">'+(authUser?.mfa_enabled?'Disable 2FA':'Enable 2FA')+'</button></div>'
 +'<div style="display:flex;gap:5px;margin-top:10px"><button class="bt bt-s" style="flex:1" onclick="syncDown()">🔄 Sync Now</button><button class="bt bt-s" style="flex:1" onclick="doLogout()">🚪 Log Out</button></div>'
 +'<button class="bt bt-d" style="width:100%;justify-content:center;margin-top:6px" onclick="doDeleteAccount()">Delete Account</button>'
 :'<div style="text-align:center;padding:8px"><div style="font-size:14px;font-weight:600;margin-bottom:4px">Cloud Sync Disabled</div><div style="font-size:12px;color:var(--tx3);margin-bottom:10px;line-height:1.5">Sign in to sync your encrypted vault across devices. Your master password never leaves your device.</div><button class="bt bt-p" style="margin:0 auto;display:flex" onclick="lock();authTab(\'cloud\')">Sign In / Register</button></div>')
@@ -1790,7 +1908,8 @@ document.addEventListener('keydown',e=>{
   if(m&&e.key==='e'){e.preventDefault();doExport('json')}
   if(e.key==='?'&&!e.target.matches('input,textarea,select')){e.preventDefault();toggleSC()}
   if(e.key==='Escape'){
-    if($('upMo').classList.contains('on'))$('upMo').classList.remove('on');
+    if($('mfaMo').classList.contains('on'))$('mfaMo').classList.remove('on');
+    else if($('upMo').classList.contains('on'))$('upMo').classList.remove('on');
     else if($('scBg').classList.contains('on'))toggleSC();
     else if($('addMo').classList.contains('on'))closeAdd();
     else if($('impMo').classList.contains('on'))$('impMo').classList.remove('on');
@@ -1803,6 +1922,7 @@ document.addEventListener('keydown',e=>{
 $('addMo').addEventListener('click',e=>{if(e.target===$('addMo'))closeAdd()});
 $('impMo').addEventListener('click',e=>{if(e.target===$('impMo'))$('impMo').classList.remove('on')});
 $('upMo').addEventListener('click',e=>{if(e.target===$('upMo'))$('upMo').classList.remove('on')});
+$('mfaMo').addEventListener('click',e=>{if(e.target===$('mfaMo'))$('mfaMo').classList.remove('on')});
 
 // ════════ PWA ════════
 let deferredInstall=null;
