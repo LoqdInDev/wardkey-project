@@ -196,8 +196,7 @@
     `;
     document.body.appendChild(overlay);
 
-    const dismiss = () => {
-      chrome.storage.session?.remove('wardkey_pendingSave');
+    const closeDialog = () => {
       const card = overlay.querySelector('.wardkey-dialog-card');
       if (card) { card.style.opacity = '0'; card.style.transform = 'translateY(-10px) scale(.98)'; }
       setTimeout(() => overlay.remove(), 200);
@@ -205,14 +204,25 @@
 
     overlay.querySelector('.wardkey-dialog-save').onclick = () => {
       chrome.runtime.sendMessage({ type: 'WARDKEY_SAVE_CONFIRM', ...data }).catch(() => {});
-      dismiss();
+      closeDialog(); // Don't clear pendingSave — background just set it
     };
 
-    overlay.querySelector('.wardkey-dialog-skip').onclick = dismiss;
-    overlay.querySelector('.wardkey-dialog-close').onclick = dismiss;
+    overlay.querySelector('.wardkey-dialog-skip').onclick = () => {
+      chrome.storage.session?.remove('wardkey_pendingSave');
+      closeDialog();
+    };
+    overlay.querySelector('.wardkey-dialog-close').onclick = () => {
+      chrome.storage.session?.remove('wardkey_pendingSave');
+      closeDialog();
+    };
 
     // Click outside card to dismiss
-    overlay.onclick = (e) => { if (e.target === overlay) dismiss(); };
+    overlay.onclick = (e) => {
+      if (e.target === overlay) {
+        chrome.storage.session?.remove('wardkey_pendingSave');
+        closeDialog();
+      }
+    };
   }
 
   function escapeHtml(s) {

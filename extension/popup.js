@@ -376,13 +376,13 @@ function renderList() {
       </div>
       <div class="item-acts">
         <button class="act act-fill" title="Autofill" data-action="fill" data-id="${p.id}">
+          <svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg>
+        </button>
+        <button class="act" title="Edit" data-action="edit" data-id="${p.id}">
           <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
         <button class="act" title="Copy password" data-action="copy" data-id="${p.id}">
           <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-        </button>
-        <button class="act" title="Launch site" data-action="launch" data-id="${p.id}">
-          <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         </button>
       </div>
     </div>`;
@@ -404,6 +404,7 @@ function bindItemActions() {
       const item = (vault.passwords || []).find(p => p.id === id);
       if (!item) return;
       if (action === 'fill') autofill(item);
+      if (action === 'edit') openEditItem(item);
       if (action === 'copy') copyPw(item.password);
       if (action === 'launch') launchSite(item);
     };
@@ -411,9 +412,69 @@ function bindItemActions() {
   list.querySelectorAll('.item').forEach(el => {
     el.onclick = () => {
       const item = (vault.passwords || []).find(p => p.id === el.dataset.id);
-      if (item) autofill(item);
+      if (item) openEditItem(item);
     };
   });
+}
+
+// ═══════ EDIT ITEM DETAIL VIEW ═══════
+let editingItem = null;
+
+function openEditItem(item) {
+  editingItem = item;
+  $('addFormIcon').textContent = item.icon || '🔑';
+  $('addFormTitle').textContent = 'Edit Password';
+
+  $('addFormFields').innerHTML = `
+    <input class="inp" id="editName" placeholder="Name" type="text" value="${esc(item.name || '')}">
+    <input class="inp" id="editUrl" placeholder="Website URL" type="url" value="${esc(item.url || '')}">
+    <input class="inp" id="editUsername" placeholder="Username / Email" type="text" value="${esc(item.username || '')}">
+    <div style="position:relative">
+      <input class="inp" id="editPassword" placeholder="Password" type="password" value="${esc(item.password || '')}" style="padding-right:36px">
+      <button type="button" id="editPwToggle" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--tx3);font-size:14px">👁</button>
+    </div>
+    <input class="inp" id="editNotes" placeholder="Notes (optional)" type="text" value="${esc(item.notes || '')}">
+    <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+      <label style="font-size:12px;color:var(--tx2);display:flex;align-items:center;gap:4px;cursor:pointer">
+        <input type="checkbox" id="editFav" ${item.fav ? 'checked' : ''}> Favorite
+      </label>
+    </div>
+    <div style="margin-top:8px">
+      <button class="btn btn-d" style="font-size:11px;padding:6px 10px;width:auto" id="editDeleteBtn">Delete item</button>
+    </div>
+  `;
+
+  // Show edit form panel
+  activePanel = 'addform';
+  addItemType = '__edit__';
+  $('addForm').classList.add('on');
+  $('itemList').style.display = 'none';
+  $('genPanel').classList.remove('on');
+  $('alertsPanel').classList.remove('on');
+  $('acctPanel').classList.remove('on');
+  hideAuth();
+  $('searchBar').style.display = 'none';
+  $('tabBar').style.display = 'none';
+  $('matchBanner').style.display = 'none';
+
+  // Toggle password visibility
+  $('editPwToggle').onclick = () => {
+    const pw = $('editPassword');
+    pw.type = pw.type === 'password' ? 'text' : 'password';
+    $('editPwToggle').textContent = pw.type === 'password' ? '👁' : '🔒';
+  };
+
+  // Delete handler
+  $('editDeleteBtn').onclick = async () => {
+    if (!confirm('Delete this item?')) return;
+    vault.passwords = vault.passwords.filter(p => p.id !== editingItem.id);
+    await saveVault();
+    editingItem = null;
+    addItemType = null;
+    $('addForm').classList.remove('on');
+    showPanel('vault');
+    toast('Item deleted');
+  };
 }
 
 // ═══════ ALERTS ═══════
@@ -979,6 +1040,42 @@ $('addFormCancel').onclick = () => {
 
 $('addFormSave').onclick = async () => {
   if (!addItemType) return;
+
+  // Handle editing existing item
+  if (addItemType === '__edit__' && editingItem) {
+    const name = $('editName')?.value.trim();
+    const url = $('editUrl')?.value.trim();
+    const username = $('editUsername')?.value.trim();
+    const password = $('editPassword')?.value;
+    const notes = $('editNotes')?.value.trim();
+    const fav = $('editFav')?.checked || false;
+    if (!name) { shake($('editName')); return; }
+
+    // Find and update the item
+    const item = vault.passwords.find(p => p.id === editingItem.id);
+    if (item) {
+      // Save old password to history if changed
+      if (password && password !== item.password) {
+        if (!item.history) item.history = [];
+        item.history.push({ pw: item.password, changed: Date.now() });
+      }
+      item.name = name;
+      item.url = url || '';
+      item.username = username || '';
+      if (password) item.password = password;
+      item.notes = notes || '';
+      item.fav = fav;
+      item.modified = Date.now();
+    }
+
+    await saveVault();
+    editingItem = null;
+    addItemType = null;
+    $('addForm').classList.remove('on');
+    showPanel('vault');
+    toast('Item updated');
+    return;
+  }
 
   if (addItemType === 'password') {
     const name = $('addName')?.value.trim();
