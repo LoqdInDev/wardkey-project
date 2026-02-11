@@ -163,19 +163,6 @@ nav.scrolled{background:rgba(5,5,8,.85);backdrop-filter:blur(20px);border-bottom
 .sec-card p{font-size:11px;color:var(--tx2);line-height:1.5}
 .sec-card .mono{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--gn2);margin:4px 0}
 
-/* ═══ TESTIMONIALS ═══ */
-.test{background:var(--bg)}
-.test-h{text-align:center;margin-bottom:50px}
-.test-h h2{font-family:var(--serif);font-size:clamp(32px,5vw,48px)}
-.test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.test-card{background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:24px}
-.test-stars{color:var(--yl);font-size:13px;margin-bottom:10px;letter-spacing:2px}
-.test-q{font-size:14px;line-height:1.7;color:var(--tx2);margin-bottom:14px;font-style:italic}
-.test-who{display:flex;align-items:center;gap:10px}
-.test-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--gn));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white}
-.test-name{font-size:12px;font-weight:600}
-.test-role{font-size:10px;color:var(--tx3)}
-
 /* ═══ PRICING ═══ */
 .pricing{background:var(--bg2)}
 .pricing-h{text-align:center;margin-bottom:50px}
@@ -227,7 +214,7 @@ footer a{color:var(--tx2);text-decoration:none}
 
 /* ═══ RESPONSIVE ═══ */
 @media(max-width:900px){
-  .feat-grid,.ai-grid,.test-grid{grid-template-columns:1fr 1fr}
+  .feat-grid,.ai-grid{grid-template-columns:1fr 1fr}
   .feat-card.hero-card{grid-column:span 2}
   .sec-grid{grid-template-columns:1fr 1fr}
   .pricing-grid{grid-template-columns:1fr 1fr}
@@ -236,7 +223,7 @@ footer a{color:var(--tx2);text-decoration:none}
 }
 @media(max-width:640px){
   section{padding:60px 0}
-  .feat-grid,.ai-grid,.test-grid{grid-template-columns:1fr}
+  .feat-grid,.ai-grid{grid-template-columns:1fr}
   .feat-card.hero-card{grid-column:span 1}
   .sec-grid{grid-template-columns:1fr 1fr}
   .hero-proof{flex-direction:column;gap:12px}
@@ -775,29 +762,6 @@ footer a{color:var(--tx2);text-decoration:none}
   </div>
 </section>
 
-<!-- ═══════════ TESTIMONIALS ═══════════ -->
-<section class="test">
-  <div class="ctr">
-    <div class="test-h reveal"><h2>Loved by people who <span class="grad-text">know security</span></h2></div>
-    <div class="test-grid reveal">
-      <div class="test-card">
-        <div class="test-stars">★★★★★</div>
-        <p class="test-q">"I've been a 1Password user for 6 years. WARDKEY's AI features and zero-cost model made me switch in a heartbeat. The phishing detector alone is worth it."</p>
-        <div class="test-who"><div class="test-av">M</div><div><div class="test-name">Marcus R.</div><div class="test-role">Security Engineer at Stripe</div></div></div>
-      </div>
-      <div class="test-card">
-        <div class="test-stars">★★★★★</div>
-        <p class="test-q">"Finally a password manager that understands developers. The API key vault with environment tagging is something I've wanted for years. And it's free? Insane."</p>
-        <div class="test-who"><div class="test-av">S</div><div><div class="test-name">Sarah K.</div><div class="test-role">Full-Stack Developer</div></div></div>
-      </div>
-      <div class="test-card">
-        <div class="test-stars">★★★★★</div>
-        <p class="test-q">"After the LastPass breach, I needed something local-first. WARDKEY gives me that peace of mind PLUS AI security reports I actually understand. Game changer."</p>
-        <div class="test-who"><div class="test-av">A</div><div><div class="test-name">Alex T.</div><div class="test-role">Crypto Trader & DeFi User</div></div></div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- ═══════════ PRICING ═══════════ -->
 <section class="pricing" id="pricing">
