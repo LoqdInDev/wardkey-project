@@ -898,7 +898,33 @@ function toast(msg) {
   toastTimer = setTimeout(() => t.remove(), 2000);
 }
 
+// ═══════ THEME TOGGLE ═══════
+let currentTheme = 'dark';
+
+async function loadTheme() {
+  const data = await chrome.storage.local.get('wardkey_theme');
+  currentTheme = data.wardkey_theme || 'dark';
+  applyTheme();
+}
+
+function applyTheme() {
+  if (currentTheme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    $('themeBtn').textContent = '☀️';
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    $('themeBtn').textContent = '🌙';
+  }
+}
+
+$('themeBtn').onclick = async () => {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  applyTheme();
+  await chrome.storage.local.set({ wardkey_theme: currentTheme });
+};
+
 // ═══════ INIT ═══════
+loadTheme();
 loadAuth();
 
 // Auto-unlock from session
