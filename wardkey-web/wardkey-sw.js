@@ -1,10 +1,12 @@
-// WARDKEY Service Worker v4
-const CACHE_NAME = 'wardkey-v4';
+// WARDKEY Service Worker v5
+const CACHE_NAME = 'wardkey-v5';
 const ASSETS = [
   '/',
+  '/index.html',
   '/app.html',
   '/wardkey-manifest.json',
-  'https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap'
+  'https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap',
+  'https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap'
 ];
 
 // Install — cache core assets
@@ -42,7 +44,7 @@ self.addEventListener('fetch', e => {
       return fetch(e.request).then(res => {
         if (res.ok) {
           const clone = res.clone();
-          caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+          caches.open(CACHE_NAME).then(c => c.put(e.request, clone)).catch(()=>{});
         }
         return res;
       });

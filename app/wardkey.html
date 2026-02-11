@@ -90,6 +90,9 @@ body{font-family:var(--font);background:var(--bg0);color:var(--tx1);font-size:17
 .lock-form input::placeholder{letter-spacing:0;font-family:var(--font);color:var(--tx3);font-size:15px}
 .lock-go{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:var(--rs);background:var(--ac);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
 .lock-go:hover{background:var(--ach);transform:translateY(-50%) scale(1.04)}
+.lock-go:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.lock-bt:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.lock-tab:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 .lock-go svg{width:16px;height:16px;stroke:white;fill:none;stroke-width:2.5}
 .lock-hint{color:var(--tx3);font-size:15px;margin-top:14px}
 .lock-err{color:var(--rd);font-size:12px;margin-top:10px;display:none}
@@ -482,10 +485,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   <div class="lock-panel on" id="lpLocal">
     <div class="lock-form">
       <input type="password" id="mpIn" placeholder="Master password" autofocus aria-label="Master password">
-      <button class="lock-go" onclick="unlock()"><svg viewBox="0 0 24 24" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+      <button class="lock-go" onclick="unlock()" aria-label="Unlock vault"><svg viewBox="0 0 24 24" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
     </div>
     <div id="mpConfWrap" style="display:none;margin-top:8px">
-      <input type="password" class="lock-fi" id="mpConf" placeholder="Confirm master password" style="font-family:var(--mono);letter-spacing:2px">
+      <input type="password" class="lock-fi" id="mpConf" placeholder="Confirm master password" style="font-family:var(--mono);letter-spacing:2px" aria-label="Confirm master password">
     </div>
     <div class="lock-hint" id="mpHint">Enter your master password (4+ characters)</div>
     <div class="lock-info">Your vault stays on this device. No account needed.</div>
@@ -498,19 +501,19 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
     </div>
     <!-- LOGIN FORM -->
     <div class="lock-panel on" id="lpLogin" style="text-align:left">
-      <input type="email" class="lock-fi" id="alEmail" placeholder="Email address" autocomplete="email">
-      <input type="password" class="lock-fi" id="alPw" placeholder="Account password" autocomplete="current-password">
-      <input type="password" class="lock-fi" id="alMp" placeholder="Master password (vault decryption)" style="font-family:var(--mono);letter-spacing:2px">
+      <input type="email" class="lock-fi" id="alEmail" placeholder="Email address" autocomplete="email" aria-label="Email address">
+      <input type="password" class="lock-fi" id="alPw" placeholder="Account password" autocomplete="current-password" aria-label="Account password">
+      <input type="password" class="lock-fi" id="alMp" placeholder="Master password (vault decryption)" style="font-family:var(--mono);letter-spacing:2px" aria-label="Master password for vault decryption">
       <button class="lock-bt lock-bt-p" onclick="doLogin()">Login & Unlock</button>
       <div class="lock-info">Sync your encrypted vault across devices.</div>
     </div>
     <!-- REGISTER FORM -->
     <div class="lock-panel" id="lpReg" style="text-align:left">
-      <input type="text" class="lock-fi" id="arName" placeholder="Your name" autocomplete="name">
-      <input type="email" class="lock-fi" id="arEmail" placeholder="Email address" autocomplete="email">
-      <input type="password" class="lock-fi" id="arPw" placeholder="Account password (8+ characters)" autocomplete="new-password">
-      <input type="password" class="lock-fi" id="arPwC" placeholder="Confirm account password" autocomplete="new-password">
-      <input type="password" class="lock-fi" id="arMp" placeholder="Master password (4+ characters, for vault encryption)" style="font-family:var(--mono);letter-spacing:2px">
+      <input type="text" class="lock-fi" id="arName" placeholder="Your name" autocomplete="name" aria-label="Your name">
+      <input type="email" class="lock-fi" id="arEmail" placeholder="Email address" autocomplete="email" aria-label="Email address">
+      <input type="password" class="lock-fi" id="arPw" placeholder="Account password (8+ characters)" autocomplete="new-password" aria-label="Account password">
+      <input type="password" class="lock-fi" id="arPwC" placeholder="Confirm account password" autocomplete="new-password" aria-label="Confirm account password">
+      <input type="password" class="lock-fi" id="arMp" placeholder="Master password (4+ characters, for vault encryption)" style="font-family:var(--mono);letter-spacing:2px" aria-label="Master password for vault encryption">
       <button class="lock-bt lock-bt-p" onclick="doRegister()">Create Account & Unlock</button>
       <div class="lock-info">Your master password never leaves your device. The server only sees encrypted data.</div>
     </div>
@@ -982,13 +985,17 @@ async function unlock(){
   // Brute force protection
   if(Date.now()<lockoutUntil){const sec=Math.ceil((lockoutUntil-Date.now())/1000);$('lErr').textContent=`Too many attempts. Try again in ${sec}s`;$('lErr').style.display='block';shake($('mpIn'));return}
   $('lErr').style.display='none';
+  const goBtn=$('mpIn').parentElement.querySelector('.lock-go');
+  goBtn.disabled=true;goBtn.innerHTML='<svg style="animation:spin .6s linear infinite" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-dasharray="50" stroke-dashoffset="15"/></svg>';
   try{
     await loadV(pw);
+    goBtn.disabled=false;goBtn.innerHTML='<svg viewBox="0 0 24 24" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
     failedAttempts=0;
     $('LS').classList.add('out');$('app').classList.add('on');$('mpConfWrap').style.display='none';$('mpConf').value='';buildNav();render();updC();updateSidebar();resetAL();setTimeout(checkRotations,500);
   const isLight=document.documentElement.getAttribute('data-theme')==='light';
   const btn=$('thBtn');if(btn)btn.innerHTML=isLight?'<svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>':'<svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
   }catch(e){
+    goBtn.disabled=false;goBtn.innerHTML='<svg viewBox="0 0 24 24" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
     failedAttempts++;
     const hasVault = !!(localStorage.getItem('wardkey_v4')||localStorage.getItem('wardkey_v3'));
     if(failedAttempts>=MAX_ATTEMPTS){lockoutUntil=Date.now()+LOCKOUT_MS;$('lErr').innerHTML=`Too many failed attempts. Locked for 60 seconds.`+
