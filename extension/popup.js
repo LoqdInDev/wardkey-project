@@ -240,9 +240,9 @@ $('unlockBtn').onclick = async () => {
   getCurrentSite();
   renderList();
   updateSyncDot();
-  checkPendingSave();
+  await checkPendingSave();
 
-  // Auto sync on unlock
+  // Auto sync on unlock (AFTER pending save is processed)
   if (syncEnabled && authToken) syncDown();
 };
 
@@ -775,9 +775,50 @@ async function checkPendingSave() {
   if (!data?.wardkey_pendingSave) { $('saveBanner').classList.remove('on'); return; }
 
   const pending = data.wardkey_pendingSave;
+
+  // If user already confirmed via the page dialog, auto-save directly
+  if (pending.confirmed && pending.password) {
+    await autoSavePending(pending);
+    return;
+  }
+
   $('saveBannerTitle').textContent = `Save password for ${pending.domain}?`;
   $('saveBannerDesc').textContent = pending.username ? `${pending.username}` : 'New credentials detected';
   $('saveBanner').classList.add('on');
+}
+
+async function autoSavePending(pending) {
+  // Check if credential exists for this domain+username
+  const existing = (vault.passwords || []).find(p =>
+    (p.url || '').toLowerCase().includes(pending.domain) &&
+    (p.username || '').toLowerCase() === (pending.username || '').toLowerCase()
+  );
+
+  if (existing) {
+    if (existing.password !== pending.password) {
+      if (!existing.history) existing.history = [];
+      existing.history.push({ pw: existing.password, changed: Date.now() });
+      existing.password = pending.password;
+      existing.modified = Date.now();
+    }
+  } else {
+    vault.passwords.push({
+      id: crypto.randomUUID(),
+      name: pending.domain,
+      username: pending.username || '',
+      password: pending.password,
+      url: 'https://' + pending.domain,
+      cat: '', tags: [], notes: '',
+      created: Date.now(), modified: Date.now(),
+      history: [], icon: '🔑', fav: false, sens: false, fields: []
+    });
+  }
+
+  await saveVault();
+  await chrome.storage.session?.remove('wardkey_pendingSave');
+  $('saveBanner').classList.remove('on');
+  renderList();
+  toast(existing ? 'Password updated' : 'Password saved');
 }
 
 $('saveBannerYes').onclick = async () => {
@@ -1138,7 +1179,7 @@ chrome.runtime.onMessage.addListener((msg) => {
     toast(`Imported ${(msg.passwords || []).length} items`);
   }
   if (msg.type === 'WARDKEY_PENDING_SAVE' && unlocked) {
-    checkPendingSave();
+    checkPendingSave().catch(() => {});
   }
 });
 
@@ -1264,15 +1305,14 @@ async function tryAutoUnlock() {
     getCurrentSite();
     renderList();
     updateSyncDot();
-    checkPendingSave();
+    await checkPendingSave();
     if (syncEnabled && authToken) syncDown();
   }
 }
 
 // ═══════ INIT ═══════
 loadTheme();
-loadAuth();
-loadLockTimeout().then(() => tryAutoUnlock()).finally(() => {
+Promise.all([loadAuth(), loadLockTimeout()]).then(() => tryAutoUnlock()).finally(() => {
   document.body.classList.add('ready');
 });
 

@@ -5,17 +5,32 @@
   // ═══════ FORM DETECTION ═══════
   const SELECTORS = {
     username: [
+      'input[autocomplete="username"]',
+      'input[autocomplete="email"]',
       'input[type="email"]',
       'input[type="text"][name*="user"]',
       'input[type="text"][name*="email"]',
       'input[type="text"][name*="login"]',
+      'input[type="text"][name*="mail"]',
+      'input[type="text"][name*="acct"]',
+      'input[type="text"][name*="handle"]',
       'input[type="text"][id*="user"]',
       'input[type="text"][id*="email"]',
       'input[type="text"][id*="login"]',
-      'input[autocomplete="username"]',
-      'input[autocomplete="email"]',
+      'input[type="text"][id*="mail"]',
+      'input[type="text"][placeholder*="mail" i]',
+      'input[type="text"][placeholder*="user" i]',
+      'input[type="text"][placeholder*="login" i]',
+      'input[type="text"][placeholder*="phone" i]',
+      'input[type="text"][aria-label*="mail" i]',
+      'input[type="text"][aria-label*="user" i]',
+      'input[type="tel"]',
       'input[name="identifier"]',
-      'input[name="account"]'
+      'input[name="account"]',
+      'input[name="login"]',
+      'input[name="email"]',
+      'input[name="login_field"]',
+      'input[name="session[username_or_email]"]'
     ],
     password: [
       'input[type="password"]',
@@ -41,6 +56,23 @@
       if (el && isVisible(el)) {
         fields.username = el;
         break;
+      }
+    }
+
+    // Fallback: if no username found, look for any visible text/email input
+    // that appears before the password field in the DOM
+    if (!fields.username && fields.password) {
+      const form = fields.password.closest('form') || scope;
+      const allInputs = form.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input:not([type])');
+      for (const inp of allInputs) {
+        if (inp === fields.password || inp === fields.newPassword) continue;
+        if (inp.type === 'hidden' || inp.type === 'submit') continue;
+        if (!isVisible(inp)) continue;
+        // Must appear before the password field in DOM order
+        if (fields.password.compareDocumentPosition(inp) & Node.DOCUMENT_POSITION_PRECEDING) {
+          fields.username = inp;
+          break;
+        }
       }
     }
 
@@ -307,6 +339,8 @@
       const data = await chrome.storage.session?.get('wardkey_pendingSave');
       if (data?.wardkey_pendingSave) {
         const pending = data.wardkey_pendingSave;
+        // Don't re-show if user already confirmed — popup will handle it
+        if (pending.confirmed) return;
         // Only show if it's recent (within 5 minutes)
         if (Date.now() - pending.timestamp < 300000) {
           saveDialogShown = true;

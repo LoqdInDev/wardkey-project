@@ -171,16 +171,19 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   // User clicked "Save" in content script dialog
   if (msg.type === 'WARDKEY_SAVE_CONFIRM') {
-    chrome.storage.session?.set({
-      wardkey_pendingSave: {
-        domain: msg.domain,
-        username: msg.username,
-        password: msg.password,
-        url: msg.url,
-        timestamp: Date.now()
-      }
-    });
-    chrome.runtime.sendMessage({ type: 'WARDKEY_PENDING_SAVE' }).catch(() => {});
+    (async () => {
+      await chrome.storage.session.set({
+        wardkey_pendingSave: {
+          domain: msg.domain,
+          username: msg.username,
+          password: msg.password,
+          url: msg.url,
+          timestamp: Date.now(),
+          confirmed: true
+        }
+      });
+      chrome.runtime.sendMessage({ type: 'WARDKEY_PENDING_SAVE' }).catch(() => {});
+    })();
   }
 
   // User clicked "Never" for a domain
