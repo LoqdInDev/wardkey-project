@@ -1,12 +1,11 @@
 // WARDKEY Background Service Worker v2.0
 
-// Allow content scripts to access chrome.storage.session (must run on every SW start)
-chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
+// Restrict session storage to trusted contexts only (extension pages, NOT content scripts)
+chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
 
 // ═══════ INSTALL & CONTEXT MENU ═══════
 chrome.runtime.onInstalled.addListener((details) => {
-  // Allow content scripts to access chrome.storage.session
-  chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
+  // Session storage already restricted to trusted contexts at top of file
 
   // Context menus
   chrome.contextMenus.create({
@@ -150,6 +149,32 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         chrome.action.setBadgeText({ text, tabId: tab.id });
       }
     });
+  }
+
+  // Content script credential capture (via message passing, not direct session storage)
+  if (msg.type === 'WARDKEY_STORE_CAPTURE') {
+    chrome.storage.session?.set({
+      wardkey_capture: {
+        domain: msg.domain,
+        username: msg.username,
+        password: msg.password,
+        url: msg.url,
+        timestamp: msg.timestamp
+      }
+    });
+  }
+
+  // Content script checks for pending save dialog
+  if (msg.type === 'WARDKEY_CHECK_PENDING') {
+    chrome.storage.session?.get('wardkey_pendingSave', (data) => {
+      sendResponse({ pending: data?.wardkey_pendingSave || null });
+    });
+    return true; // async sendResponse
+  }
+
+  // Content script dismisses pending save
+  if (msg.type === 'WARDKEY_DISMISS_PENDING') {
+    chrome.storage.session?.remove('wardkey_pendingSave');
   }
 
   // Legacy: content script form submit detection (backup path)

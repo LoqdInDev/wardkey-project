@@ -366,7 +366,7 @@ function renderList() {
   list.innerHTML = items.map(p => {
     const s = pwStr(p.password);
     return `<div class="item" data-id="${p.id}">
-      <div class="item-ic">${p.icon || '🔑'}</div>
+      <div class="item-ic">${esc(p.icon || '🔑')}</div>
       <div class="item-info">
         <div class="item-name">${esc(p.name)}</div>
         <div class="item-user">${esc(p.username || '')}</div>

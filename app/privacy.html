@@ -210,7 +210,8 @@ footer a:hover{color:var(--tx1)}
 <li>Does <strong>not</strong> communicate with any third-party servers — only with api.wardkey.io for vault sync</li>
 <li>Stores vault data locally in <code>chrome.storage.local</code> (encrypted)</li>
 <li>Session data (auto-unlock) is stored in <code>chrome.storage.session</code> and cleared when the browser closes</li>
-<li>Requires only the minimum permissions needed: <code>activeTab</code>, <code>storage</code>, <code>contextMenus</code>, <code>alarms</code></li>
+<li>Requires only the minimum permissions needed: <code>activeTab</code>, <code>storage</code>, <code>contextMenus</code>, <code>alarms</code>, <code>clipboardWrite</code></li>
+<li>Uses a host permission (<code>&lt;all_urls&gt;</code>) to detect login forms and offer autofill on any website you visit — the extension does <strong>not</strong> read page content or browsing history</li>
 </ul>
 
 <h2>10. Children's Privacy</h2>

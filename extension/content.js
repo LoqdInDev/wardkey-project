@@ -178,15 +178,14 @@
         if (!pw) return;
         const username = (fields.username?.value || '').trim();
 
-        chrome.storage.session?.set({
-          wardkey_capture: {
-            domain: location.hostname.replace('www.', ''),
-            username,
-            password: pw,
-            url: location.href,
-            timestamp: Date.now()
-          }
-        });
+        chrome.runtime.sendMessage({
+          type: 'WARDKEY_STORE_CAPTURE',
+          domain: location.hostname.replace('www.', ''),
+          username,
+          password: pw,
+          url: location.href,
+          timestamp: Date.now()
+        }).catch(() => {});
       };
 
       field.addEventListener('input', storeCapture);
@@ -240,18 +239,18 @@
     };
 
     overlay.querySelector('.wardkey-dialog-skip').onclick = () => {
-      chrome.storage.session?.remove('wardkey_pendingSave');
+      chrome.runtime.sendMessage({ type: 'WARDKEY_DISMISS_PENDING' }).catch(() => {});
       closeDialog();
     };
     overlay.querySelector('.wardkey-dialog-close').onclick = () => {
-      chrome.storage.session?.remove('wardkey_pendingSave');
+      chrome.runtime.sendMessage({ type: 'WARDKEY_DISMISS_PENDING' }).catch(() => {});
       closeDialog();
     };
 
     // Click outside card to dismiss
     overlay.onclick = (e) => {
       if (e.target === overlay) {
-        chrome.storage.session?.remove('wardkey_pendingSave');
+        chrome.runtime.sendMessage({ type: 'WARDKEY_DISMISS_PENDING' }).catch(() => {});
         closeDialog();
       }
     };
@@ -336,9 +335,9 @@
   async function checkPendingSaveOnLoad() {
     if (saveDialogShown) return;
     try {
-      const data = await chrome.storage.session?.get('wardkey_pendingSave');
-      if (data?.wardkey_pendingSave) {
-        const pending = data.wardkey_pendingSave;
+      const response = await chrome.runtime.sendMessage({ type: 'WARDKEY_CHECK_PENDING' });
+      if (response?.pending) {
+        const pending = response.pending;
         // Don't re-show if user already confirmed — popup will handle it
         if (pending.confirmed) return;
         // Only show if it's recent (within 5 minutes)
