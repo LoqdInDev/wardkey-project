@@ -1,7 +1,13 @@
 // WARDKEY Background Service Worker v2.0
 
+// Allow content scripts to access chrome.storage.session (must run on every SW start)
+chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
+
 // ═══════ INSTALL & CONTEXT MENU ═══════
 chrome.runtime.onInstalled.addListener((details) => {
+  // Allow content scripts to access chrome.storage.session
+  chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
+
   // Context menus
   chrome.contextMenus.create({
     id: 'wardkey-generate',
