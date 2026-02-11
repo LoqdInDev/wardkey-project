@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Security — WARDKEY</title>
+<meta name="description" content="How WARDKEY protects your data. Zero-knowledge encryption, AES-256-GCM, and a local-first architecture.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#050508;--bg2:#0a0a10;--bg3:#0e0e16;
+  --bd:#1a1a2e;--bd2:#252540;
+  --tx1:#f0eef6;--tx2:#9896a8;--tx3:#5c5a6e;
+  --ac:#6c5ce7;--ac2:#a78bfa;
+  --gn:#34d399;--gn2:#6ee7b7;
+  --font:'Outfit',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx1);font-family:var(--font);-webkit-font-smoothing:antialiased}
+::selection{background:var(--ac);color:white}
+a{color:var(--ac2);text-decoration:none}
+a:hover{text-decoration:underline}
+
+nav{padding:16px 0;border-bottom:1px solid var(--bd);background:rgba(5,5,8,.85);backdrop-filter:blur(20px);position:sticky;top:0;z-index:100}
+.nav-c{max-width:900px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--tx1)}
+.nav-mark{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--ac),var(--gn));display:flex;align-items:center;justify-content:center}
+.nav-mark svg{width:16px;height:16px;stroke:white;fill:none;stroke-width:2.5}
+.nav-name{font-size:15px;font-weight:700;letter-spacing:2px}
+.nav-back{color:var(--tx2);font-size:13px;font-weight:500}
+.nav-back:hover{color:var(--tx1);text-decoration:none}
+
+.legal{max-width:900px;margin:0 auto;padding:60px 24px 100px}
+.legal h1{font-size:clamp(28px,5vw,40px);font-weight:800;margin-bottom:8px}
+.legal .subtitle{font-size:17px;color:var(--tx2);margin-bottom:40px;line-height:1.6}
+.legal h2{font-size:20px;font-weight:700;margin-top:40px;margin-bottom:12px;color:var(--tx1)}
+.legal h3{font-size:16px;font-weight:600;margin-top:24px;margin-bottom:8px;color:var(--tx1)}
+.legal p{font-size:14px;color:var(--tx2);line-height:1.8;margin-bottom:12px}
+.legal ul,.legal ol{margin:8px 0 16px 24px}
+.legal li{font-size:14px;color:var(--tx2);line-height:1.8;margin-bottom:4px}
+.legal strong{color:var(--tx1);font-weight:600}
+.legal code{font-family:var(--mono);font-size:13px;background:var(--bg2);border:1px solid var(--bd);padding:1px 6px;border-radius:4px;color:var(--gn2)}
+.legal pre{background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:16px 20px;overflow-x:auto;margin:16px 0}
+.legal pre code{background:none;border:none;padding:0;font-size:12px;line-height:1.7;color:var(--tx2)}
+
+.highlight{padding:16px 20px;background:var(--bg2);border:1px solid var(--bd);border-radius:10px;margin:16px 0}
+.highlight p{margin-bottom:0}
+
+.sec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin:20px 0}
+.sec-card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:20px}
+.sec-card-ic{font-size:24px;margin-bottom:8px}
+.sec-card h4{font-size:14px;font-weight:700;margin-bottom:4px}
+.sec-card p{font-size:12px;color:var(--tx3);margin-bottom:0}
+
+.legal table{width:100%;border-collapse:collapse;margin:16px 0}
+.legal th,.legal td{padding:10px 14px;text-align:left;font-size:13px;border-bottom:1px solid var(--bd)}
+.legal th{color:var(--tx1);font-weight:600;background:var(--bg2)}
+.legal td{color:var(--tx2)}
+
+.flow{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding:20px;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;margin:20px 0}
+.flow-step{padding:8px 16px;background:var(--bg3);border:1px solid var(--bd2);border-radius:8px;font-size:12px;font-weight:600;text-align:center}
+.flow-arrow{color:var(--ac2);font-size:16px;font-weight:700}
+
+footer{padding:40px 0;border-top:1px solid var(--bd);text-align:center}
+footer p{color:var(--tx3);font-size:11px}
+footer a{color:var(--tx2);text-decoration:none}
+footer a:hover{color:var(--tx1)}
+
+@media(max-width:600px){
+  .sec-grid{grid-template-columns:1fr}
+  .flow{flex-direction:column}
+  .flow-arrow{transform:rotate(90deg)}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-c">
+    <a href="/" class="nav-logo">
+      <div class="nav-mark"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+      <span class="nav-name">WARDKEY</span>
+    </a>
+    <a href="/" class="nav-back">&larr; Back to home</a>
+  </div>
+</nav>
+
+<div class="legal">
+<h1>Security Architecture</h1>
+<p class="subtitle">WARDKEY is built on a zero-knowledge, local-first security model. Your data is encrypted before it ever leaves your device. We never have access to your passwords — period.</p>
+
+<div class="sec-grid">
+  <div class="sec-card">
+    <div class="sec-card-ic">🔒</div>
+    <h4>AES-256-GCM</h4>
+    <p>Military-grade authenticated encryption. The same standard used by governments and financial institutions worldwide.</p>
+  </div>
+  <div class="sec-card">
+    <div class="sec-card-ic">🔑</div>
+    <h4>PBKDF2 (600K Iterations)</h4>
+    <p>Your master password is strengthened with 600,000 rounds of PBKDF2-SHA256, making brute-force attacks computationally infeasible.</p>
+  </div>
+  <div class="sec-card">
+    <div class="sec-card-ic">🛡️</div>
+    <h4>Zero-Knowledge</h4>
+    <p>We never see your master password or decrypted data. Even if our servers were compromised, your vault remains encrypted.</p>
+  </div>
+  <div class="sec-card">
+    <div class="sec-card-ic">📱</div>
+    <h4>Local-First</h4>
+    <p>Your vault lives on your device. Cloud sync is optional and always encrypted end-to-end.</p>
+  </div>
+</div>
+
+<h2>Encryption Overview</h2>
+<p>Every piece of data you store in WARDKEY — passwords, payment cards, secure notes, TOTP keys — is encrypted using <strong>AES-256-GCM</strong> (Galois/Counter Mode), an authenticated encryption algorithm that provides both confidentiality and integrity.</p>
+
+<h3>How Your Vault Is Protected</h3>
+<div class="flow">
+  <div class="flow-step">Master Password</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">PBKDF2-SHA256<br><span style="font-size:10px;color:var(--tx3)">600,000 iterations</span></div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">256-bit AES Key</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">AES-256-GCM<br><span style="font-size:10px;color:var(--tx3)">Encrypt vault</span></div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Encrypted Blob<br><span style="font-size:10px;color:var(--tx3)">Stored locally / synced</span></div>
+</div>
+
+<h3>Key Derivation</h3>
+<p>Your master password is never stored or transmitted. Instead, it is used to derive two cryptographic keys:</p>
+<table>
+<tr><th>Purpose</th><th>Algorithm</th><th>Iterations</th><th>Hash</th><th>Output</th></tr>
+<tr><td>Encryption key</td><td>PBKDF2</td><td>600,000</td><td>SHA-256</td><td>256-bit AES-GCM key</td></tr>
+<tr><td>Verification hash</td><td>PBKDF2</td><td>310,000</td><td>SHA-512</td><td>256-bit verification token</td></tr>
+</table>
+<p>The verification hash is used solely to confirm you entered the correct master password — it is <strong>not</strong> the encryption key and cannot be used to decrypt your vault.</p>
+
+<h3>Encryption Process</h3>
+<ol>
+<li>A <strong>random 16-byte salt</strong> is generated when you create your vault (using <code>crypto.getRandomValues()</code>)</li>
+<li>Your master password + salt are processed through PBKDF2 (600K iterations, SHA-256) to produce the <strong>256-bit encryption key</strong></li>
+<li>A <strong>random 12-byte IV</strong> (initialization vector) is generated for each encryption operation</li>
+<li>Your entire vault (JSON object) is encrypted using <strong>AES-256-GCM</strong> with the derived key and IV</li>
+<li>The encrypted output includes a <strong>GCM authentication tag</strong> that detects any tampering</li>
+</ol>
+
+<h3>Vault Format (v4)</h3>
+<pre><code>{
+  "v": 4,                          // Format version
+  "salt": [/* 16 random bytes */], // PBKDF2 salt
+  "verify": "base64...",           // Verification hash (PBKDF2 310K SHA-512)
+  "data": {
+    "iv": [/* 12 random bytes */], // AES-GCM initialization vector
+    "ct": [/* N bytes */]          // AES-256-GCM ciphertext + auth tag
+  }
+}</code></pre>
+<p>The salt and IV are <strong>not secret</strong> — they are random values that ensure each encryption is unique. The security of your vault depends solely on your master password and the derived key.</p>
+
+<h2>Authentication Security</h2>
+
+<h3>Account Passwords</h3>
+<p>Your cloud account password (used for login) is separate from your master password. Account passwords are:</p>
+<ul>
+<li>Hashed using <strong>bcrypt</strong> with an appropriate cost factor before storage</li>
+<li>Never stored in plaintext on our servers</li>
+<li>Protected by rate limiting and brute-force detection</li>
+</ul>
+
+<h3>Two-Factor Authentication (2FA)</h3>
+<p>WARDKEY supports TOTP-based two-factor authentication for cloud accounts:</p>
+<ul>
+<li>Standard TOTP algorithm (RFC 6238) with 30-second time steps</li>
+<li>Compatible with authenticator apps (Google Authenticator, Authy, etc.)</li>
+<li>2FA secrets are encrypted at rest on the server</li>
+<li>Login requires both password and 2FA code when enabled</li>
+</ul>
+
+<h3>Session Management</h3>
+<ul>
+<li>Authentication uses <strong>JSON Web Tokens (JWT)</strong> with expiration</li>
+<li>Tokens are stored securely and never exposed to third parties</li>
+<li>Sessions can be terminated by logging out</li>
+</ul>
+
+<h2>Browser Extension Security</h2>
+
+<h3>Permissions</h3>
+<p>The WARDKEY browser extension requests only the minimum permissions necessary:</p>
+<table>
+<tr><th>Permission</th><th>Why</th></tr>
+<tr><td><code>activeTab</code></td><td>Detect login forms and autofill credentials on the current tab only</td></tr>
+<tr><td><code>storage</code></td><td>Store encrypted vault data locally</td></tr>
+<tr><td><code>contextMenus</code></td><td>Right-click menu for quick password generation</td></tr>
+<tr><td><code>alarms</code></td><td>Auto-lock timer after period of inactivity</td></tr>
+</table>
+
+<h3>Content Script Isolation</h3>
+<ul>
+<li>Content scripts only interact with login form fields (<code>input[type="password"]</code>, email/username fields)</li>
+<li>No page content, DOM, or JavaScript is read beyond form field detection</li>
+<li>All communication between content script and extension uses Chrome's secure messaging API</li>
+<li>The extension never injects scripts that can access page JavaScript context</li>
+</ul>
+
+<h3>Local Vault Storage</h3>
+<ul>
+<li>Encrypted vault is stored in <code>chrome.storage.local</code> (sandboxed per-extension)</li>
+<li>Auto-unlock sessions use <code>chrome.storage.session</code> (cleared when browser closes)</li>
+<li>No data is stored in cookies, localStorage, or other web-accessible storage</li>
+</ul>
+
+<h2>Cloud Sync Security</h2>
+
+<h3>End-to-End Encryption</h3>
+<p>When cloud sync is enabled:</p>
+<ol>
+<li>Your vault is encrypted <strong>on your device</strong> before upload</li>
+<li>Only the encrypted blob is transmitted to our servers</li>
+<li>All data in transit is protected by <strong>TLS 1.2+</strong></li>
+<li>Our servers store only the opaque encrypted blob — we cannot decrypt it</li>
+<li>When you sync to another device, the encrypted blob is downloaded and decrypted <strong>locally</strong> using your master password</li>
+</ol>
+
+<h3>Conflict Resolution</h3>
+<p>Each vault upload includes a version number. If the server detects a version conflict (another device uploaded a newer version), the sync is rejected with a conflict error, preventing data loss.</p>
+
+<h3>Server Infrastructure</h3>
+<ul>
+<li>All server communication uses <strong>HTTPS (TLS 1.2+)</strong></li>
+<li>Database encrypted at rest</li>
+<li>Encrypted vault blobs are the primary data store — no plaintext vault data exists on our servers</li>
+<li>Server access is restricted and monitored</li>
+</ul>
+
+<h2>Application Security</h2>
+
+<h3>Brute-Force Protection</h3>
+<ul>
+<li><strong>5 failed unlock attempts</strong> trigger a 60-second lockout</li>
+<li>Server-side rate limiting on authentication endpoints</li>
+<li>Progressively increasing delays on repeated failures</li>
+</ul>
+
+<h3>Auto-Lock</h3>
+<ul>
+<li>Vault automatically locks after a configurable period of inactivity</li>
+<li>On lock, the master key, vault data, and all sensitive material are <strong>wiped from memory</strong></li>
+<li>Clipboard is cleared of any copied passwords</li>
+</ul>
+
+<h3>Memory Protection</h3>
+<p>When the vault is locked, WARDKEY performs a comprehensive secure clear:</p>
+<ul>
+<li>Encryption key is nulled</li>
+<li>Vault salt and verification hash are nulled</li>
+<li>Vault object is cleared</li>
+<li>All password fields in the DOM are emptied</li>
+<li>Clipboard is cleared</li>
+</ul>
+
+<h3>Password Generation</h3>
+<p>WARDKEY uses the <strong>Web Crypto API</strong> (<code>crypto.getRandomValues()</code>) for all random number generation. This provides cryptographically secure random values sourced from the operating system's entropy pool — the same source used for TLS key generation.</p>
+
+<h2>What Happens If...</h2>
+
+<div class="sec-grid">
+  <div class="sec-card">
+    <div class="sec-card-ic">💥</div>
+    <h4>Our servers are breached</h4>
+    <p>Attackers get only encrypted blobs they cannot decrypt. Your vault remains secure — protected by your master password and AES-256-GCM.</p>
+  </div>
+  <div class="sec-card">
+    <div class="sec-card-ic">👤</div>
+    <h4>A rogue employee</h4>
+    <p>No employee has access to decryption keys. Server data is opaque encrypted blobs. Zero-knowledge means zero access.</p>
+  </div>
+  <div class="sec-card">
+    <div class="sec-card-ic">⚖️</div>
+    <h4>A legal subpoena</h4>
+    <p>We can only hand over encrypted data. We have no ability to decrypt it, and no key escrow or backdoor exists.</p>
+  </div>
+  <div class="sec-card">
+    <div class="sec-card-ic">🔓</div>
+    <h4>You forget your master password</h4>
+    <p>We cannot recover your data. This is by design — it means nobody else can either. Keep your master password safe.</p>
+  </div>
+</div>
+
+<h2>Vulnerability Disclosure</h2>
+<p>We take security seriously. If you discover a security vulnerability in WARDKEY, please report it responsibly:</p>
+<ul>
+<li><strong>Email:</strong> security@wardkey.io</li>
+<li>Include a detailed description of the vulnerability and steps to reproduce</li>
+<li>Allow reasonable time for us to investigate and fix the issue before public disclosure</li>
+<li>Do not access, modify, or delete other users' data</li>
+</ul>
+<p>We are committed to working with security researchers and will acknowledge valid reports. We will not pursue legal action against researchers who follow responsible disclosure practices.</p>
+
+<h2>Compliance</h2>
+<table>
+<tr><th>Regulation</th><th>Status</th></tr>
+<tr><td>GDPR (EU)</td><td>Compliant — zero-knowledge architecture, data minimization, user rights honored</td></tr>
+<tr><td>CCPA/CPRA (California)</td><td>Compliant — no data sales, user deletion rights, transparent practices</td></tr>
+<tr><td>SOC 2</td><td>In progress</td></tr>
+<tr><td>HIPAA</td><td>Not currently HIPAA-certified; do not store protected health information</td></tr>
+</table>
+
+<h2>Open Questions?</h2>
+<p>Security is a conversation, not a checkbox. If you have questions about our security practices or want more technical details:</p>
+<ul>
+<li><strong>Security inquiries:</strong> security@wardkey.io</li>
+<li><strong>General support:</strong> support@wardkey.io</li>
+</ul>
+</div>
+
+<footer>
+  <div style="max-width:900px;margin:0 auto;padding:0 24px">
+    <p style="margin-bottom:6px"><strong style="letter-spacing:2px">WARDKEY</strong></p>
+    <p>&copy; 2026 WARDKEY. Your passwords, your device, your rules.</p>
+    <p style="margin-top:8px"><a href="/privacy">Privacy</a> &middot; <a href="/terms">Terms</a> &middot; <a href="/security">Security</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
