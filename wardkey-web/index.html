@@ -163,18 +163,6 @@ nav.scrolled{background:rgba(5,5,8,.85);backdrop-filter:blur(20px);border-bottom
 .sec-card p{font-size:11px;color:var(--tx2);line-height:1.5}
 .sec-card .mono{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--gn2);margin:4px 0}
 
-/* ═══ TESTIMONIALS ═══ */
-.test{background:var(--bg)}
-.test-h{text-align:center;margin-bottom:50px}
-.test-h h2{font-family:var(--serif);font-size:clamp(32px,5vw,48px)}
-.test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.test-card{background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:24px}
-.test-stars{color:var(--yl);font-size:13px;margin-bottom:10px;letter-spacing:2px}
-.test-q{font-size:14px;line-height:1.7;color:var(--tx2);margin-bottom:14px;font-style:italic}
-.test-who{display:flex;align-items:center;gap:10px}
-.test-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--gn));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white}
-.test-name{font-size:12px;font-weight:600}
-.test-role{font-size:10px;color:var(--tx3)}
 
 /* ═══ PRICING ═══ */
 .pricing{background:var(--bg2)}
@@ -220,6 +208,22 @@ footer{padding:40px 0;border-top:1px solid var(--bd);text-align:center}
 footer p{color:var(--tx3);font-size:11px}
 footer a{color:var(--tx2);text-decoration:none}
 
+/* ═══ APP MODAL ═══ */
+.app-modal{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .3s cubic-bezier(.4,0,.2,1)}
+.app-modal.on{opacity:1;pointer-events:auto}
+.app-modal-card{background:var(--bg2);border:1px solid var(--bd2);border-radius:20px;padding:36px;max-width:420px;width:90%;text-align:center;position:relative;transform:scale(.92);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.app-modal.on .app-modal-card{transform:scale(1)}
+.app-modal-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:8px;border:1px solid var(--bd);background:transparent;color:var(--tx2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.app-modal-close:hover{border-color:var(--ac);color:var(--tx1);background:rgba(108,92,231,.06)}
+.app-modal-close svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.app-modal h3{font-family:var(--serif);font-size:24px;margin-bottom:6px}
+.app-modal .modal-sub{color:var(--tx2);font-size:13px;margin-bottom:24px}
+.app-modal-stores{display:flex;gap:12px;justify-content:center}
+.app-modal-stores a{flex:1;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 18px;border-radius:12px;background:var(--bg3);border:1px solid var(--bd);text-decoration:none;color:var(--tx1);font-weight:600;font-size:13px;transition:all .2s}
+.app-modal-stores a:hover{border-color:var(--ac);background:rgba(108,92,231,.06)}
+.app-modal-stores a svg{width:22px;height:22px;fill:currentColor}
+.app-modal-stores .soon{display:block;font-size:9px;font-weight:400;color:var(--tx3);letter-spacing:.3px}
+
 /* ═══ ANIMATIONS ═══ */
 .reveal{opacity:0;transform:translateY(30px);transition:all .8s cubic-bezier(.4,0,.2,1)}
 .reveal.vis{opacity:1;transform:none}
@@ -227,7 +231,7 @@ footer a{color:var(--tx2);text-decoration:none}
 
 /* ═══ RESPONSIVE ═══ */
 @media(max-width:900px){
-  .feat-grid,.ai-grid,.test-grid{grid-template-columns:1fr 1fr}
+  .feat-grid,.ai-grid{grid-template-columns:1fr 1fr}
   .feat-card.hero-card{grid-column:span 2}
   .sec-grid{grid-template-columns:1fr 1fr}
   .pricing-grid{grid-template-columns:1fr 1fr}
@@ -236,7 +240,7 @@ footer a{color:var(--tx2);text-decoration:none}
 }
 @media(max-width:640px){
   section{padding:60px 0}
-  .feat-grid,.ai-grid,.test-grid{grid-template-columns:1fr}
+  .feat-grid,.ai-grid{grid-template-columns:1fr}
   .feat-card.hero-card{grid-column:span 1}
   .sec-grid{grid-template-columns:1fr 1fr}
   .hero-proof{flex-direction:column;gap:12px}
@@ -262,7 +266,7 @@ footer a{color:var(--tx2);text-decoration:none}
       <a href="#compare">Compare</a>
       <a href="#pricing">Pricing</a>
       <a href="#faq">FAQ</a>
-      <a href="/app" class="btn btn-p nav-cta">Get WARDKEY Free</a>
+      <a href="#" class="btn btn-p nav-cta">Get Chrome Extension</a>
     </div>
   </div>
 </nav>
@@ -280,11 +284,14 @@ footer a{color:var(--tx2);text-decoration:none}
     <h1>Your passwords<br>deserve an <em>upgrade</em></h1>
     <p class="hero-sub">AI-powered password security that lives on your device. Not someone else's cloud. Not behind a paywall. Yours.</p>
     <div class="hero-actions">
-      <a href="/app" class="btn btn-p">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Download Free
+      <a href="#" class="btn btn-p">
+        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 0C8.21 0 4.831 1.757 2.632 4.501l3.953 3.953A7.462 7.462 0 0 1 12 6.007h.076A7.46 7.46 0 0 1 17.414 8.5l3.96-3.96C19.186 1.775 15.806.013 12.013.013L12 0ZM2.632 4.501A11.943 11.943 0 0 0 0 12c0 2.859.998 5.486 2.66 7.547l3.936-3.936A7.467 7.467 0 0 1 4.54 12c0-1.38.374-2.672 1.025-3.78L2.632 4.5ZM12 17.993a7.462 7.462 0 0 1-5.357-2.27L2.66 19.547A11.953 11.953 0 0 0 12 24c1.909 0 3.72-.447 5.324-1.243v-.007l-3.88-3.88A7.464 7.464 0 0 1 12 17.994ZM23.834 10.2H12v3.8h6.833c-.851 3.005-3.263 5.127-5.39 5.87l3.88 3.88C20.726 22.108 24 17.592 24 12c0-.6-.056-1.206-.166-1.8Z"/></svg>
+        Download Chrome Extension
       </a>
-      <a href="#compare" class="btn btn-s">See How We Compare</a>
+      <button class="btn btn-s" onclick="document.getElementById('appModal').classList.add('on')">
+        <svg viewBox="0 0 24 24"><rect x="5" y="1" width="14" height="22" rx="3"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg>
+        Download App
+      </button>
     </div>
     <div class="hero-proof">
       <div class="hero-stat"><div class="hero-stat-v" style="color:var(--gn2)">$0</div><div class="hero-stat-l">Forever</div></div>
@@ -775,29 +782,6 @@ footer a{color:var(--tx2);text-decoration:none}
   </div>
 </section>
 
-<!-- ═══════════ TESTIMONIALS ═══════════ -->
-<section class="test">
-  <div class="ctr">
-    <div class="test-h reveal"><h2>Loved by people who <span class="grad-text">know security</span></h2></div>
-    <div class="test-grid reveal">
-      <div class="test-card">
-        <div class="test-stars">★★★★★</div>
-        <p class="test-q">"I've been a 1Password user for 6 years. WARDKEY's AI features and zero-cost model made me switch in a heartbeat. The phishing detector alone is worth it."</p>
-        <div class="test-who"><div class="test-av">M</div><div><div class="test-name">Marcus R.</div><div class="test-role">Security Engineer at Stripe</div></div></div>
-      </div>
-      <div class="test-card">
-        <div class="test-stars">★★★★★</div>
-        <p class="test-q">"Finally a password manager that understands developers. The API key vault with environment tagging is something I've wanted for years. And it's free? Insane."</p>
-        <div class="test-who"><div class="test-av">S</div><div><div class="test-name">Sarah K.</div><div class="test-role">Full-Stack Developer</div></div></div>
-      </div>
-      <div class="test-card">
-        <div class="test-stars">★★★★★</div>
-        <p class="test-q">"After the LastPass breach, I needed something local-first. WARDKEY gives me that peace of mind PLUS AI security reports I actually understand. Game changer."</p>
-        <div class="test-who"><div class="test-av">A</div><div><div class="test-name">Alex T.</div><div class="test-role">Crypto Trader & DeFi User</div></div></div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- ═══════════ PRICING ═══════════ -->
 <section class="pricing" id="pricing">
@@ -825,7 +809,7 @@ footer a{color:var(--tx2);text-decoration:none}
           <li>3 AI analyses per day</li>
           <li style="color:var(--tx3)">Single device</li>
         </ul>
-        <a href="/app" class="btn btn-s price-btn">Download Free</a>
+        <a href="#" class="btn btn-s price-btn">Get Chrome Extension</a>
       </div>
       <div class="price-card pop">
         <div class="price-tier">Pro</div>
@@ -922,13 +906,36 @@ footer a{color:var(--tx2);text-decoration:none}
     <h2 class="cta-h">Stop renting your <em style="font-family:var(--serif);font-style:italic;color:var(--gn2)">security</em></h2>
     <p class="cta-p">Join thousands who switched to WARDKEY. Free. Local. AI-powered.</p>
     <div class="cta-acts">
-      <a href="/app" class="btn btn-p" style="padding:16px 36px;font-size:16px">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Download WARDKEY — It's Free
+      <a href="#" class="btn btn-p" style="padding:16px 36px;font-size:16px">
+        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 0C8.21 0 4.831 1.757 2.632 4.501l3.953 3.953A7.462 7.462 0 0 1 12 6.007h.076A7.46 7.46 0 0 1 17.414 8.5l3.96-3.96C19.186 1.775 15.806.013 12.013.013L12 0ZM2.632 4.501A11.943 11.943 0 0 0 0 12c0 2.859.998 5.486 2.66 7.547l3.936-3.936A7.467 7.467 0 0 1 4.54 12c0-1.38.374-2.672 1.025-3.78L2.632 4.5ZM12 17.993a7.462 7.462 0 0 1-5.357-2.27L2.66 19.547A11.953 11.953 0 0 0 12 24c1.909 0 3.72-.447 5.324-1.243v-.007l-3.88-3.88A7.464 7.464 0 0 1 12 17.994ZM23.834 10.2H12v3.8h6.833c-.851 3.005-3.263 5.127-5.39 5.87l3.88 3.88C20.726 22.108 24 17.592 24 12c0-.6-.056-1.206-.166-1.8Z"/></svg>
+        Download Chrome Extension
       </a>
+      <button class="btn btn-s" style="padding:16px 36px;font-size:16px" onclick="document.getElementById('appModal').classList.add('on')">
+        <svg viewBox="0 0 24 24"><rect x="5" y="1" width="14" height="22" rx="3"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg>
+        Download App
+      </button>
     </div>
   </div>
 </section>
+
+<!-- ═══════════ APP DOWNLOAD MODAL ═══════════ -->
+<div class="app-modal" id="appModal" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="app-modal-card">
+    <button class="app-modal-close" onclick="document.getElementById('appModal').classList.remove('on')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <h3>Download WARDKEY App</h3>
+    <p class="modal-sub">Get WARDKEY on your phone — coming soon to both platforms.</p>
+    <div class="app-modal-stores">
+      <a href="#">
+        <svg viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11Z"/></svg>
+        <span>iOS<span class="soon">Coming Soon</span></span>
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24"><path d="M3.609 1.814 13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92ZM14.852 13.06l2.71 2.71-11.278 6.498 8.568-9.208ZM19.785 10.7l2.09 1.2a1 1 0 0 1 0 1.738l-2.09 1.2-2.992-2.068 2.992-2.07ZM6.284 1.732l11.278 6.498-2.71 2.71L6.284 1.732Z"/></svg>
+        <span>Android<span class="soon">Coming Soon</span></span>
+      </a>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════ FOOTER ═══════════ -->
 <footer>
@@ -946,8 +953,11 @@ const nav=document.getElementById('nav');
 window.addEventListener('scroll',()=>{nav.classList.toggle('scrolled',window.scrollY>60)});
 
 // Reveal on scroll
+const revealEls=document.querySelectorAll('.reveal');
 const obs=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');obs.unobserve(e.target)}})},{threshold:.1,rootMargin:'0px 0px -40px 0px'});
-document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+revealEls.forEach(el=>obs.observe(el));
+// Fallback: force-reveal everything after 1.5s in case observer doesn't fire
+setTimeout(()=>{revealEls.forEach(el=>el.classList.add('vis'))},1500);
 
 // Smooth scroll for anchor links
 document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{
