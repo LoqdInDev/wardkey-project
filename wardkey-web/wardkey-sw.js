@@ -1,5 +1,5 @@
-// WARDKEY Service Worker v3
-const CACHE_NAME = 'wardkey-v3';
+// WARDKEY Service Worker v4
+const CACHE_NAME = 'wardkey-v4';
 const ASSETS = [
   '/',
   '/app.html',

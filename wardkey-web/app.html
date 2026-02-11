@@ -18,12 +18,14 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230c0c14'/><text x='50' y='66' font-size='55' text-anchor='middle'>🔐</text></svg>">
 <link rel="manifest" href="./wardkey-manifest.json">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" crossorigin="anonymous">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
   --bg0:#06060b;--bg1:#0c0c14;--bg2:#12121c;--bg3:#1a1a28;--bg4:#222236;
-  --tx1:#eaeaf2;--tx2:#9494b0;--tx3:#5e5e7a;
+  --tx1:#eaeaf2;--tx2:#9494b0;--tx3:#8c8ca6;
   --bd:#1e1e30;--bdf:#3d7cf5;
   --ac:#3d7cf5;--acg:rgba(61,124,245,.1);--ach:#5b94ff;--ac2:#22d3a8;--ac2g:rgba(34,211,168,.1);
   --gn:#22d3a8;--gnb:rgba(34,211,168,.08);--yl:#f0c246;--ylb:rgba(240,194,70,.08);
@@ -478,7 +480,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   <!-- LOCAL ONLY PANEL -->
   <div class="lock-panel on" id="lpLocal">
     <div class="lock-form">
-      <input type="password" id="mpIn" placeholder="Master password" autofocus>
+      <input type="password" id="mpIn" placeholder="Master password" autofocus aria-label="Master password">
       <button class="lock-go" onclick="unlock()"><svg viewBox="0 0 24 24" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
     </div>
     <div id="mpConfWrap" style="display:none;margin-top:8px">
@@ -512,7 +514,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
       <div class="lock-info">Your master password never leaves your device. The server only sees encrypted data.</div>
     </div>
   </div>
-  <div class="lock-err" id="lErr">Minimum 4 characters required</div>
+  <div class="lock-err" id="lErr" role="alert">Minimum 4 characters required</div>
   <div class="lock-feat">
     <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>AES-256-GCM</div>
     <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Auto-lock</div>
@@ -520,7 +522,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   </div>
   <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:24px;width:100%">
     <a href="/" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid var(--bd);color:var(--tx1);font-size:13px;font-weight:600;text-decoration:none;transition:all .2s;background:rgba(108,92,231,.04)" onmouseover="this.style.borderColor='var(--ac)';this.style.background='rgba(108,92,231,.1)'" onmouseout="this.style.borderColor='var(--bd)';this.style.background='rgba(108,92,231,.04)'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back to home</a>
-    <button onclick="toggleTheme();updateLockThemeBtn()" id="lockThemeBtn" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid var(--bd);background:transparent;color:var(--tx2);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;transition:all .2s" onmouseover="this.style.borderColor='var(--ac)';this.style.background='rgba(108,92,231,.1)'" onmouseout="this.style.borderColor='var(--bd)';this.style.background='transparent'" title="Toggle light/dark mode"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>Theme</button>
+    <button onclick="toggleTheme();updateLockThemeBtn()" id="lockThemeBtn" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid var(--bd);background:transparent;color:var(--tx2);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;transition:all .2s" onmouseover="this.style.borderColor='var(--ac)';this.style.background='rgba(108,92,231,.1)'" onmouseout="this.style.borderColor='var(--bd)';this.style.background='transparent'" title="Toggle light/dark mode" aria-label="Toggle light/dark mode"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>Theme</button>
   </div>
 </div>
 </div>

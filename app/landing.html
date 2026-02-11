@@ -7,13 +7,14 @@
 <meta name="description" content="Beautiful, local-first, AI-powered password security. No subscriptions, no cloud, no compromises. Free forever.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" crossorigin="anonymous">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
   --bg:#050508;--bg2:#0a0a10;--bg3:#0e0e16;--bg4:#14141e;
   --bd:#1a1a2e;--bd2:#252540;
-  --tx1:#f0eef6;--tx2:#9896a8;--tx3:#5c5a6e;
+  --tx1:#f0eef6;--tx2:#9896a8;--tx3:#8a88a0;
   --ac:#6c5ce7;--ac2:#a78bfa;--ac3:#c4b5fd;
   --gn:#34d399;--gn2:#6ee7b7;
   --rd:#f87171;--yl:#fbbf24;
@@ -268,12 +269,21 @@ footer a{color:var(--tx2);text-decoration:none}
   .comp-t{min-width:700px}
   .cta-acts{flex-direction:column;align-items:center}
 }
+@media(max-width:420px){
+  .hero h1{font-size:32px}
+  section{padding:40px 0}
+  .wrap{padding:0 16px}
+  .sec-grid{grid-template-columns:1fr}
+}
+.skip-link{position:absolute;top:-100%;left:50%;transform:translateX(-50%);padding:12px 24px;background:var(--ac);color:#fff;border-radius:8px;font-weight:600;font-size:14px;z-index:1000;text-decoration:none;transition:top .2s}
+.skip-link:focus{top:12px}
 </style>
 </head>
 <body>
+<a href="#main" class="skip-link">Skip to content</a>
 
 <!-- ═══════════ NAV ═══════════ -->
-<nav id="nav">
+<nav id="nav" aria-label="Main navigation">
   <div class="ctr nav-c">
     <a href="#" class="nav-logo">
       <div class="nav-mark"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 00-8 0v2"/></svg></div>
@@ -284,7 +294,7 @@ footer a{color:var(--tx2);text-decoration:none}
       <a href="#compare">Compare</a>
       <a href="#pricing">Pricing</a>
       <a href="#faq">FAQ</a>
-      <button class="theme-tog" id="themeTog" onclick="toggleTheme()" title="Toggle light/dark mode"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+      <button class="theme-tog" id="themeTog" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle light/dark mode"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
       <a href="wardkey.html" class="btn btn-s nav-cta">Login</a>
       <a href="#" class="btn btn-p nav-cta">Get Chrome Extension</a>
     </div>
@@ -292,6 +302,7 @@ footer a{color:var(--tx2);text-decoration:none}
 </nav>
 
 <!-- ═══════════ HERO ═══════════ -->
+<main id="main">
 <section class="hero">
   <div class="hero-bg">
     <div class="hero-orb a"></div>
@@ -938,10 +949,12 @@ footer a{color:var(--tx2);text-decoration:none}
   </div>
 </section>
 
+</main>
+
 <!-- ═══════════ APP DOWNLOAD MODAL ═══════════ -->
 <div class="app-modal" id="appModal" onclick="if(event.target===this)this.classList.remove('on')">
   <div class="app-modal-card">
-    <button class="app-modal-close" onclick="document.getElementById('appModal').classList.remove('on')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <button class="app-modal-close" onclick="document.getElementById('appModal').classList.remove('on')" aria-label="Close modal"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     <h3>Download WARDKEY App</h3>
     <p class="modal-sub">Get WARDKEY on your phone — coming soon to both platforms.</p>
     <div class="app-modal-stores">
