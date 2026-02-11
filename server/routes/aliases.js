@@ -80,7 +80,11 @@ router.patch('/:id', authenticate, (req, res) => {
     db.prepare('UPDATE aliases SET active = ? WHERE id = ?').run(active ? 1 : 0, req.params.id);
   }
   if (label !== undefined) {
-    db.prepare('UPDATE aliases SET label = ? WHERE id = ?').run(label, req.params.id);
+    if (label !== null && (typeof label !== 'string' || label.length > 100)) {
+      return res.status(400).json({ error: 'Label must be a string of 100 characters or less' });
+    }
+    const safeLabel = label ? label.replace(/[\x00-\x1F\x7F]/g, '').trim() || null : null;
+    db.prepare('UPDATE aliases SET label = ? WHERE id = ?').run(safeLabel, req.params.id);
   }
 
   res.json({ success: true });
@@ -98,13 +102,15 @@ router.delete('/:id', authenticate, (req, res) => {
 // ═══════ INCOMING EMAIL WEBHOOK ═══════
 // This endpoint receives forwarded emails from your mail server (Cloudflare Email Routing, Postfix, etc.)
 router.post('/incoming', async (req, res) => {
-  // Authenticate webhook requests
+  // Authenticate webhook requests — WEBHOOK_SECRET is required
   const webhookSecret = process.env.WEBHOOK_SECRET;
-  if (webhookSecret) {
-    const provided = req.headers['x-webhook-secret'];
-    if (!provided || provided !== webhookSecret) {
-      return res.status(401).json({ error: 'Unauthorized webhook request' });
-    }
+  if (!webhookSecret) {
+    console.error('WEBHOOK_SECRET not configured — rejecting incoming email webhook');
+    return res.status(500).json({ error: 'Webhook not configured' });
+  }
+  const provided = req.headers['x-webhook-secret'];
+  if (!provided || !crypto.timingSafeEqual(Buffer.from(provided), Buffer.from(webhookSecret))) {
+    return res.status(401).json({ error: 'Unauthorized webhook request' });
   }
 
   const { to, from, subject } = req.body;
