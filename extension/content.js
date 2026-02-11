@@ -219,6 +219,7 @@
     document.body.appendChild(overlay);
 
     const dismiss = () => {
+      chrome.storage.session?.remove('wardkey_pendingSave');
       const card = overlay.querySelector('.wardkey-dialog-card');
       if (card) { card.style.opacity = '0'; card.style.transform = 'translateY(-10px) scale(.98)'; }
       setTimeout(() => overlay.remove(), 200);
@@ -234,9 +235,6 @@
 
     // Click outside card to dismiss
     overlay.onclick = (e) => { if (e.target === overlay) dismiss(); };
-
-    // Auto-dismiss after 20 seconds
-    setTimeout(() => { if (document.getElementById('wardkey-save-dialog')) dismiss(); }, 20000);
   }
 
   function escapeHtml(s) {
@@ -309,8 +307,24 @@
     return true;
   });
 
+  // ═══════ CHECK PENDING SAVE ON PAGE LOAD ═══════
+  async function checkPendingSaveOnLoad() {
+    try {
+      const data = await chrome.storage.session?.get('wardkey_pendingSave');
+      if (data?.wardkey_pendingSave) {
+        const pending = data.wardkey_pendingSave;
+        // Only show if it's recent (within 2 minutes) and not already shown on this page
+        if (Date.now() - pending.timestamp < 120000) {
+          showSaveBar(pending);
+        }
+      }
+    } catch {}
+  }
+
   // ═══════ INIT ═══════
   setTimeout(injectIcons, 800);
+  // Check for pending save prompt after page loads
+  setTimeout(checkPendingSaveOnLoad, 1000);
 
   const observer = new MutationObserver(() => {
     setTimeout(injectIcons, 300);
