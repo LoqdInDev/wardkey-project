@@ -519,6 +519,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
     <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Auto-lock</div>
     <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Zero-knowledge</div>
   </div>
+  <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:24px;width:100%">
+    <a href="landing.html" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid var(--bd);color:var(--tx1);font-size:13px;font-weight:600;text-decoration:none;transition:all .2s;background:rgba(108,92,231,.04)" onmouseover="this.style.borderColor='var(--ac)';this.style.background='rgba(108,92,231,.1)'" onmouseout="this.style.borderColor='var(--bd)';this.style.background='rgba(108,92,231,.04)'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back to home</a>
+    <button onclick="toggleTheme();updateLockThemeBtn()" id="lockThemeBtn" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid var(--bd);background:transparent;color:var(--tx2);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;transition:all .2s" onmouseover="this.style.borderColor='var(--ac)';this.style.background='rgba(108,92,231,.1)'" onmouseout="this.style.borderColor='var(--bd)';this.style.background='transparent'" title="Toggle light/dark mode"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>Theme</button>
+  </div>
 </div>
 </div>
 
@@ -1863,7 +1867,14 @@ function toggleTheme(){
   if(btn)btn.innerHTML=nxt==='light'?'<svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>':'<svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
   toast('Switched to '+(nxt==='light'?'Light':'Dark')+' mode','ok');
 }
-(function(){const t=localStorage.getItem('wardkey_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light')})();
+function updateLockThemeBtn(){
+  const b=document.getElementById('lockThemeBtn');if(!b)return;
+  const isLight=document.documentElement.getAttribute('data-theme')==='light';
+  b.innerHTML=isLight
+    ?'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>Theme'
+    :'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>Theme';
+}
+(function(){const t=localStorage.getItem('wardkey_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');updateLockThemeBtn()})();
 
 // ════════ PAGE: PASSKEYS ════════
 function rPasskeys(el){

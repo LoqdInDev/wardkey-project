@@ -21,6 +21,21 @@
   --serif:'Instrument Serif',serif;
   --mono:'JetBrains Mono',monospace;
 }
+[data-theme="light"]{
+  --bg:#f5f6fa;--bg2:#ffffff;--bg3:#eef0f5;--bg4:#e0e2ea;
+  --bd:#d8dae5;--bd2:#c5c8d6;
+  --tx1:#1a1a2e;--tx2:#5a5e76;--tx3:#8b90a8;
+  --ac:#6c5ce7;--ac2:#7c6cf0;--ac3:#9b87f5;
+  --gn:#22d3a8;--gn2:#15b892;
+  --rd:#ef4468;--yl:#f0c246;
+}
+[data-theme="light"] body::before{opacity:.012}
+[data-theme="light"] .hero-orb{opacity:.06}
+[data-theme="light"] .hero-grid{background-image:linear-gradient(rgba(0,0,0,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.04) 1px,transparent 1px)}
+[data-theme="light"] nav.scrolled{background:rgba(245,246,250,.9)}
+[data-theme="light"] .comp-t th{background:var(--bg)}
+[data-theme="light"] .btn-p{box-shadow:0 4px 24px rgba(108,92,231,.2)}
+[data-theme="light"] .btn-p:hover{box-shadow:0 8px 40px rgba(108,92,231,.3)}
 html{scroll-behavior:smooth;overflow-x:hidden}
 body{background:var(--bg);color:var(--tx1);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 ::selection{background:var(--ac);color:white}
@@ -33,7 +48,7 @@ section{padding:100px 0;position:relative}
 .grad-text{background:linear-gradient(135deg,var(--ac2),var(--gn2),var(--ac3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .tag{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:100px;font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;border:1px solid var(--bd2);color:var(--ac2);background:rgba(108,92,231,.06)}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:12px;font-family:var(--font);font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;border:none;transition:all .3s cubic-bezier(.4,0,.2,1)}
-.btn-p{background:linear-gradient(135deg,var(--ac),#8b5cf6);color:white;box-shadow:0 4px 24px rgba(108,92,231,.3)}
+.btn-p{background:linear-gradient(135deg,var(--ac),#8b5cf6);color:#fff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.2);box-shadow:0 4px 24px rgba(108,92,231,.3)}
 .btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(108,92,231,.45)}
 .btn-s{background:transparent;border:1px solid var(--bd2);color:var(--tx1)}
 .btn-s:hover{border-color:var(--ac);color:var(--ac2);background:rgba(108,92,231,.04)}
@@ -55,6 +70,10 @@ nav.scrolled{background:rgba(5,5,8,.85);backdrop-filter:blur(20px);border-bottom
 .nav-links a{color:var(--tx2);text-decoration:none;font-size:13px;font-weight:500;transition:color .2s}
 .nav-links a:hover{color:var(--tx1)}
 .nav-cta{padding:8px 20px !important;font-size:12px !important}
+.nav-links a.btn-p{color:#fff !important}
+.theme-tog{width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:transparent;color:var(--tx2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.theme-tog:hover{border-color:var(--ac);color:var(--ac2);background:rgba(108,92,231,.04)}
+.theme-tog svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
 /* ═══ HERO ═══ */
 .hero{min-height:100vh;display:flex;align-items:center;padding-top:80px;position:relative;overflow:hidden}
@@ -266,6 +285,8 @@ footer a{color:var(--tx2);text-decoration:none}
       <a href="#compare">Compare</a>
       <a href="#pricing">Pricing</a>
       <a href="#faq">FAQ</a>
+      <button class="theme-tog" id="themeTog" onclick="toggleTheme()" title="Toggle light/dark mode"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+      <a href="/app" class="btn btn-s nav-cta">Login</a>
       <a href="#" class="btn btn-p nav-cta">Get Chrome Extension</a>
     </div>
   </div>
@@ -948,6 +969,21 @@ footer a{color:var(--tx2);text-decoration:none}
 
 <!-- ═══════════ SCRIPTS ═══════════ -->
 <script>
+// Theme toggle
+function toggleTheme(){
+  const html=document.documentElement;
+  const isLight=html.getAttribute('data-theme')==='light';
+  html.setAttribute('data-theme',isLight?'dark':'light');
+  localStorage.setItem('wardkey-landing-theme',isLight?'dark':'light');
+  updateThemeIcon(!isLight);
+}
+function updateThemeIcon(isLight){
+  document.getElementById('themeTog').innerHTML=isLight
+    ?'<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>'
+    :'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+}
+(function(){const saved=localStorage.getItem('wardkey-landing-theme');if(saved){document.documentElement.setAttribute('data-theme',saved);updateThemeIcon(saved==='light')}})();
+
 // Nav scroll effect
 const nav=document.getElementById('nav');
 window.addEventListener('scroll',()=>{nav.classList.toggle('scrolled',window.scrollY>60)});
