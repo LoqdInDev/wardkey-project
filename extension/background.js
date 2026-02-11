@@ -55,10 +55,6 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
   } catch {}
 });
 
-chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
-  if (info.status === 'complete' && tab?.url) updateBadge(tab);
-});
-
 async function updateBadge(tab) {
   try {
     const url = new URL(tab.url);
@@ -66,12 +62,44 @@ async function updateBadge(tab) {
       chrome.action.setBadgeText({ text: '', tabId: tab.id });
       return;
     }
-    // Badge count is set by popup when unlocked
     chrome.action.setBadgeBackgroundColor({ color: '#3d7cf5' });
   } catch {
     chrome.action.setBadgeText({ text: '', tabId: tab.id });
   }
 }
+
+// ═══════ TAB NAVIGATION — PROMOTE CAPTURES TO PENDING SAVES ═══════
+// When a tab navigates, check if the content script had captured credentials.
+// If so, promote them from wardkey_capture to wardkey_pendingSave so the
+// dialog shows on the new page.
+chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
+  if (info.status === 'loading' && tab?.url) {
+    // Tab is navigating — check for captured credentials
+    chrome.storage.session?.get('wardkey_capture', async (data) => {
+      if (data?.wardkey_capture?.password) {
+        const capture = data.wardkey_capture;
+        // Only promote if recent (within 30 seconds)
+        if (Date.now() - capture.timestamp < 30000) {
+          // Check never-save list
+          if (await isNeverSave(capture.domain)) {
+            chrome.storage.session?.remove('wardkey_capture');
+            return;
+          }
+          // Promote to pending save
+          await chrome.storage.session?.set({ wardkey_pendingSave: capture });
+          // Notify popup if open
+          chrome.runtime.sendMessage({ type: 'WARDKEY_PENDING_SAVE' }).catch(() => {});
+        }
+        // Clear the capture
+        chrome.storage.session?.remove('wardkey_capture');
+      }
+    });
+
+    // Also update badge
+    updateBadge(tab);
+  }
+  if (info.status === 'complete' && tab?.url) updateBadge(tab);
+});
 
 // ═══════ AUTO-LOCK TIMER ═══════
 chrome.alarms.create('wardkey-autolock', { periodInMinutes: 1 });
@@ -79,7 +107,6 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === 'wardkey-autolock') {
     chrome.storage.local.get('wardkey_lockTimeout', (settings) => {
       const timeout = settings.wardkey_lockTimeout ?? 0;
-      // 0 = every time (no session), -1 = browser session (never expire via timer)
       if (timeout === 0 || timeout === -1) return;
       chrome.storage.session?.get('wardkey_session', (data) => {
         if (data?.wardkey_session?.ts) {
@@ -119,13 +146,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     });
   }
 
-  // Save password flow: content script detected form submit
+  // Legacy: content script form submit detection (backup path)
   if (msg.type === 'WARDKEY_SAVE_PROMPT') {
     (async () => {
-      // Check never-save list
       if (await isNeverSave(msg.domain)) return;
-
-      // Store pending save in session
       await chrome.storage.session?.set({
         wardkey_pendingSave: {
           domain: msg.domain,
@@ -135,16 +159,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           timestamp: msg.timestamp
         }
       });
-
-      // Dialog will be shown by content script on the NEXT page load
-      // (via checkPendingSaveOnLoad polling chrome.storage.session)
-
-      // Notify popup if open
       chrome.runtime.sendMessage({ type: 'WARDKEY_PENDING_SAVE' }).catch(() => {});
     })();
   }
 
-  // User clicked "Save" in content script bar
+  // User clicked "Save" in content script dialog
   if (msg.type === 'WARDKEY_SAVE_CONFIRM') {
     chrome.storage.session?.set({
       wardkey_pendingSave: {
@@ -155,7 +174,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         timestamp: Date.now()
       }
     });
-    // Notify popup to process the save
     chrome.runtime.sendMessage({ type: 'WARDKEY_PENDING_SAVE' }).catch(() => {});
   }
 

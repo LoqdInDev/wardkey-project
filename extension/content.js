@@ -124,51 +124,44 @@
     el.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
   }
 
-  // ═══════ FORM SUBMIT DETECTION (Save Password Prompt) ═══════
-  let lastCaptured = null;
+  // ═══════ LIVE CREDENTIAL TRACKING ═══════
+  // Track credentials AS THE USER TYPES — stored in session storage
+  // so they survive page navigation. Background detects navigation
+  // and promotes the capture to a "pending save".
+  let trackedFields = new Set();
 
-  function captureCredentials(form) {
-    const fields = findFields(form || document);
-    const pw = fields.password || fields.newPassword;
-    if (!pw || !pw.value) return null;
+  function trackCredentialFields() {
+    const fields = findFields();
+    const pwField = fields.password || fields.newPassword;
+    if (!pwField) return;
 
-    let username = '';
-    if (fields.username && fields.username.value) {
-      username = fields.username.value;
-    }
+    const allFields = [fields.username, fields.password, fields.newPassword].filter(Boolean);
 
-    return {
-      domain: location.hostname.replace('www.', ''),
-      username,
-      password: pw.value,
-      url: location.href,
-      timestamp: Date.now()
-    };
+    allFields.forEach(field => {
+      if (trackedFields.has(field)) return;
+      trackedFields.add(field);
+
+      const storeCapture = () => {
+        const pw = (fields.password?.value || fields.newPassword?.value || '').trim();
+        if (!pw) return;
+        const username = (fields.username?.value || '').trim();
+
+        chrome.storage.session?.set({
+          wardkey_capture: {
+            domain: location.hostname.replace('www.', ''),
+            username,
+            password: pw,
+            url: location.href,
+            timestamp: Date.now()
+          }
+        });
+      };
+
+      field.addEventListener('input', storeCapture);
+      field.addEventListener('change', storeCapture);
+      field.addEventListener('blur', storeCapture);
+    });
   }
-
-  // Send save prompt to background IMMEDIATELY (before page navigates away)
-  function sendSavePrompt(creds) {
-    if (!creds || !creds.password) return;
-    lastCaptured = creds;
-    chrome.runtime.sendMessage({
-      type: 'WARDKEY_SAVE_PROMPT',
-      ...creds
-    }).catch(() => {});
-  }
-
-  // Listen for form submissions
-  document.addEventListener('submit', (e) => {
-    sendSavePrompt(captureCredentials(e.target));
-  }, true);
-
-  // Also detect clicks on submit buttons (for forms without submit events)
-  document.addEventListener('click', (e) => {
-    const btn = e.target.closest('button[type="submit"], input[type="submit"], button:not([type])');
-    if (!btn) return;
-    const form = btn.closest('form');
-    if (!form) return;
-    sendSavePrompt(captureCredentials(form));
-  }, true);
 
   // ═══════ SAVE PASSWORD DIALOG (LastPass-style) ═══════
   function showSaveBar(data) {
@@ -286,7 +279,6 @@
     }
 
     if (msg.type === 'WARDKEY_SHOW_SAVE') {
-      // Triggered by background — show if not already visible
       if (!saveDialogShown) {
         saveDialogShown = true;
         showSaveBar(msg);
@@ -305,8 +297,8 @@
       const data = await chrome.storage.session?.get('wardkey_pendingSave');
       if (data?.wardkey_pendingSave) {
         const pending = data.wardkey_pendingSave;
-        // Only show if it's recent (within 2 minutes)
-        if (Date.now() - pending.timestamp < 120000) {
+        // Only show if it's recent (within 5 minutes)
+        if (Date.now() - pending.timestamp < 300000) {
           saveDialogShown = true;
           showSaveBar(pending);
         }
@@ -316,15 +308,17 @@
 
   // ═══════ INIT ═══════
   setTimeout(injectIcons, 800);
+  setTimeout(trackCredentialFields, 1000);
 
-  // Poll for pending saves — handles redirect chains (check every 2s for 30s)
+  // Poll for pending saves — handles redirect chains (check every 2s for 60s)
   let saveCheckCount = 0;
   const saveChecker = setInterval(() => {
     saveCheckCount++;
-    if (saveDialogShown || saveCheckCount > 15) { clearInterval(saveChecker); return; }
+    if (saveDialogShown || saveCheckCount > 30) { clearInterval(saveChecker); return; }
     checkPendingSaveOnLoad();
   }, 2000);
-  // Also check immediately after page is fully loaded
+
+  // Also check right after page fully loads
   if (document.readyState === 'complete') {
     checkPendingSaveOnLoad();
   } else {
@@ -333,6 +327,8 @@
 
   const observer = new MutationObserver(() => {
     setTimeout(injectIcons, 300);
+    // Re-check for new password fields to track
+    setTimeout(trackCredentialFields, 500);
   });
   observer.observe(document.body, { childList: true, subtree: true });
 
