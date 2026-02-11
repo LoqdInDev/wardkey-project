@@ -134,6 +134,13 @@ async function isNeverSave(domain) {
 
 // ═══════ MESSAGE HANDLER ═══════
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  // Validate sender: only accept from own extension or http/https content scripts
+  if (sender.id !== chrome.runtime.id) return;
+  if (sender.tab && sender.tab.url) {
+    const protocol = new URL(sender.tab.url).protocol;
+    if (protocol !== 'http:' && protocol !== 'https:') return;
+  }
+
   if (msg.type === 'WARDKEY_OPEN_POPUP') {
     chrome.action.openPopup();
   }

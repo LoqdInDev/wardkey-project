@@ -155,7 +155,14 @@ async function syncDown() {
     if (data.vault && data.vault.data) {
       await chrome.storage.local.set({ wardkey_v4: data.vault });
       const salt = new Uint8Array(data.vault.salt);
-      vault = await decrypt(data.vault.data, window._mk);
+      const decrypted = await decrypt(data.vault.data, window._mk);
+      // Validate decrypted result is a non-null, non-array object
+      if (!decrypted || typeof decrypted !== 'object' || Array.isArray(decrypted)) {
+        updateSyncDot('off');
+        toast('Sync failed: invalid vault data');
+        return;
+      }
+      vault = decrypted;
       ['passwords','cards','notes','totp','apikeys','licenses','passkeys','aliases','breaches','trash','activity'].forEach(k => {
         if (!vault[k]) vault[k] = [];
       });
@@ -214,6 +221,7 @@ $('unlockBtn').onclick = async () => {
         $('lockErr').textContent = 'Wrong password';
         $('lockAttempts').textContent = `${5 - failedAttempts} attempts remaining`;
       }
+      saveLockout();
       shake($('masterPw'));
       $('unlockBtn').textContent = 'Unlock Vault';
       $('unlockBtn').disabled = false;
@@ -224,7 +232,7 @@ $('unlockBtn').onclick = async () => {
     toast('Vault created!');
   }
 
-  failedAttempts = 0;
+  clearLockout();
   $('lockAttempts').textContent = '';
   unlocked = true;
   window._masterPw = pw;
@@ -255,6 +263,9 @@ $('lockBtn').onclick = () => {
   window._salt = null;
   window._verify = null;
   window._masterPw = null;
+  genPw = '';
+  editingItem = null;
+  mfaTempToken = null;
   chrome.storage.session?.remove('wardkey_session'); // clear auto-unlock session
   $('appView').classList.remove('on');
   $('lockScreen').style.display = '';
@@ -1310,9 +1321,28 @@ async function tryAutoUnlock() {
   }
 }
 
+// ═══════ LOCKOUT PERSISTENCE ═══════
+async function loadLockout() {
+  const data = await chrome.storage.local.get('wardkey_lockout');
+  if (data.wardkey_lockout) {
+    failedAttempts = data.wardkey_lockout.failedAttempts || 0;
+    lockoutUntil = data.wardkey_lockout.lockoutUntil || 0;
+  }
+}
+
+async function saveLockout() {
+  await chrome.storage.local.set({ wardkey_lockout: { failedAttempts, lockoutUntil } });
+}
+
+async function clearLockout() {
+  failedAttempts = 0;
+  lockoutUntil = 0;
+  await chrome.storage.local.remove('wardkey_lockout');
+}
+
 // ═══════ INIT ═══════
 loadTheme();
-Promise.all([loadAuth(), loadLockTimeout()]).then(() => tryAutoUnlock()).finally(() => {
+Promise.all([loadAuth(), loadLockTimeout(), loadLockout()]).then(() => tryAutoUnlock()).finally(() => {
   document.body.classList.add('ready');
 });
 
@@ -1327,6 +1357,11 @@ document.addEventListener('keydown', e => {
     if (unlocked) $('lockBtn').click();
     else window.close();
   }
+});
+
+// Clear clipboard on popup close
+window.addEventListener('unload', () => {
+  try { navigator.clipboard.writeText('').catch(() => {}); } catch {}
 });
 
 // Create alerts badge on load
