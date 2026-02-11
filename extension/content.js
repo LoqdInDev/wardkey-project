@@ -146,43 +146,28 @@
     };
   }
 
+  // Send save prompt to background IMMEDIATELY (before page navigates away)
+  function sendSavePrompt(creds) {
+    if (!creds || !creds.password) return;
+    lastCaptured = creds;
+    chrome.runtime.sendMessage({
+      type: 'WARDKEY_SAVE_PROMPT',
+      ...creds
+    }).catch(() => {});
+  }
+
   // Listen for form submissions
   document.addEventListener('submit', (e) => {
-    const creds = captureCredentials(e.target);
-    if (creds && creds.password) {
-      lastCaptured = creds;
-      // Small delay to let form submit complete, then send to background
-      setTimeout(() => {
-        if (lastCaptured) {
-          chrome.runtime.sendMessage({
-            type: 'WARDKEY_SAVE_PROMPT',
-            ...lastCaptured
-          }).catch(() => {});
-        }
-      }, 500);
-    }
+    sendSavePrompt(captureCredentials(e.target));
   }, true);
 
   // Also detect clicks on submit buttons (for forms without submit events)
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('button[type="submit"], input[type="submit"], button:not([type])');
     if (!btn) return;
-
     const form = btn.closest('form');
     if (!form) return;
-
-    const creds = captureCredentials(form);
-    if (creds && creds.password) {
-      lastCaptured = creds;
-      setTimeout(() => {
-        if (lastCaptured) {
-          chrome.runtime.sendMessage({
-            type: 'WARDKEY_SAVE_PROMPT',
-            ...lastCaptured
-          }).catch(() => {});
-        }
-      }, 500);
-    }
+    sendSavePrompt(captureCredentials(form));
   }, true);
 
   // ═══════ SAVE PASSWORD DIALOG (LastPass-style) ═══════
