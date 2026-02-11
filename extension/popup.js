@@ -1175,7 +1175,9 @@ async function tryAutoUnlock() {
 // ═══════ INIT ═══════
 loadTheme();
 loadAuth();
-loadLockTimeout().then(() => tryAutoUnlock());
+loadLockTimeout().then(() => tryAutoUnlock()).finally(() => {
+  document.body.classList.add('ready');
+});
 
 // Keyboard shortcuts
 document.addEventListener('keydown', e => {

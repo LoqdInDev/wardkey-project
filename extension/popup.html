@@ -17,7 +17,8 @@
   --tx1:#1a1a2e;--tx2:#5a5a78;--tx3:#8888a4;
   --bd:#d0d2de;
 }
-body{width:380px;max-height:520px;background:var(--bg0);color:var(--tx1);font-family:var(--font);font-size:14px;overflow:hidden}
+body{width:380px;max-height:520px;background:var(--bg0);color:var(--tx1);font-family:var(--font);font-size:14px;overflow:hidden;opacity:0;transition:opacity .15s}
+body.ready{opacity:1}
 
 /* Lock Screen */
 .lock{display:flex;flex-direction:column;align-items:center;justify-content:center;height:400px;padding:24px;text-align:center}
