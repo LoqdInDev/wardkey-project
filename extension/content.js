@@ -301,20 +301,28 @@
     }
 
     if (msg.type === 'WARDKEY_SHOW_SAVE') {
-      showSaveBar(msg);
+      // Triggered by background — show if not already visible
+      if (!saveDialogShown) {
+        saveDialogShown = true;
+        showSaveBar(msg);
+      }
     }
 
     return true;
   });
 
   // ═══════ CHECK PENDING SAVE ON PAGE LOAD ═══════
+  let saveDialogShown = false;
+
   async function checkPendingSaveOnLoad() {
+    if (saveDialogShown) return;
     try {
       const data = await chrome.storage.session?.get('wardkey_pendingSave');
       if (data?.wardkey_pendingSave) {
         const pending = data.wardkey_pendingSave;
-        // Only show if it's recent (within 2 minutes) and not already shown on this page
+        // Only show if it's recent (within 2 minutes)
         if (Date.now() - pending.timestamp < 120000) {
+          saveDialogShown = true;
           showSaveBar(pending);
         }
       }
@@ -323,8 +331,20 @@
 
   // ═══════ INIT ═══════
   setTimeout(injectIcons, 800);
-  // Check for pending save prompt after page loads
-  setTimeout(checkPendingSaveOnLoad, 1000);
+
+  // Poll for pending saves — handles redirect chains (check every 2s for 30s)
+  let saveCheckCount = 0;
+  const saveChecker = setInterval(() => {
+    saveCheckCount++;
+    if (saveDialogShown || saveCheckCount > 15) { clearInterval(saveChecker); return; }
+    checkPendingSaveOnLoad();
+  }, 2000);
+  // Also check immediately after page is fully loaded
+  if (document.readyState === 'complete') {
+    checkPendingSaveOnLoad();
+  } else {
+    window.addEventListener('load', () => setTimeout(checkPendingSaveOnLoad, 500));
+  }
 
   const observer = new MutationObserver(() => {
     setTimeout(injectIcons, 300);

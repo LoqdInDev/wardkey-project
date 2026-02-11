@@ -136,14 +136,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         }
       });
 
-      // Show save bar in the content script
-      if (sender.tab?.id) {
-        chrome.tabs.sendMessage(sender.tab.id, {
-          type: 'WARDKEY_SHOW_SAVE',
-          domain: msg.domain,
-          username: msg.username
-        }).catch(() => {});
-      }
+      // Dialog will be shown by content script on the NEXT page load
+      // (via checkPendingSaveOnLoad polling chrome.storage.session)
 
       // Notify popup if open
       chrome.runtime.sendMessage({ type: 'WARDKEY_PENDING_SAVE' }).catch(() => {});
