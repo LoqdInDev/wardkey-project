@@ -17,3 +17,111 @@
   color: #3d7cf5 !important;
   font-weight: 700 !important;
 }
+
+/* Save Password Bar */
+#wardkey-save-bar {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 2147483647 !important;
+  background: linear-gradient(135deg, #0c0c14 0%, #12121c 100%) !important;
+  border-bottom: 1px solid rgba(61, 124, 245, .2) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, .5) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  animation: wardkey-bar-slide .3s ease-out !important;
+  transition: transform .3s, opacity .3s !important;
+}
+
+.wardkey-save-inner {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 10px 16px !important;
+  max-width: 900px !important;
+  margin: 0 auto !important;
+}
+
+.wardkey-save-logo {
+  font-size: 18px !important;
+  flex-shrink: 0 !important;
+}
+
+.wardkey-save-text {
+  flex: 1 !important;
+  font-size: 13px !important;
+  color: #e8e8f0 !important;
+  line-height: 1.4 !important;
+}
+
+.wardkey-save-text strong {
+  color: #3d7cf5 !important;
+  font-weight: 700 !important;
+}
+
+.wardkey-save-text small {
+  color: #9d9db8 !important;
+  font-size: 11px !important;
+}
+
+.wardkey-save-btn {
+  padding: 6px 16px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  border: none !important;
+  font-family: inherit !important;
+  transition: filter .15s !important;
+  flex-shrink: 0 !important;
+}
+
+.wardkey-save-yes {
+  background: #3d7cf5 !important;
+  color: #fff !important;
+}
+
+.wardkey-save-yes:hover {
+  filter: brightness(1.1) !important;
+}
+
+.wardkey-save-never {
+  background: #1a1a28 !important;
+  color: #9d9db8 !important;
+  border: 1px solid #1e1e32 !important;
+}
+
+.wardkey-save-never:hover {
+  border-color: #3d7cf5 !important;
+  color: #e8e8f0 !important;
+}
+
+.wardkey-save-close {
+  width: 24px !important;
+  height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  border: none !important;
+  color: #6b6b85 !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  border-radius: 4px !important;
+  flex-shrink: 0 !important;
+}
+
+.wardkey-save-close:hover {
+  color: #e8e8f0 !important;
+  background: #1a1a28 !important;
+}
+
+@keyframes wardkey-bar-slide {
+  from { opacity: 0; transform: translateY(-100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes wardkey-slide {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}

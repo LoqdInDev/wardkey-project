@@ -1,4 +1,4 @@
-// WARDKEY Content Script — Form Detection & Autofill
+// WARDKEY Content Script — Form Detection, Autofill & Save Prompt
 (() => {
   'use strict';
 
@@ -24,11 +24,11 @@
     ]
   };
 
-  function findFields() {
+  function findFields(root) {
+    const scope = root || document;
     const fields = { username: null, password: null, newPassword: null };
 
-    // Find password fields
-    const pwFields = document.querySelectorAll(SELECTORS.password.join(','));
+    const pwFields = scope.querySelectorAll(SELECTORS.password.join(','));
     if (pwFields.length >= 2) {
       fields.password = pwFields[0];
       fields.newPassword = pwFields[1];
@@ -36,9 +36,8 @@
       fields.password = pwFields[0];
     }
 
-    // Find username field
     for (const sel of SELECTORS.username) {
-      const el = document.querySelector(sel);
+      const el = scope.querySelector(sel);
       if (el && isVisible(el)) {
         fields.username = el;
         break;
@@ -69,17 +68,14 @@
       const wrapper = field.parentElement;
       if (!wrapper) return;
 
-      // Set position relative on parent if needed
       const pos = getComputedStyle(wrapper).position;
       if (pos === 'static') wrapper.style.position = 'relative';
 
-      // Create icon button
       const btn = document.createElement('div');
       btn.className = 'wardkey-field-icon';
       btn.innerHTML = '🔐';
       btn.title = 'Fill with WARDKEY';
 
-      // Position inside the field
       const rect = field.getBoundingClientRect();
       const wrapRect = wrapper.getBoundingClientRect();
       btn.style.cssText = `
@@ -102,7 +98,6 @@
       btn.onclick = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        // Open extension popup
         chrome.runtime.sendMessage({ type: 'WARDKEY_OPEN_POPUP' });
       };
 
@@ -113,7 +108,6 @@
   // ═══════ AUTOFILL HANDLER ═══════
   function fillField(el, value) {
     if (!el || !value) return;
-    // Set native value
     const nativeSetter = Object.getOwnPropertyDescriptor(
       Object.getPrototypeOf(el), 'value'
     )?.set || Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
@@ -124,11 +118,153 @@
       el.value = value;
     }
 
-    // Dispatch events that React/Angular/Vue listen to
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
     el.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true }));
     el.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+  }
+
+  // ═══════ FORM SUBMIT DETECTION (Save Password Prompt) ═══════
+  let lastCaptured = null;
+
+  function captureCredentials(form) {
+    const fields = findFields(form || document);
+    const pw = fields.password || fields.newPassword;
+    if (!pw || !pw.value) return null;
+
+    let username = '';
+    if (fields.username && fields.username.value) {
+      username = fields.username.value;
+    }
+
+    return {
+      domain: location.hostname.replace('www.', ''),
+      username,
+      password: pw.value,
+      url: location.href,
+      timestamp: Date.now()
+    };
+  }
+
+  // Listen for form submissions
+  document.addEventListener('submit', (e) => {
+    const creds = captureCredentials(e.target);
+    if (creds && creds.password) {
+      lastCaptured = creds;
+      // Small delay to let form submit complete, then send to background
+      setTimeout(() => {
+        if (lastCaptured) {
+          chrome.runtime.sendMessage({
+            type: 'WARDKEY_SAVE_PROMPT',
+            ...lastCaptured
+          }).catch(() => {});
+        }
+      }, 500);
+    }
+  }, true);
+
+  // Also detect clicks on submit buttons (for forms without submit events)
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[type="submit"], input[type="submit"], button:not([type])');
+    if (!btn) return;
+
+    const form = btn.closest('form');
+    if (!form) return;
+
+    const creds = captureCredentials(form);
+    if (creds && creds.password) {
+      lastCaptured = creds;
+      setTimeout(() => {
+        if (lastCaptured) {
+          chrome.runtime.sendMessage({
+            type: 'WARDKEY_SAVE_PROMPT',
+            ...lastCaptured
+          }).catch(() => {});
+        }
+      }, 500);
+    }
+  }, true);
+
+  // ═══════ SAVE PASSWORD NOTIFICATION BAR ═══════
+  function showSaveBar(data) {
+    const existing = document.getElementById('wardkey-save-bar');
+    if (existing) existing.remove();
+
+    const bar = document.createElement('div');
+    bar.id = 'wardkey-save-bar';
+    bar.innerHTML = `
+      <div class="wardkey-save-inner">
+        <span class="wardkey-save-logo">🔐</span>
+        <span class="wardkey-save-text">
+          <strong>WARDKEY</strong> — Save password for <strong>${escapeHtml(data.domain)}</strong>?
+          ${data.username ? '<br><small>' + escapeHtml(data.username) + '</small>' : ''}
+        </span>
+        <button class="wardkey-save-btn wardkey-save-yes">Save</button>
+        <button class="wardkey-save-btn wardkey-save-never">Never</button>
+        <button class="wardkey-save-close">✕</button>
+      </div>
+    `;
+    document.body.appendChild(bar);
+
+    bar.querySelector('.wardkey-save-yes').onclick = () => {
+      chrome.runtime.sendMessage({ type: 'WARDKEY_SAVE_CONFIRM', ...data }).catch(() => {});
+      bar.style.transform = 'translateY(-100%)';
+      setTimeout(() => bar.remove(), 300);
+    };
+
+    bar.querySelector('.wardkey-save-never').onclick = () => {
+      chrome.runtime.sendMessage({ type: 'WARDKEY_SAVE_NEVER', domain: data.domain }).catch(() => {});
+      bar.style.transform = 'translateY(-100%)';
+      setTimeout(() => bar.remove(), 300);
+    };
+
+    bar.querySelector('.wardkey-save-close').onclick = () => {
+      bar.style.transform = 'translateY(-100%)';
+      setTimeout(() => bar.remove(), 300);
+    };
+
+    // Auto-dismiss after 15 seconds
+    setTimeout(() => {
+      if (document.getElementById('wardkey-save-bar')) {
+        bar.style.transition = 'opacity .3s, transform .3s';
+        bar.style.opacity = '0';
+        bar.style.transform = 'translateY(-100%)';
+        setTimeout(() => bar.remove(), 300);
+      }
+    }, 15000);
+  }
+
+  function escapeHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  // ═══════ FILL SUCCESS BANNER ═══════
+  function showFillBanner() {
+    const existing = document.getElementById('wardkey-fill-banner');
+    if (existing) existing.remove();
+
+    const banner = document.createElement('div');
+    banner.id = 'wardkey-fill-banner';
+    banner.innerHTML = '🔐 <strong>WARDKEY</strong> — Credentials filled';
+    banner.style.cssText = `
+      position:fixed;top:12px;right:12px;z-index:2147483647;
+      padding:10px 18px;
+      background:linear-gradient(135deg,#0c0c14,#1a1a28);
+      color:#e8e8f0;font-family:-apple-system,sans-serif;font-size:13px;
+      border-radius:8px;border:1px solid rgba(61,124,245,.3);
+      box-shadow:0 8px 32px rgba(0,0,0,.4);
+      display:flex;align-items:center;gap:8px;
+      animation:wardkey-slide .3s ease-out;
+    `;
+    document.body.appendChild(banner);
+
+    setTimeout(() => {
+      banner.style.transition = 'opacity .3s';
+      banner.style.opacity = '0';
+      setTimeout(() => banner.remove(), 300);
+    }, 2500);
   }
 
   // ═══════ MESSAGE HANDLER ═══════
@@ -161,51 +297,20 @@
       });
     }
 
+    if (msg.type === 'WARDKEY_SHOW_SAVE') {
+      showSaveBar(msg);
+    }
+
     return true;
   });
 
-  // ═══════ FILL SUCCESS BANNER ═══════
-  function showFillBanner() {
-    const existing = document.getElementById('wardkey-fill-banner');
-    if (existing) existing.remove();
-
-    const banner = document.createElement('div');
-    banner.id = 'wardkey-fill-banner';
-    banner.innerHTML = '🔐 <strong>WARDKEY</strong> — Credentials filled';
-    banner.style.cssText = `
-      position:fixed;top:12px;right:12px;z-index:2147483647;
-      padding:10px 18px;
-      background:linear-gradient(135deg,#0c0c14,#1a1a28);
-      color:#e8e8f0;font-family:-apple-system,sans-serif;font-size:13px;
-      border-radius:8px;border:1px solid rgba(61,124,245,.3);
-      box-shadow:0 8px 32px rgba(0,0,0,.4);
-      display:flex;align-items:center;gap:8px;
-      animation:wardkey-slide .3s ease-out;
-    `;
-    document.body.appendChild(banner);
-
-    // Add animation
-    const style = document.createElement('style');
-    style.textContent = '@keyframes wardkey-slide{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}';
-    document.head.appendChild(style);
-
-    setTimeout(() => {
-      banner.style.transition = 'opacity .3s';
-      banner.style.opacity = '0';
-      setTimeout(() => { banner.remove(); style.remove(); }, 300);
-    }, 2500);
-  }
-
   // ═══════ INIT ═══════
-  // Inject icons after a short delay to let page render
   setTimeout(injectIcons, 800);
 
-  // Re-inject on dynamic page changes (SPAs)
   const observer = new MutationObserver(() => {
     setTimeout(injectIcons, 300);
   });
   observer.observe(document.body, { childList: true, subtree: true });
 
-  // Clean up on page unload
   window.addEventListener('unload', () => observer.disconnect());
 })();

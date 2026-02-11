@@ -1,14 +1,24 @@
-// WARDKEY Extension — Popup Controller
+// WARDKEY Extension — Popup Controller v2.0
 const $ = id => document.getElementById(id);
+const API = 'https://api.wardkey.io';
+const CRYPTO_VERSION = 4;
 
 // ═══════ STATE ═══════
-let vault = [];
+let vault = {};
 let unlocked = false;
 let currentDomain = '';
 let activeTab = 'matches';
+let activePanel = 'vault'; // vault | gen | alerts | account
 let genPw = '';
+let authToken = null;
+let authUser = null;
+let syncEnabled = false;
+let syncInProgress = false;
+let failedAttempts = 0;
+let lockoutUntil = 0;
+let mfaTempToken = null;
 
-// ═══════ CRYPTO ═══════
+// ═══════ CRYPTO (v4 — compatible with web app) ═══════
 async function deriveKey(pw, salt) {
   const enc = new TextEncoder();
   const base = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveKey']);
@@ -21,31 +31,51 @@ async function deriveKey(pw, salt) {
   );
 }
 
-async function decrypt(data, key) {
-  const ct = Uint8Array.from(atob(data.ct), c => c.charCodeAt(0));
-  const iv = new Uint8Array(data.iv);
-  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
-  return JSON.parse(new TextDecoder().decode(pt));
+async function deriveVerifyHash(pw, salt) {
+  const enc = new TextEncoder();
+  const base = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: 310000, hash: 'SHA-512' },
+    base,
+    256
+  );
+  return btoa(String.fromCharCode(...new Uint8Array(bits)));
 }
 
 async function encrypt(data, key) {
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const enc = new TextEncoder().encode(JSON.stringify(data));
   const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc);
-  return { ct: btoa(String.fromCharCode(...new Uint8Array(ct))), iv: Array.from(iv) };
+  return { iv: Array.from(iv), ct: Array.from(new Uint8Array(ct)) };
 }
 
-// ═══════ STORAGE ═══════
+async function decrypt(data, key) {
+  const ct = new Uint8Array(data.ct);
+  const iv = new Uint8Array(data.iv);
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+
+// ═══════ STORAGE (v4 format) ═══════
 async function loadVault(pw) {
-  const data = await chrome.storage.local.get(['wardkey_vault', 'wardkey_salt']);
-  if (!data.wardkey_vault) return false;
+  const stored = await chrome.storage.local.get('wardkey_v4');
+  if (!stored.wardkey_v4) return false;
   try {
-    const salt = new Uint8Array(data.wardkey_salt);
+    const blob = stored.wardkey_v4;
+    const salt = new Uint8Array(blob.salt);
+    // Verify hash first
+    const verify = await deriveVerifyHash(pw, salt);
+    if (verify !== blob.verify) return false;
     const key = await deriveKey(pw, salt);
-    const decrypted = await decrypt(data.wardkey_vault, key);
-    vault = decrypted.passwords || [];
+    const decrypted = await decrypt(blob.data, key);
+    vault = decrypted;
+    // Ensure all arrays exist
+    ['passwords','cards','notes','totp','apikeys','licenses','passkeys','aliases','breaches','trash','activity'].forEach(k => {
+      if (!vault[k]) vault[k] = [];
+    });
     window._mk = key;
     window._salt = salt;
+    window._verify = verify;
     return true;
   } catch {
     return false;
@@ -54,49 +84,182 @@ async function loadVault(pw) {
 
 async function saveVault() {
   if (!window._mk) return;
-  const encrypted = await encrypt({ passwords: vault }, window._mk);
-  await chrome.storage.local.set({ wardkey_vault: encrypted, wardkey_salt: Array.from(window._salt) });
+  const e = await encrypt(vault, window._mk);
+  const blob = { v: CRYPTO_VERSION, salt: Array.from(window._salt), verify: window._verify, data: e };
+  await chrome.storage.local.set({ wardkey_v4: blob });
+  if (syncEnabled && authToken) syncUp(blob);
 }
 
 async function initVault(pw) {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const key = await deriveKey(pw, salt);
+  const verify = await deriveVerifyHash(pw, salt);
   window._mk = key;
   window._salt = salt;
-  vault = [];
+  window._verify = verify;
+  vault = { passwords: [], cards: [], notes: [], totp: [], apikeys: [], licenses: [], passkeys: [], aliases: [], breaches: [], trash: [], activity: [] };
   await saveVault();
+}
+
+// ═══════ AUTH PERSISTENCE ═══════
+async function loadAuth() {
+  const data = await chrome.storage.local.get('wardkey_auth');
+  if (data.wardkey_auth) {
+    authToken = data.wardkey_auth.token;
+    authUser = data.wardkey_auth.user;
+    syncEnabled = !!authToken;
+  }
+}
+
+async function saveAuth() {
+  if (authToken && authUser) {
+    await chrome.storage.local.set({ wardkey_auth: { token: authToken, user: authUser } });
+  } else {
+    await chrome.storage.local.remove('wardkey_auth');
+  }
+  syncEnabled = !!authToken;
+  updateSyncDot();
+}
+
+// ═══════ CLOUD SYNC ═══════
+async function syncUp(blob) {
+  if (syncInProgress || !authToken) return;
+  syncInProgress = true;
+  updateSyncDot('active');
+  try {
+    const res = await fetch(API + '/api/vault', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+      body: JSON.stringify(blob)
+    });
+    if (res.status === 401) { authToken = null; authUser = null; saveAuth(); toast('Session expired'); return; }
+    if (!res.ok) throw new Error('Sync failed');
+    updateSyncDot('ok');
+  } catch {
+    updateSyncDot('off');
+  } finally {
+    syncInProgress = false;
+  }
+}
+
+async function syncDown() {
+  if (!authToken || !window._mk) return;
+  syncInProgress = true;
+  updateSyncDot('active');
+  try {
+    const res = await fetch(API + '/api/vault', { headers: { 'Authorization': 'Bearer ' + authToken } });
+    if (res.status === 401) { authToken = null; authUser = null; saveAuth(); toast('Session expired'); return; }
+    if (!res.ok) throw new Error('Download failed');
+    const data = await res.json();
+    if (data.vault && data.vault.data) {
+      await chrome.storage.local.set({ wardkey_v4: data.vault });
+      const salt = new Uint8Array(data.vault.salt);
+      vault = await decrypt(data.vault.data, window._mk);
+      ['passwords','cards','notes','totp','apikeys','licenses','passkeys','aliases','breaches','trash','activity'].forEach(k => {
+        if (!vault[k]) vault[k] = [];
+      });
+      window._salt = salt;
+      window._verify = data.vault.verify;
+      updateSyncDot('ok');
+      renderList();
+      toast('Vault synced');
+    } else {
+      updateSyncDot('ok');
+    }
+  } catch {
+    updateSyncDot('off');
+    toast('Sync failed');
+  } finally {
+    syncInProgress = false;
+  }
+}
+
+function updateSyncDot(state) {
+  const dot = $('syncDot');
+  if (!dot) return;
+  dot.className = 'hdr-sync ' + (state || (syncEnabled ? 'ok' : 'off'));
 }
 
 // ═══════ UNLOCK ═══════
 $('unlockBtn').onclick = async () => {
   const pw = $('masterPw').value;
-  if (pw.length < 4) { shake($('masterPw')); return; }
+  if (!pw || pw.length < 4) { shake($('masterPw')); $('lockErr').textContent = 'Min 4 characters'; return; }
 
-  const hasVault = (await chrome.storage.local.get('wardkey_vault')).wardkey_vault;
+  // Brute force protection
+  if (Date.now() < lockoutUntil) {
+    const secs = Math.ceil((lockoutUntil - Date.now()) / 1000);
+    $('lockErr').textContent = `Locked out. Try again in ${secs}s`;
+    shake($('masterPw'));
+    return;
+  }
+
+  $('lockErr').textContent = '';
+  $('unlockBtn').textContent = 'Unlocking...';
+  $('unlockBtn').disabled = true;
+
+  // Small delay to let UI update before heavy crypto
+  await new Promise(r => setTimeout(r, 50));
+
+  const hasVault = (await chrome.storage.local.get('wardkey_v4')).wardkey_v4;
   if (hasVault) {
     const ok = await loadVault(pw);
-    if (!ok) { shake($('masterPw')); toast('Wrong password'); return; }
+    if (!ok) {
+      failedAttempts++;
+      if (failedAttempts >= 5) {
+        lockoutUntil = Date.now() + 60000;
+        $('lockErr').textContent = 'Too many attempts. Locked for 60s';
+        $('lockAttempts').textContent = '';
+      } else {
+        $('lockErr').textContent = 'Wrong password';
+        $('lockAttempts').textContent = `${5 - failedAttempts} attempts remaining`;
+      }
+      shake($('masterPw'));
+      $('unlockBtn').textContent = 'Unlock Vault';
+      $('unlockBtn').disabled = false;
+      return;
+    }
   } else {
     await initVault(pw);
     toast('Vault created!');
   }
+
+  failedAttempts = 0;
+  $('lockAttempts').textContent = '';
   unlocked = true;
+  window._masterPw = pw;
   $('lockScreen').style.display = 'none';
   $('appView').classList.add('on');
+  $('unlockBtn').textContent = 'Unlock Vault';
+  $('unlockBtn').disabled = false;
+
+  // Store session for auto-unlock
+  chrome.storage.session?.set({ wardkey_session: Date.now() });
+  chrome.runtime.sendMessage({ type: 'WARDKEY_ACTIVITY' });
+
   getCurrentSite();
   renderList();
+  updateSyncDot();
+  checkPendingSave();
+
+  // Auto sync on unlock
+  if (syncEnabled && authToken) syncDown();
 };
 
 $('masterPw').onkeydown = e => { if (e.key === 'Enter') $('unlockBtn').click(); };
 
 $('lockBtn').onclick = () => {
   unlocked = false;
-  vault = [];
+  vault = {};
   window._mk = null;
+  window._salt = null;
+  window._verify = null;
+  window._masterPw = null;
   $('appView').classList.remove('on');
   $('lockScreen').style.display = '';
   $('masterPw').value = '';
+  $('lockErr').textContent = '';
   $('masterPw').focus();
+  showPanel('vault');
 };
 
 // ═══════ CURRENT SITE ═══════
@@ -112,8 +275,8 @@ async function getCurrentSite() {
 }
 
 function getMatches() {
-  if (!currentDomain) return [];
-  return vault.filter(p => {
+  if (!currentDomain || !vault.passwords) return [];
+  return vault.passwords.filter(p => {
     const url = (p.url || '').toLowerCase().replace('https://', '').replace('http://', '').replace('www.', '');
     const domain = currentDomain.toLowerCase();
     return url.includes(domain) || domain.includes(url.split('/')[0]);
@@ -124,30 +287,60 @@ function getMatches() {
 function renderList() {
   const list = $('itemList');
   const gen = $('genPanel');
+  const alerts = $('alertsPanel');
+  const acct = $('acctPanel');
   const query = $('searchInput').value.toLowerCase();
 
-  if (activeTab === 'gen') {
+  // Hide all panels first
+  list.style.display = '';
+  gen.classList.remove('on');
+  alerts.classList.remove('on');
+  acct.classList.remove('on');
+  hideAuth();
+  $('searchBar').style.display = '';
+  $('tabBar').style.display = '';
+  $('matchBanner').style.display = 'none';
+
+  if (activePanel === 'gen') {
     list.style.display = 'none';
     gen.classList.add('on');
-    $('matchBanner').style.display = 'none';
+    $('searchBar').style.display = 'none';
+    $('tabBar').style.display = 'none';
     return;
   }
 
-  list.style.display = '';
-  gen.classList.remove('on');
+  if (activePanel === 'alerts') {
+    list.style.display = 'none';
+    $('searchBar').style.display = 'none';
+    $('tabBar').style.display = 'none';
+    renderAlerts();
+    return;
+  }
 
+  if (activePanel === 'account') {
+    list.style.display = 'none';
+    $('searchBar').style.display = 'none';
+    $('tabBar').style.display = 'none';
+    renderAccount();
+    return;
+  }
+
+  // Vault panel
   let items;
   if (activeTab === 'matches') {
     items = getMatches();
     if (items.length) {
       $('matchBanner').style.display = '';
       $('matchCount').textContent = `${items.length} credential${items.length > 1 ? 's' : ''} for ${currentDomain}`;
-    } else {
-      $('matchBanner').style.display = 'none';
     }
+  } else if (activeTab === 'all') {
+    items = vault.passwords || [];
+  } else if (activeTab === 'favorites') {
+    items = (vault.passwords || []).filter(p => p.fav);
+  } else if (activeTab === 'recents') {
+    items = [...(vault.passwords || [])].sort((a, b) => (b.modified || b.created || 0) - (a.modified || a.created || 0)).slice(0, 15);
   } else {
-    items = vault;
-    $('matchBanner').style.display = 'none';
+    items = vault.passwords || [];
   }
 
   if (query) {
@@ -160,9 +353,9 @@ function renderList() {
 
   if (!items.length) {
     list.innerHTML = `<div class="empty">
-      <div class="empty-ic">${activeTab === 'matches' ? '🔍' : '📭'}</div>
-      <div class="empty-t">${activeTab === 'matches' ? 'No matches for this site' : 'Vault is empty'}</div>
-      <div class="empty-d">${activeTab === 'matches' ? 'Add credentials or check all items' : 'Import from WARDKEY web app or add items'}</div>
+      <div class="empty-ic">${activeTab === 'matches' ? '🔍' : activeTab === 'favorites' ? '⭐' : activeTab === 'recents' ? '🕐' : '📭'}</div>
+      <div class="empty-t">${activeTab === 'matches' ? 'No matches for this site' : activeTab === 'favorites' ? 'No favorites yet' : activeTab === 'recents' ? 'No recent items' : 'Vault is empty'}</div>
+      <div class="empty-d">${activeTab === 'matches' ? 'Add credentials or check all items' : 'Items will appear here as you use WARDKEY'}</div>
     </div>`;
     return;
   }
@@ -192,27 +385,360 @@ function renderList() {
     </div>`;
   }).join('');
 
-  // Bind actions
+  bindItemActions();
+
+  // Update badge
+  chrome.runtime.sendMessage({ type: 'WARDKEY_BADGE', count: getMatches().length });
+}
+
+function bindItemActions() {
+  const list = $('itemList');
   list.querySelectorAll('.act').forEach(btn => {
     btn.onclick = e => {
       e.stopPropagation();
       const action = btn.dataset.action;
       const id = btn.dataset.id;
-      const item = vault.find(p => p.id === id);
+      const item = (vault.passwords || []).find(p => p.id === id);
       if (!item) return;
       if (action === 'fill') autofill(item);
       if (action === 'copy') copyPw(item.password);
       if (action === 'launch') launchSite(item);
     };
   });
-
   list.querySelectorAll('.item').forEach(el => {
     el.onclick = () => {
-      const item = vault.find(p => p.id === el.dataset.id);
+      const item = (vault.passwords || []).find(p => p.id === el.dataset.id);
       if (item) autofill(item);
     };
   });
 }
+
+// ═══════ ALERTS ═══════
+function getAlerts() {
+  const alerts = { weak: [], reused: [], old: [] };
+  const pws = vault.passwords || [];
+  const pwMap = {};
+
+  pws.forEach(p => {
+    if (!p.password) return;
+    // Weak check
+    const s = pwStr(p.password);
+    if (s.pct < 40) alerts.weak.push(p);
+    // Reused check
+    if (!pwMap[p.password]) pwMap[p.password] = [];
+    pwMap[p.password].push(p);
+  });
+
+  Object.values(pwMap).forEach(group => {
+    if (group.length > 1) alerts.reused.push(...group);
+  });
+
+  // Old passwords (90+ days)
+  const now = Date.now();
+  pws.forEach(p => {
+    const lastMod = p.modified || p.created;
+    if (lastMod && (now - lastMod) > 90 * 24 * 60 * 60 * 1000) alerts.old.push(p);
+  });
+
+  return alerts;
+}
+
+function renderAlerts() {
+  const panel = $('alertsPanel');
+  panel.classList.add('on');
+  const a = getAlerts();
+  const total = a.weak.length + new Set(a.reused.map(p => p.id)).size + a.old.length;
+
+  // Update badge
+  const badge = document.querySelector('.ftr-btn[data-nav="alerts"] .ftr-badge');
+  if (badge) badge.textContent = total || '';
+  if (badge) badge.style.display = total ? 'flex' : 'none';
+
+  if (!total) {
+    panel.innerHTML = `<div class="alerts-ok"><div class="alerts-ok-ic">🛡️</div><div class="alerts-ok-t">All clear!</div><div style="font-size:11px;margin-top:4px">No security issues found</div></div>`;
+    return;
+  }
+
+  let html = '';
+  if (a.weak.length) {
+    html += `<div class="alert-card"><div class="alert-card-h"><div class="alert-card-ic">⚠️</div><div class="alert-card-t">Weak Passwords</div><div class="alert-card-n">${a.weak.length}</div></div><div class="alert-card-d">${a.weak.map(p => esc(p.name)).join(', ')}</div></div>`;
+  }
+  const reusedUnique = [...new Set(a.reused.map(p => p.password))];
+  if (reusedUnique.length) {
+    const count = new Set(a.reused.map(p => p.id)).size;
+    html += `<div class="alert-card"><div class="alert-card-h"><div class="alert-card-ic">🔄</div><div class="alert-card-t">Reused Passwords</div><div class="alert-card-n">${count}</div></div><div class="alert-card-d">${count} items share passwords with other entries</div></div>`;
+  }
+  if (a.old.length) {
+    html += `<div class="alert-card"><div class="alert-card-h"><div class="alert-card-ic">🕐</div><div class="alert-card-t">Old Passwords</div><div class="alert-card-n">${a.old.length}</div></div><div class="alert-card-d">Not changed in 90+ days</div></div>`;
+  }
+  panel.innerHTML = html;
+}
+
+// ═══════ ACCOUNT ═══════
+function renderAccount() {
+  const panel = $('acctPanel');
+  panel.classList.add('on');
+
+  if (syncEnabled && authUser) {
+    panel.innerHTML = `
+      <div class="acct-title">Account</div>
+      <div class="acct-card">
+        <div class="acct-row"><div class="acct-row-l">Email</div><div class="acct-row-v">${esc(authUser.email)}</div></div>
+        <div class="acct-row"><div class="acct-row-l">Plan</div><div class="acct-row-v" style="color:var(--ac)">${esc(authUser.plan || 'free')}</div></div>
+        <div class="acct-row"><div class="acct-row-l">2FA</div><div class="acct-row-v" style="color:${authUser.mfa_enabled ? 'var(--gn)' : 'var(--tx3)'}">${authUser.mfa_enabled ? 'Enabled' : 'Disabled'}</div></div>
+        <div class="acct-row"><div class="acct-row-l">Cloud Sync</div><div class="acct-row-v" style="color:var(--gn)">Connected</div></div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-s" style="flex:1" id="acctSyncBtn">🔄 Sync Now</button>
+        <button class="btn btn-d" style="flex:1" id="acctLogoutBtn">Log Out</button>
+      </div>`;
+
+    $('acctSyncBtn').onclick = () => { syncDown(); toast('Syncing...'); };
+    $('acctLogoutBtn').onclick = () => {
+      authToken = null;
+      authUser = null;
+      syncEnabled = false;
+      saveAuth();
+      renderAccount();
+      toast('Logged out');
+    };
+  } else {
+    panel.innerHTML = `
+      <div style="text-align:center;padding:20px 0">
+        <div style="font-size:32px;margin-bottom:8px">☁️</div>
+        <div class="acct-title" style="margin-bottom:4px">Cloud Sync</div>
+        <div style="font-size:11px;color:var(--tx3);margin-bottom:16px;line-height:1.5">Sign in to sync your encrypted vault across all your devices. Your master password never leaves your device.</div>
+        <button class="btn btn-p" id="acctLoginBtn" style="margin-bottom:8px">Sign In</button>
+        <button class="btn btn-s" id="acctRegBtn">Create Account</button>
+      </div>`;
+
+    $('acctLoginBtn').onclick = () => showAuth('login');
+    $('acctRegBtn').onclick = () => showAuth('register');
+  }
+}
+
+// ═══════ AUTH UI ═══════
+function showAuth(mode) {
+  hideAuth();
+  $('acctPanel').classList.remove('on');
+  $('searchBar').style.display = 'none';
+  $('tabBar').style.display = 'none';
+  $('itemList').style.display = 'none';
+
+  if (mode === 'login') {
+    $('authLogin').classList.add('on');
+    $('authEmail').focus();
+  } else if (mode === 'register') {
+    $('authRegister').classList.add('on');
+    $('regName').focus();
+  } else if (mode === '2fa') {
+    $('auth2fa').classList.add('on');
+    $('auth2faCode').value = '';
+    $('auth2faCode').focus();
+  }
+}
+
+function hideAuth() {
+  $('authLogin').classList.remove('on');
+  $('authRegister').classList.remove('on');
+  $('auth2fa').classList.remove('on');
+  $('authErr').textContent = '';
+  $('regErr').textContent = '';
+  $('auth2faErr').textContent = '';
+}
+
+$('showRegister').onclick = () => showAuth('register');
+$('showLogin').onclick = () => showAuth('login');
+
+// Login
+$('authLoginBtn').onclick = async () => {
+  const email = $('authEmail').value.trim();
+  const pw = $('authPw').value;
+  if (!email || !pw) { $('authErr').textContent = 'Email and password required'; return; }
+
+  $('authLoginBtn').textContent = 'Signing in...';
+  $('authLoginBtn').disabled = true;
+
+  try {
+    const res = await fetch(API + '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pw })
+    });
+    const data = await res.json();
+    if (!res.ok) { $('authErr').textContent = data.error || 'Login failed'; return; }
+
+    if (data.requires2fa) {
+      mfaTempToken = data.tempToken;
+      showAuth('2fa');
+      return;
+    }
+
+    authToken = data.token;
+    authUser = data.user;
+    syncEnabled = true;
+    await saveAuth();
+    hideAuth();
+
+    // Download vault from cloud
+    await syncDown();
+    showPanel('vault');
+    toast('Signed in!');
+  } catch (e) {
+    $('authErr').textContent = 'Connection error';
+  } finally {
+    $('authLoginBtn').textContent = 'Sign In';
+    $('authLoginBtn').disabled = false;
+  }
+};
+
+// Register
+$('authRegBtn').onclick = async () => {
+  const name = $('regName').value.trim();
+  const email = $('regEmail').value.trim();
+  const pw = $('regPw').value;
+  const conf = $('regPwConf').value;
+
+  if (!email || !pw) { $('regErr').textContent = 'Email and password required'; return; }
+  if (pw.length < 8) { $('regErr').textContent = 'Password must be 8+ characters'; return; }
+  if (pw !== conf) { $('regErr').textContent = 'Passwords do not match'; return; }
+
+  $('authRegBtn').textContent = 'Creating...';
+  $('authRegBtn').disabled = true;
+
+  try {
+    const res = await fetch(API + '/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pw, name: name || undefined })
+    });
+    const data = await res.json();
+    if (!res.ok) { $('regErr').textContent = data.error || 'Registration failed'; return; }
+
+    authToken = data.token;
+    authUser = data.user;
+    syncEnabled = true;
+    await saveAuth();
+    hideAuth();
+
+    // Upload current vault to cloud
+    if (window._mk) {
+      const e = await encrypt(vault, window._mk);
+      const blob = { v: CRYPTO_VERSION, salt: Array.from(window._salt), verify: window._verify, data: e };
+      await syncUp(blob);
+    }
+    showPanel('vault');
+    toast('Account created!');
+  } catch (e) {
+    $('regErr').textContent = 'Connection error';
+  } finally {
+    $('authRegBtn').textContent = 'Create Account';
+    $('authRegBtn').disabled = false;
+  }
+};
+
+// 2FA Verify
+$('auth2faBtn').onclick = async () => {
+  const code = $('auth2faCode').value.trim();
+  if (!code || code.length !== 6) { $('auth2faErr').textContent = 'Enter 6-digit code'; return; }
+
+  $('auth2faBtn').textContent = 'Verifying...';
+  $('auth2faBtn').disabled = true;
+
+  try {
+    const res = await fetch(API + '/api/auth/2fa/verify-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tempToken: mfaTempToken, totpCode: code })
+    });
+    const data = await res.json();
+    if (!res.ok) { $('auth2faErr').textContent = data.error || 'Invalid code'; return; }
+
+    authToken = data.token;
+    authUser = data.user;
+    syncEnabled = true;
+    mfaTempToken = null;
+    await saveAuth();
+    hideAuth();
+    await syncDown();
+    showPanel('vault');
+    toast('Signed in!');
+  } catch (e) {
+    $('auth2faErr').textContent = 'Connection error';
+  } finally {
+    $('auth2faBtn').textContent = 'Verify';
+    $('auth2faBtn').disabled = false;
+  }
+};
+
+$('auth2faCancel').onclick = () => { mfaTempToken = null; showAuth('login'); };
+$('auth2faCode').onkeydown = e => { if (e.key === 'Enter') $('auth2faBtn').click(); };
+$('authPw').onkeydown = e => { if (e.key === 'Enter') $('authLoginBtn').click(); };
+$('regPwConf').onkeydown = e => { if (e.key === 'Enter') $('authRegBtn').click(); };
+
+// ═══════ SAVE PASSWORD PROMPT ═══════
+async function checkPendingSave() {
+  const data = await chrome.storage.session?.get('wardkey_pendingSave');
+  if (!data?.wardkey_pendingSave) { $('saveBanner').classList.remove('on'); return; }
+
+  const pending = data.wardkey_pendingSave;
+  $('saveBannerTitle').textContent = `Save password for ${pending.domain}?`;
+  $('saveBannerDesc').textContent = pending.username ? `${pending.username}` : 'New credentials detected';
+  $('saveBanner').classList.add('on');
+}
+
+$('saveBannerYes').onclick = async () => {
+  const data = await chrome.storage.session?.get('wardkey_pendingSave');
+  if (!data?.wardkey_pendingSave) return;
+
+  const pending = data.wardkey_pendingSave;
+
+  // Check if credential exists for this domain+username
+  const existing = (vault.passwords || []).find(p =>
+    (p.url || '').toLowerCase().includes(pending.domain) &&
+    (p.username || '').toLowerCase() === (pending.username || '').toLowerCase()
+  );
+
+  if (existing) {
+    // Update existing
+    if (existing.password !== pending.password) {
+      if (!existing.history) existing.history = [];
+      existing.history.push({ pw: existing.password, changed: Date.now() });
+      existing.password = pending.password;
+      existing.modified = Date.now();
+    }
+  } else {
+    // Create new
+    vault.passwords.push({
+      id: crypto.randomUUID(),
+      name: pending.domain,
+      username: pending.username || '',
+      password: pending.password,
+      url: 'https://' + pending.domain,
+      cat: '',
+      tags: [],
+      notes: '',
+      created: Date.now(),
+      modified: Date.now(),
+      history: [],
+      icon: '🔑',
+      fav: false,
+      sens: false,
+      fields: []
+    });
+  }
+
+  await saveVault();
+  await chrome.storage.session?.remove('wardkey_pendingSave');
+  $('saveBanner').classList.remove('on');
+  renderList();
+  toast(existing ? 'Password updated' : 'Password saved');
+};
+
+$('saveBannerNo').onclick = async () => {
+  await chrome.storage.session?.remove('wardkey_pendingSave');
+  $('saveBanner').classList.remove('on');
+};
 
 // ═══════ ACTIONS ═══════
 async function autofill(item) {
@@ -223,10 +749,9 @@ async function autofill(item) {
       username: item.username || '',
       password: item.password || ''
     });
-    toast('✓ Filled');
+    toast('Filled');
     setTimeout(() => window.close(), 600);
   } catch {
-    // Fallback: copy password
     copyPw(item.password);
     toast('Copied (autofill unavailable)');
   }
@@ -234,11 +759,8 @@ async function autofill(item) {
 
 function copyPw(pw) {
   navigator.clipboard.writeText(pw);
-  toast('✓ Copied');
-  // Auto-clear after 30s
-  setTimeout(() => {
-    navigator.clipboard.writeText('').catch(() => {});
-  }, 30000);
+  toast('Copied');
+  setTimeout(() => { navigator.clipboard.writeText('').catch(() => {}); }, 30000);
 }
 
 function launchSite(item) {
@@ -247,7 +769,7 @@ function launchSite(item) {
   if (!url.startsWith('http')) url = 'https://' + url;
   copyPw(item.password);
   chrome.tabs.create({ url });
-  toast('🚀 Launched');
+  toast('Launched');
 }
 
 // ═══════ PASSWORD GENERATOR ═══════
@@ -274,13 +796,13 @@ function generatePw() {
 
 $('genLen').oninput = () => { $('genLenV').textContent = $('genLen').value; };
 $('genBtn').onclick = generatePw;
-$('genCopy').onclick = () => { if (genPw) { copyPw(genPw); } };
+$('genCopy').onclick = () => { if (genPw) copyPw(genPw); };
 $('genFill').onclick = async () => {
   if (!genPw) return;
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     await chrome.tabs.sendMessage(tab.id, { type: 'WARDKEY_FILL_PW', password: genPw });
-    toast('✓ Filled');
+    toast('Filled');
   } catch { copyPw(genPw); }
 };
 
@@ -292,28 +814,30 @@ document.querySelectorAll('.gen-opt').forEach(el => {
   };
 });
 
-// ═══════ TABS ═══════
+// ═══════ PANEL NAVIGATION ═══════
+function showPanel(panel) {
+  activePanel = panel;
+  document.querySelectorAll('.ftr-btn').forEach(b => b.classList.toggle('on', b.dataset.nav === panel));
+  if (panel === 'vault') {
+    activeTab = 'matches';
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === 'matches'));
+  }
+  renderList();
+}
+
+// Tabs
 document.querySelectorAll('.tab').forEach(tab => {
   tab.onclick = () => {
     activeTab = tab.dataset.tab;
     document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t === tab));
-    document.querySelectorAll('.ftr-btn').forEach(b => b.classList.toggle('on', b.dataset.nav === activeTab || (b.dataset.nav === 'matches' && (activeTab === 'matches' || activeTab === 'all'))));
     renderList();
   };
 });
 
+// Footer
 document.querySelectorAll('.ftr-btn').forEach(btn => {
   btn.onclick = () => {
-    const nav = btn.dataset.nav;
-    if (nav === 'settings') {
-      chrome.runtime.openOptionsPage?.() || chrome.tabs.create({ url: 'options.html' });
-      return;
-    }
-    activeTab = nav === 'matches' ? 'matches' : nav;
-    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === activeTab));
-    document.querySelectorAll('.ftr-btn').forEach(b => b.classList.remove('on'));
-    btn.classList.add('on');
-    renderList();
+    showPanel(btn.dataset.nav);
   };
 });
 
@@ -322,10 +846,13 @@ $('searchInput').oninput = () => renderList();
 // ═══════ IMPORT FROM WEB APP ═══════
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg.type === 'WARDKEY_IMPORT') {
-    vault = msg.passwords || [];
+    if (msg.passwords) vault.passwords = msg.passwords;
     saveVault();
     renderList();
-    toast(`Imported ${vault.length} items`);
+    toast(`Imported ${(msg.passwords || []).length} items`);
+  }
+  if (msg.type === 'WARDKEY_PENDING_SAVE' && unlocked) {
+    checkPendingSave();
   }
 });
 
@@ -371,17 +898,36 @@ function toast(msg) {
   toastTimer = setTimeout(() => t.remove(), 2000);
 }
 
-// Auto-unlock if session is still active
+// ═══════ INIT ═══════
+loadAuth();
+
+// Auto-unlock from session
 chrome.storage.session?.get('wardkey_session', data => {
   if (data?.wardkey_session) {
-    // Session key exists — user was recently active
+    const elapsed = Date.now() - data.wardkey_session;
+    if (elapsed < 5 * 60 * 1000) {
+      // Session still active — show lock screen but indicate recent activity
+      $('masterPw').focus();
+    }
   }
 });
 
-// Keyboard shortcut
+// Keyboard shortcuts
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
+    if ($('authLogin').classList.contains('on') || $('authRegister').classList.contains('on') || $('auth2fa').classList.contains('on')) {
+      hideAuth();
+      showPanel('account');
+      return;
+    }
     if (unlocked) $('lockBtn').click();
     else window.close();
   }
 });
+
+// Create alerts badge on load
+const alertsBadge = document.createElement('div');
+alertsBadge.className = 'ftr-badge';
+alertsBadge.style.display = 'none';
+const alertsFtrBtn = document.querySelector('.ftr-btn[data-nav="alerts"]');
+if (alertsFtrBtn) alertsFtrBtn.appendChild(alertsBadge);

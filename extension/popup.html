@@ -13,6 +13,8 @@
   --font:'DM Sans',system-ui,sans-serif;
 }
 body{width:380px;max-height:520px;background:var(--bg0);color:var(--tx1);font-family:var(--font);font-size:13px;overflow:hidden}
+
+/* Lock Screen */
 .lock{display:flex;flex-direction:column;align-items:center;justify-content:center;height:400px;padding:24px;text-align:center}
 .lock h1{font-size:22px;font-weight:800;margin:12px 0 4px;background:linear-gradient(135deg,#fff 40%,var(--ac));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .lock p{font-size:11px;color:var(--tx3);margin-bottom:20px}
@@ -22,6 +24,9 @@ body{width:380px;max-height:520px;background:var(--bg0);color:var(--tx1);font-fa
 .btn-p{background:var(--ac);color:#fff}.btn-p:hover{filter:brightness(1.1)}
 .btn-s{background:var(--bg3);color:var(--tx1);border:1px solid var(--bd)}.btn-s:hover{border-color:var(--ac)}
 .btn-g{background:transparent;color:var(--ac);padding:4px 8px;font-size:11px;width:auto}.btn-g:hover{background:var(--bg3)}
+.btn-d{background:transparent;color:var(--rd);border:1px solid rgba(239,68,104,.2);font-size:11px}.btn-d:hover{background:rgba(239,68,104,.08)}
+.err-msg{color:var(--rd);font-size:11px;margin-top:6px;text-align:center;min-height:16px}
+.lock-attempts{font-size:10px;color:var(--tx3);margin-top:4px}
 
 /* App */
 .app{display:none;flex-direction:column;height:520px}
@@ -29,6 +34,8 @@ body{width:380px;max-height:520px;background:var(--bg0);color:var(--tx1);font-fa
 .hdr{padding:10px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--bd);background:var(--bg1);flex-shrink:0}
 .hdr-logo{font-size:14px;font-weight:800;background:linear-gradient(135deg,#fff,var(--ac));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .hdr-site{font-size:10px;color:var(--tx3);flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hdr-sync{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.hdr-sync.ok{background:var(--gn)}.hdr-sync.off{background:var(--tx3)}.hdr-sync.active{background:var(--yl);animation:pulse 1s infinite}
 .hdr-btn{width:26px;height:26px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);cursor:pointer;color:var(--tx2);transition:.15s;flex-shrink:0}
 .hdr-btn:hover{border-color:var(--ac);color:var(--ac)}
 .hdr-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
@@ -40,7 +47,7 @@ body{width:380px;max-height:520px;background:var(--bg0);color:var(--tx1);font-fa
 .sch-w svg{position:absolute;left:8px;top:50%;transform:translateY(-50%);width:14px;height:14px;fill:none;stroke:var(--tx3);stroke-width:2}
 
 .tabs{display:flex;padding:0 14px;gap:2px;border-bottom:1px solid var(--bd);flex-shrink:0}
-.tab{padding:8px 10px;font-size:11px;font-weight:600;color:var(--tx3);cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
+.tab{padding:8px 8px;font-size:10px;font-weight:600;color:var(--tx3);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;white-space:nowrap}
 .tab:hover{color:var(--tx2)}
 .tab.on{color:var(--ac);border-bottom-color:var(--ac)}
 
@@ -70,6 +77,13 @@ body{width:380px;max-height:520px;background:var(--bg0);color:var(--tx1);font-fa
 .empty-t{font-size:13px;font-weight:600;margin-bottom:4px;color:var(--tx2)}
 .empty-d{font-size:11px}
 
+/* Save Prompt Banner */
+.save-banner{padding:10px 14px;margin:6px;background:linear-gradient(135deg,rgba(34,211,168,.08),rgba(61,124,245,.05));border:1px solid rgba(34,211,168,.2);border-radius:var(--rs);display:none}
+.save-banner.on{display:block}
+.save-banner-t{font-size:12px;font-weight:600;color:var(--gn);margin-bottom:6px}
+.save-banner-d{font-size:11px;color:var(--tx2);margin-bottom:8px}
+.save-banner-acts{display:flex;gap:6px}
+
 /* Generator Panel */
 .gen{display:none;flex-direction:column;padding:14px}
 .gen.on{display:flex}
@@ -82,20 +96,56 @@ body{width:380px;max-height:520px;background:var(--bg0);color:var(--tx1);font-fa
 .gen-opt{padding:4px 10px;font-size:11px;border-radius:4px;background:var(--bg3);border:1px solid var(--bd);cursor:pointer;color:var(--tx2);transition:.12s}
 .gen-opt.on{background:rgba(61,124,245,.1);border-color:var(--ac);color:var(--ac)}
 
+/* Alerts Panel */
+.alerts-panel{display:none;flex-direction:column;flex:1;overflow-y:auto;padding:14px}
+.alerts-panel.on{display:flex}
+.alert-card{padding:10px 12px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--rs);margin-bottom:8px}
+.alert-card-h{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.alert-card-ic{font-size:16px}
+.alert-card-t{font-size:12px;font-weight:600;flex:1}
+.alert-card-n{font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;background:rgba(239,68,104,.1);color:var(--rd)}
+.alert-card-d{font-size:11px;color:var(--tx3)}
+.alerts-ok{text-align:center;padding:40px 20px;color:var(--tx3)}
+.alerts-ok-ic{font-size:32px;margin-bottom:8px}
+.alerts-ok-t{font-size:13px;font-weight:600;color:var(--gn)}
+
+/* Account Panel */
+.acct-panel{display:none;flex-direction:column;flex:1;overflow-y:auto;padding:14px}
+.acct-panel.on{display:flex}
+.acct-card{padding:14px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--rs);margin-bottom:10px}
+.acct-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bd)}
+.acct-row:last-child{border-bottom:none}
+.acct-row-l{font-size:11px;color:var(--tx3)}
+.acct-row-v{font-size:12px;font-weight:600}
+.acct-title{font-size:14px;font-weight:700;margin-bottom:10px}
+
+/* Auth Panels */
+.auth-panel{display:none;flex-direction:column;align-items:center;padding:20px;text-align:center}
+.auth-panel.on{display:flex}
+.auth-panel h2{font-size:16px;font-weight:700;margin-bottom:4px}
+.auth-panel p{font-size:11px;color:var(--tx3);margin-bottom:14px}
+.auth-form{width:100%;display:flex;flex-direction:column;gap:8px}
+.auth-toggle{font-size:11px;color:var(--tx3);margin-top:10px}
+.auth-toggle a{color:var(--ac);cursor:pointer;text-decoration:none}
+.auth-toggle a:hover{text-decoration:underline}
+
 /* Toast */
 .toast{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);padding:8px 16px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);font-size:11px;font-weight:600;z-index:99;animation:fadeUp .2s;box-shadow:0 4px 16px rgba(0,0,0,.4)}
 @keyframes fadeUp{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
 .sb{height:3px;border-radius:1.5px;overflow:hidden;width:60px}
 .sb-f{height:100%;border-radius:1.5px;transition:width .3s}
 
 /* Footer */
 .ftr{padding:8px 14px;border-top:1px solid var(--bd);display:flex;align-items:center;gap:6px;flex-shrink:0;background:var(--bg1)}
-.ftr-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px;border-radius:var(--rs);cursor:pointer;color:var(--tx3);transition:.12s;background:none;border:none;font-family:var(--font)}
+.ftr-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px;border-radius:var(--rs);cursor:pointer;color:var(--tx3);transition:.12s;background:none;border:none;font-family:var(--font);position:relative}
 .ftr-btn:hover{color:var(--ac);background:var(--bg2)}
 .ftr-btn.on{color:var(--ac)}
 .ftr-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 .ftr-btn span{font-size:8px;font-weight:600}
+.ftr-badge{position:absolute;top:2px;right:12px;min-width:14px;height:14px;border-radius:7px;background:var(--rd);color:#fff;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px}
 </style>
 </head>
 <body>
@@ -106,8 +156,10 @@ body{width:380px;max-height:520px;background:var(--bg0);color:var(--tx1);font-fa
   <h1>WARDKEY</h1>
   <p>Enter master password to unlock</p>
   <input class="inp" type="password" id="masterPw" placeholder="Master password" autofocus>
-  <div style="height:8px"></div>
+  <div class="err-msg" id="lockErr"></div>
+  <div style="height:4px"></div>
   <button class="btn btn-p" id="unlockBtn">Unlock Vault</button>
+  <div class="lock-attempts" id="lockAttempts"></div>
   <div style="margin-top:12px;font-size:10px;color:var(--tx3)">Ctrl+Shift+L to open anytime</div>
 </div>
 
@@ -117,13 +169,14 @@ body{width:380px;max-height:520px;background:var(--bg0);color:var(--tx1);font-fa
   <div class="hdr">
     <div class="hdr-logo">🔐 WARDKEY</div>
     <div class="hdr-site" id="curSite"></div>
+    <div class="hdr-sync" id="syncDot" title="Sync status"></div>
     <button class="hdr-btn" id="lockBtn" title="Lock vault">
       <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
     </button>
   </div>
 
   <!-- Search -->
-  <div class="sch">
+  <div class="sch" id="searchBar">
     <div class="sch-w">
       <svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" id="searchInput" placeholder="Search vault...">
@@ -131,10 +184,21 @@ body{width:380px;max-height:520px;background:var(--bg0);color:var(--tx1);font-fa
   </div>
 
   <!-- Tabs -->
-  <div class="tabs">
+  <div class="tabs" id="tabBar">
     <div class="tab on" data-tab="matches">For this site</div>
     <div class="tab" data-tab="all">All items</div>
-    <div class="tab" data-tab="gen">Generator</div>
+    <div class="tab" data-tab="favorites">Favorites</div>
+    <div class="tab" data-tab="recents">Recents</div>
+  </div>
+
+  <!-- Save Prompt Banner -->
+  <div class="save-banner" id="saveBanner">
+    <div class="save-banner-t" id="saveBannerTitle">Save password?</div>
+    <div class="save-banner-d" id="saveBannerDesc">New credentials detected</div>
+    <div class="save-banner-acts">
+      <button class="btn btn-p" style="flex:1;padding:6px" id="saveBannerYes">Save</button>
+      <button class="btn btn-s" style="flex:1;padding:6px" id="saveBannerNo">Not now</button>
+    </div>
   </div>
 
   <!-- Match Banner -->
@@ -171,9 +235,55 @@ body{width:380px;max-height:520px;background:var(--bg0);color:var(--tx1);font-fa
     </div>
   </div>
 
+  <!-- Alerts Panel -->
+  <div class="alerts-panel" id="alertsPanel"></div>
+
+  <!-- Account Panel -->
+  <div class="acct-panel" id="acctPanel"></div>
+
+  <!-- Auth: Login -->
+  <div class="auth-panel" id="authLogin">
+    <h2>Sign In</h2>
+    <p>Sync your vault across devices</p>
+    <div class="auth-form">
+      <input class="inp" type="email" id="authEmail" placeholder="Email">
+      <input class="inp" type="password" id="authPw" placeholder="Password">
+      <div class="err-msg" id="authErr"></div>
+      <button class="btn btn-p" id="authLoginBtn">Sign In</button>
+    </div>
+    <div class="auth-toggle">Don't have an account? <a id="showRegister">Register</a></div>
+  </div>
+
+  <!-- Auth: Register -->
+  <div class="auth-panel" id="authRegister">
+    <h2>Create Account</h2>
+    <p>Free encrypted cloud sync</p>
+    <div class="auth-form">
+      <input class="inp" type="text" id="regName" placeholder="Name (optional)">
+      <input class="inp" type="email" id="regEmail" placeholder="Email">
+      <input class="inp" type="password" id="regPw" placeholder="Password (8+ chars)">
+      <input class="inp" type="password" id="regPwConf" placeholder="Confirm password">
+      <div class="err-msg" id="regErr"></div>
+      <button class="btn btn-p" id="authRegBtn">Create Account</button>
+    </div>
+    <div class="auth-toggle">Already have an account? <a id="showLogin">Sign In</a></div>
+  </div>
+
+  <!-- Auth: 2FA -->
+  <div class="auth-panel" id="auth2fa">
+    <h2>Two-Factor Auth</h2>
+    <p>Enter the 6-digit code from your authenticator app</p>
+    <div class="auth-form">
+      <input class="inp" type="text" id="auth2faCode" placeholder="000000" maxlength="6" style="text-align:center;font-family:var(--mono);font-size:20px;letter-spacing:8px">
+      <div class="err-msg" id="auth2faErr"></div>
+      <button class="btn btn-p" id="auth2faBtn">Verify</button>
+      <button class="btn btn-g" id="auth2faCancel">Cancel</button>
+    </div>
+  </div>
+
   <!-- Footer -->
   <div class="ftr">
-    <button class="ftr-btn on" data-nav="matches">
+    <button class="ftr-btn on" data-nav="vault">
       <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       <span>Vault</span>
     </button>
@@ -181,9 +291,13 @@ body{width:380px;max-height:520px;background:var(--bg0);color:var(--tx1);font-fa
       <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
       <span>Generate</span>
     </button>
-    <button class="ftr-btn" data-nav="settings">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09"/></svg>
-      <span>Settings</span>
+    <button class="ftr-btn" data-nav="alerts">
+      <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span>Alerts</span>
+    </button>
+    <button class="ftr-btn" data-nav="account">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Account</span>
     </button>
   </div>
 </div>

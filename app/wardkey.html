@@ -756,10 +756,10 @@ async function syncDown(){
     if(res.status===401){authToken=null;saveAuth();toast('Session expired — please log in again','er');updateSyncIcon('');return}
     if(!res.ok)throw new Error('Sync download failed');
     const data=await res.json();
-    if(data.data){
-      localStorage.setItem('wardkey_v4',JSON.stringify(data));
+    if(data.vault&&data.vault.data){
+      localStorage.setItem('wardkey_v4',JSON.stringify(data.vault));
       // Re-decrypt with current master key
-      const p=data;
+      const p=data.vault;
       const salt=new Uint8Array(p.salt);
       V=await decrypt(p.data,mk);
       window._vaultSalt=salt;
@@ -873,7 +873,7 @@ async function verify2faLogin(){
     // Download vault then unlock
     try{
       const vRes=await fetch(API+'/api/vault',{headers:{'Authorization':'Bearer '+authToken}});
-      if(vRes.ok){const vData=await vRes.json();if(vData.data){localStorage.setItem('wardkey_v4',JSON.stringify(vData));lastSyncTime=Date.now()}}
+      if(vRes.ok){const vData=await vRes.json();if(vData.vault&&vData.vault.data){localStorage.setItem('wardkey_v4',JSON.stringify(vData.vault));lastSyncTime=Date.now()}}
     }catch{}
     restore2faLoginPanel();
     $('mpIn').value=mp;$('mpConf').value=mp;
@@ -1063,9 +1063,9 @@ async function doLogin(){
       const vRes=await fetch(API+'/api/vault',{headers:{'Authorization':'Bearer '+authToken}});
       if(vRes.ok){
         const vData=await vRes.json();
-        if(vData.data){
+        if(vData.vault&&vData.vault.data){
           // Server has a vault — store it locally so loadV picks it up
-          localStorage.setItem('wardkey_v4',JSON.stringify(vData));
+          localStorage.setItem('wardkey_v4',JSON.stringify(vData.vault));
           lastSyncTime=Date.now();
         }
       }
