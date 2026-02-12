@@ -262,6 +262,41 @@ footer a{color:var(--tx2);text-decoration:none}
 .app-modal-stores a svg{width:22px;height:22px;fill:currentColor}
 .app-modal-stores .soon{display:block;font-size:9px;font-weight:400;color:var(--tx3);letter-spacing:.3px}
 
+/* ═══ KIT FORMS ═══ */
+.kit-form{max-width:440px;margin:0 auto}
+.kit-field{display:flex;gap:8px}
+.kit-input{flex:1;padding:14px 16px;border-radius:12px;border:1px solid var(--bd2);background:var(--bg2);color:var(--tx1);font-family:var(--font);font-size:14px;outline:none;transition:border-color .2s}
+.kit-input:focus{border-color:var(--ac)}
+.kit-input::placeholder{color:var(--tx3)}
+.kit-submit{padding:14px 24px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--ac),#8b5cf6);color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .3s;display:flex;align-items:center;gap:8px}
+.kit-submit:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(108,92,231,.45)}
+.kit-submit:disabled{opacity:.7;cursor:not-allowed;transform:none;box-shadow:none}
+.kit-submit .spinner{display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+.kit-submit.loading .spinner{display:inline-block}
+.kit-submit.loading .btn-label{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.kit-msg{margin-top:10px;font-size:13px;font-weight:500;text-align:center;min-height:20px}
+.kit-msg.success{color:var(--gn2)}
+.kit-msg.error{color:var(--rd)}
+.kit-note{margin-top:8px;font-size:11px;color:var(--tx3);text-align:center}
+.kit-form-modal .kit-field{flex-direction:column}
+.kit-form-modal .kit-submit{width:100%;justify-content:center}
+.kit-form-footer .kit-field{max-width:400px;margin:0 auto}
+.kit-form-footer .kit-input{padding:10px 14px;font-size:13px;background:var(--bg3);border-color:var(--bd)}
+.kit-form-footer .kit-submit{padding:10px 20px;font-size:13px}
+.kit-form-footer .kit-note{font-size:10px}
+.modal-platforms{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:18px;color:var(--tx3);font-size:12px}
+.modal-platforms svg{width:20px;height:20px;fill:currentColor;opacity:.5}
+.footer-inner{display:flex;flex-direction:column;align-items:center;gap:16px}
+.footer-brand{font-size:14px;font-weight:700;letter-spacing:2px;color:var(--tx1)}
+.footer-links{font-size:11px;color:var(--tx3)}
+.footer-links a{color:var(--tx2);text-decoration:none}
+.footer-links a:hover{color:var(--ac2)}
+@media(max-width:640px){
+  .kit-field{flex-direction:column}
+  .kit-submit{width:100%;justify-content:center}
+}
+
 /* ═══ ANIMATIONS ═══ */
 .reveal{opacity:0;transform:translateY(30px);transition:all .8s cubic-bezier(.4,0,.2,1)}
 .reveal.vis{opacity:1;transform:none}
@@ -303,7 +338,7 @@ footer a{color:var(--tx2);text-decoration:none}
 <!-- ═══════════ NAV ═══════════ -->
 <nav id="nav" aria-label="Main navigation">
   <div class="ctr nav-c">
-    <a href="#" class="nav-logo">
+    <a href="#main" class="nav-logo">
       <div class="nav-mark"><img src="assets/logo-icon-128.png" alt="WARDKEY" width="36" height="36"></div>
       <img src="assets/logo-text-nav.png" alt="WARDKEY" class="nav-text-logo">
     </a>
@@ -314,7 +349,7 @@ footer a{color:var(--tx2);text-decoration:none}
       <a href="#faq">FAQ</a>
       <button class="theme-tog" id="themeTog" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle light/dark mode"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
       <a href="wardkey.html" class="btn btn-s nav-cta">Login</a>
-      <a href="#" class="btn btn-p nav-cta">Get Chrome Extension</a>
+      <a href="#download" class="btn btn-p nav-cta">Get Chrome Extension</a>
     </div>
   </div>
 </nav>
@@ -333,7 +368,7 @@ footer a{color:var(--tx2);text-decoration:none}
     <h1>Your passwords<br>deserve an <em>upgrade</em></h1>
     <p class="hero-sub">AI-powered password security that lives on your device. Not someone else's cloud. Not behind a paywall. Yours.</p>
     <div class="hero-actions">
-      <a href="#" class="btn btn-p">
+      <a href="#download" class="btn btn-p">
         <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 0C8.21 0 4.831 1.757 2.632 4.501l3.953 3.953A7.462 7.462 0 0 1 12 6.007h.076A7.46 7.46 0 0 1 17.414 8.5l3.96-3.96C19.186 1.775 15.806.013 12.013.013L12 0ZM2.632 4.501A11.943 11.943 0 0 0 0 12c0 2.859.998 5.486 2.66 7.547l3.936-3.936A7.467 7.467 0 0 1 4.54 12c0-1.38.374-2.672 1.025-3.78L2.632 4.5ZM12 17.993a7.462 7.462 0 0 1-5.357-2.27L2.66 19.547A11.953 11.953 0 0 0 12 24c1.909 0 3.72-.447 5.324-1.243v-.007l-3.88-3.88A7.464 7.464 0 0 1 12 17.994ZM23.834 10.2H12v3.8h6.833c-.851 3.005-3.263 5.127-5.39 5.87l3.88 3.88C20.726 22.108 24 17.592 24 12c0-.6-.056-1.206-.166-1.8Z"/></svg>
         Download Chrome Extension
       </a>
@@ -863,7 +898,7 @@ footer a{color:var(--tx2);text-decoration:none}
           <li>3 AI analyses per day</li>
           <li style="color:var(--tx3)">Single device</li>
         </ul>
-        <a href="#" class="btn btn-s price-btn">Get Chrome Extension</a>
+        <a href="#download" class="btn btn-s price-btn">Get Chrome Extension</a>
       </div>
       <div class="price-card pop">
         <div class="price-tier">Pro</div>
@@ -881,7 +916,7 @@ footer a{color:var(--tx2);text-decoration:none}
           <li>Priority support</li>
           <li style="font-weight:600;color:var(--gn2)">Less than a coffee/month</li>
         </ul>
-        <a href="#" class="btn btn-p price-btn">Start 14-Day Trial</a>
+        <a href="wardkey.html" class="btn btn-p price-btn">Start 14-Day Trial</a>
       </div>
     </div>
   </div>
@@ -924,13 +959,21 @@ footer a{color:var(--tx2);text-decoration:none}
 <section class="cta-s" id="download">
   <div class="ctr">
     <h2 class="cta-h">Stop renting your <em style="font-family:var(--serif);font-style:italic;color:var(--gn2)">security</em></h2>
-    <p class="cta-p">Join thousands who switched to WARDKEY. Free. Local. AI-powered.</p>
-    <div class="cta-acts">
-      <a href="#" class="btn btn-p" style="padding:16px 36px;font-size:16px">
+    <p class="cta-p">Get updates, early access to new features, and security tips — straight to your inbox.</p>
+    <form class="kit-form" data-kit-form action="https://app.kit.com/forms/9080643/subscriptions" method="post" style="position:relative;z-index:1">
+      <div class="kit-field">
+        <input type="email" name="email_address" class="kit-input" placeholder="Enter your email" required>
+        <button type="submit" class="kit-submit"><span class="btn-label">Notify Me</span><span class="spinner"></span></button>
+      </div>
+      <div class="kit-msg"></div>
+      <p class="kit-note">No spam, ever. Unsubscribe anytime.</p>
+    </form>
+    <div class="cta-acts" style="margin-top:24px;position:relative;z-index:1">
+      <a href="#" class="btn btn-p" style="padding:14px 28px;font-size:14px">
         <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 0C8.21 0 4.831 1.757 2.632 4.501l3.953 3.953A7.462 7.462 0 0 1 12 6.007h.076A7.46 7.46 0 0 1 17.414 8.5l3.96-3.96C19.186 1.775 15.806.013 12.013.013L12 0ZM2.632 4.501A11.943 11.943 0 0 0 0 12c0 2.859.998 5.486 2.66 7.547l3.936-3.936A7.467 7.467 0 0 1 4.54 12c0-1.38.374-2.672 1.025-3.78L2.632 4.5ZM12 17.993a7.462 7.462 0 0 1-5.357-2.27L2.66 19.547A11.953 11.953 0 0 0 12 24c1.909 0 3.72-.447 5.324-1.243v-.007l-3.88-3.88A7.464 7.464 0 0 1 12 17.994ZM23.834 10.2H12v3.8h6.833c-.851 3.005-3.263 5.127-5.39 5.87l3.88 3.88C20.726 22.108 24 17.592 24 12c0-.6-.056-1.206-.166-1.8Z"/></svg>
-        Download Chrome Extension
+        Get Chrome Extension
       </a>
-      <button class="btn btn-s" style="padding:16px 36px;font-size:16px" onclick="document.getElementById('appModal').classList.add('on')">
+      <button class="btn btn-s" style="padding:14px 28px;font-size:14px" onclick="document.getElementById('appModal').classList.add('on')">
         <svg viewBox="0 0 24 24"><rect x="5" y="1" width="14" height="22" rx="3"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg>
         Download App
       </button>
@@ -944,17 +987,20 @@ footer a{color:var(--tx2);text-decoration:none}
 <div class="app-modal" id="appModal" role="dialog" aria-labelledby="modalTitle" onclick="if(event.target===this)this.classList.remove('on')">
   <div class="app-modal-card">
     <button class="app-modal-close" onclick="document.getElementById('appModal').classList.remove('on')" aria-label="Close modal"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    <h3 id="modalTitle">Download WARDKEY App</h3>
-    <p class="modal-sub">Get WARDKEY on your phone — coming soon to both platforms.</p>
-    <div class="app-modal-stores">
-      <a href="#">
-        <svg viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11Z"/></svg>
-        <span>iOS<span class="soon">Coming Soon</span></span>
-      </a>
-      <a href="#">
-        <svg viewBox="0 0 24 24"><path d="M3.609 1.814 13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92ZM14.852 13.06l2.71 2.71-11.278 6.498 8.568-9.208ZM19.785 10.7l2.09 1.2a1 1 0 0 1 0 1.738l-2.09 1.2-2.992-2.068 2.992-2.07ZM6.284 1.732l11.278 6.498-2.71 2.71L6.284 1.732Z"/></svg>
-        <span>Android<span class="soon">Coming Soon</span></span>
-      </a>
+    <h3 id="modalTitle">Get WARDKEY on Mobile</h3>
+    <p class="modal-sub">iOS & Android apps are in development. Get notified when they launch.</p>
+    <form class="kit-form kit-form-modal" data-kit-form action="https://app.kit.com/forms/9080643/subscriptions" method="post">
+      <input type="hidden" name="fields[source]" value="mobile-waitlist">
+      <div class="kit-field">
+        <input type="email" name="email_address" class="kit-input" placeholder="Enter your email" required>
+        <button type="submit" class="kit-submit"><span class="btn-label">Notify Me</span><span class="spinner"></span></button>
+      </div>
+      <div class="kit-msg"></div>
+    </form>
+    <div class="modal-platforms">
+      <svg viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11Z"/></svg>
+      <span>iOS & Android</span>
+      <svg viewBox="0 0 24 24"><path d="M3.609 1.814 13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92ZM14.852 13.06l2.71 2.71-11.278 6.498 8.568-9.208ZM19.785 10.7l2.09 1.2a1 1 0 0 1 0 1.738l-2.09 1.2-2.992-2.068 2.992-2.07ZM6.284 1.732l11.278 6.498-2.71 2.71L6.284 1.732Z"/></svg>
     </div>
   </div>
 </div>
@@ -962,9 +1008,20 @@ footer a{color:var(--tx2);text-decoration:none}
 <!-- ═══════════ FOOTER ═══════════ -->
 <footer>
   <div class="ctr">
-    <p style="margin-bottom:6px"><strong style="letter-spacing:2px">WARDKEY</strong></p>
-    <p>© 2026 WARDKEY. Your passwords, your device, your rules.</p>
-    <p style="margin-top:8px"><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/security">Security</a></p>
+    <div class="footer-inner">
+      <div class="footer-brand">WARDKEY</div>
+      <form class="kit-form kit-form-footer" data-kit-form action="https://app.kit.com/forms/9080643/subscriptions" method="post">
+        <p style="font-size:13px;color:var(--tx2);margin-bottom:10px">Stay in the loop</p>
+        <div class="kit-field">
+          <input type="email" name="email_address" class="kit-input" placeholder="Your email" required>
+          <button type="submit" class="kit-submit"><span class="btn-label">Subscribe</span><span class="spinner"></span></button>
+        </div>
+        <div class="kit-msg"></div>
+        <p class="kit-note">No spam, ever.</p>
+      </form>
+      <p style="color:var(--tx3);font-size:11px">© 2026 WARDKEY. Your passwords, your device, your rules.</p>
+      <p class="footer-links"><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="security.html">Security</a></p>
+    </div>
   </div>
 </footer>
 
@@ -1015,6 +1072,45 @@ const counterObs=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.i
   counterObs.unobserve(e.target)}})},{threshold:.2});
 document.querySelectorAll('.hero-proof').forEach(el=>counterObs.observe(el));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.getElementById('appModal').classList.remove('on')}});
+
+// Kit email form AJAX handler
+document.querySelectorAll('[data-kit-form]').forEach(form=>{
+  form.addEventListener('submit',async e=>{
+    e.preventDefault();
+    const btn=form.querySelector('.kit-submit');
+    const msg=form.querySelector('.kit-msg');
+    const input=form.querySelector('.kit-input');
+    const email=input.value.trim();
+    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      msg.textContent='Please enter a valid email address.';
+      msg.className='kit-msg error';
+      return;
+    }
+    const origLabel=btn.querySelector('.btn-label').textContent;
+    btn.classList.add('loading');
+    btn.disabled=true;
+    msg.textContent='';
+    msg.className='kit-msg';
+    try{
+      const fd=new FormData(form);
+      const resp=await fetch(form.action,{method:'POST',body:fd,headers:{'Accept':'application/json'}});
+      if(resp.ok){
+        msg.innerHTML='&#10003; You\'re on the list!';
+        msg.className='kit-msg success';
+        input.value='';
+      }else{
+        throw new Error('Request failed');
+      }
+    }catch(err){
+      msg.textContent='Something went wrong. Please try again.';
+      msg.className='kit-msg error';
+    }finally{
+      btn.classList.remove('loading');
+      btn.disabled=false;
+      setTimeout(()=>{msg.textContent='';msg.className='kit-msg'},5000);
+    }
+  });
+});
 </script>
 </body>
 </html>
