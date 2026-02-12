@@ -141,6 +141,13 @@ nav.scrolled{background:rgba(5,5,8,.85);backdrop-filter:blur(20px);border-bottom
 .feat-card h3{font-size:15px;font-weight:700;margin-bottom:6px}
 .feat-card p{font-size:12px;color:var(--tx2);line-height:1.6}
 .feat-tag{position:absolute;top:12px;right:12px;padding:3px 8px;border-radius:4px;font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;background:linear-gradient(135deg,var(--ac),#8b5cf6);color:white}
+.feat-cta{background:linear-gradient(135deg,rgba(108,92,231,.12),rgba(52,211,153,.08));border:1px solid rgba(108,92,231,.25);border-radius:16px;padding:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;transition:all .3s;position:relative;overflow:hidden}
+.feat-cta:hover{border-color:var(--ac);transform:translateY(-4px)}
+.feat-cta::before{content:'';position:absolute;top:-40%;right:-40%;width:200px;height:200px;border-radius:50%;background:radial-gradient(var(--ac),transparent 70%);opacity:.08}
+.feat-cta .cta-count{font-size:36px;font-weight:800;background:linear-gradient(135deg,var(--ac2),var(--gn2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.feat-cta .cta-label{font-size:13px;color:var(--tx2);line-height:1.5}
+.feat-cta .cta-label strong{color:var(--tx1);font-weight:700}
+.feat-cta .btn{margin-top:2px}
 
 /* ═══ AI SECTION ═══ */
 .ai-s{background:var(--bg2);position:relative;overflow:hidden}
@@ -466,6 +473,11 @@ footer a{color:var(--tx2);text-decoration:none}
         <div class="feat-ic" style="background:rgba(232,121,249,.1)">🌗</div>
         <h3>Dark & Light Mode</h3>
         <p>Beautiful interface in both themes. Switch instantly between dark and light mode to match your preference.</p>
+      </div>
+      <div class="feat-cta">
+        <div class="cta-count">14+</div>
+        <div class="cta-label"><strong>Features. Zero cost.</strong><br>All of this — free, local, yours.</div>
+        <a href="#download" class="btn btn-p" style="padding:10px 24px;font-size:12px">Get WARDKEY Free</a>
       </div>
     </div>
   </div>
