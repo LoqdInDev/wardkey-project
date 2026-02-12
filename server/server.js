@@ -20,6 +20,7 @@ const authRoutes = require('./routes/auth');
 const vaultRoutes = require('./routes/vault');
 const shareRoutes = require('./routes/share');
 const aliasRoutes = require('./routes/aliases');
+const adminRoutes = require('./routes/admin');
 const { initDB } = require('./models/db');
 
 const app = express();
@@ -33,6 +34,15 @@ app.use(helmet({
   contentSecurityPolicy: false, // Disabled — this is a JSON API, CSP only applies to document responses
   hsts: { maxAge: 63072000, includeSubDomains: true, preload: true }
 }));
+
+// Admin CORS — permissive for file:// dashboard (all admin endpoints require JWT auth)
+app.use('/api/admin', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean);
 // Also allow www variants automatically
@@ -75,6 +85,13 @@ const shareLimiter = rateLimit({
 });
 app.use('/api/share/', shareLimiter);
 
+const adminLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Too many admin login attempts. Please try again in 15 minutes.' }
+});
+app.use('/api/admin/login', adminLoginLimiter);
+
 // ═══════ MIDDLEWARE ═══════
 app.use(express.json({ limit: '10mb' }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
@@ -87,6 +104,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/vault', vaultRoutes);
 app.use('/api/share', shareRoutes);
 app.use('/api/aliases', aliasRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
