@@ -14,7 +14,8 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="WARDKEY — Free AI-Powered Password Manager">
 <meta name="twitter:description" content="Local-first, zero-knowledge, AI-powered password security. No subscriptions, no cloud.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
+<link rel="icon" type="image/png" href="assets/logo-icon-32.png">
+<meta property="og:image" content="assets/logo-icon-512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" crossorigin="anonymous">
@@ -73,9 +74,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 0;transition:al
 nav.scrolled{background:rgba(5,5,8,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd)}
 .nav-c{display:flex;align-items:center;justify-content:space-between}
 .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--tx1)}
-.nav-mark{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--ac),var(--gn));display:flex;align-items:center;justify-content:center}
-.nav-mark svg{width:16px;height:16px;stroke:white;fill:none;stroke-width:2.5}
-.nav-name{font-size:15px;font-weight:700;letter-spacing:2px}
+.nav-mark{width:36px;height:36px;border-radius:9px;overflow:hidden;flex-shrink:0}
+.nav-mark img{width:100%;height:100%;object-fit:cover;display:block}
+.nav-text-logo{height:22px;display:block}
 .nav-links{display:flex;align-items:center;gap:32px}
 .nav-links a{color:var(--tx2);text-decoration:none;font-size:13px;font-weight:500;transition:color .2s}
 .nav-links a:hover{color:var(--tx1)}
@@ -197,7 +198,7 @@ nav.scrolled{background:rgba(5,5,8,.85);backdrop-filter:blur(20px);border-bottom
 .pricing-h{text-align:center;margin-bottom:50px}
 .pricing-h h2{font-family:var(--serif);font-size:clamp(32px,5vw,52px);margin-bottom:16px}
 .pricing-h p{color:var(--tx2);font-size:17px;max-width:500px;margin:0 auto}
-.pricing-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:1080px;margin:0 auto}
+.pricing-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;max-width:720px;margin:0 auto}
 .price-card{background:var(--bg3);border:1px solid var(--bd);border-radius:16px;padding:28px;position:relative}
 .price-card.pop{border-color:var(--ac);box-shadow:0 0 60px rgba(108,92,231,.12)}
 .price-card.pop::before{content:'MOST POPULAR';position:absolute;top:-10px;left:50%;transform:translateX(-50%);padding:4px 14px;border-radius:100px;background:linear-gradient(135deg,var(--ac),#8b5cf6);color:white;font-size:9px;font-weight:700;letter-spacing:.8px;white-space:nowrap}
@@ -264,7 +265,6 @@ footer a{color:var(--tx2);text-decoration:none}
   .feat-grid,.ai-grid{grid-template-columns:1fr 1fr}
   .feat-card.hero-card{grid-column:span 2}
   .sec-grid{grid-template-columns:1fr 1fr}
-  .pricing-grid{grid-template-columns:1fr 1fr}
   .problem-grid{grid-template-columns:1fr}
   .nav-links a:not(.btn){display:none}
 }
@@ -297,8 +297,8 @@ footer a{color:var(--tx2);text-decoration:none}
 <nav id="nav" aria-label="Main navigation">
   <div class="ctr nav-c">
     <a href="#" class="nav-logo">
-      <div class="nav-mark"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 00-8 0v2"/></svg></div>
-      <span class="nav-name">WARDKEY</span>
+      <div class="nav-mark"><img src="assets/logo-icon-128.png" alt="WARDKEY" width="36" height="36"></div>
+      <img src="assets/logo-text-nav.png" alt="WARDKEY" class="nav-text-logo">
     </a>
     <div class="nav-links">
       <a href="#features">Features</a>
@@ -376,7 +376,7 @@ footer a{color:var(--tx2);text-decoration:none}
       <div class="problem-card">
         <div class="num">02</div>
         <h3>Subscriptions that never end</h3>
-        <p>$36–$60/year. Every year. Forever. For what's essentially a fancy encrypted list. You're renting access to your own passwords.</p>
+        <p>$36–$60/year. Every year. Forever. For what's essentially a fancy encrypted list. You're renting access to your own passwords. WARDKEY Pro? $14.99/year — or just use it free.</p>
       </div>
       <div class="problem-card">
         <div class="num">03</div>
@@ -527,7 +527,7 @@ footer a{color:var(--tx2);text-decoration:none}
           <tr><td colspan="8" class="comp-cat">💰 Pricing</td></tr>
           <tr>
             <td class="feat-name">Monthly cost</td>
-            <td class="hl comp-price" style="color:var(--gn2)">Free</td>
+            <td class="hl comp-price" style="color:var(--gn2)">Free / $1.49</td>
             <td class="comp-price">$2.99/mo</td>
             <td class="comp-price">$0.83/mo</td>
             <td class="comp-price">$1.49/mo</td>
@@ -537,7 +537,7 @@ footer a{color:var(--tx2);text-decoration:none}
           </tr>
           <tr>
             <td class="feat-name">Annual cost</td>
-            <td class="hl comp-price" style="color:var(--gn2)">$0</td>
+            <td class="hl comp-price" style="color:var(--gn2)">$0 / $14.99</td>
             <td class="comp-price">$35.88</td>
             <td class="comp-price">$10.00</td>
             <td class="comp-price">$35.76</td>
@@ -830,8 +830,8 @@ footer a{color:var(--tx2);text-decoration:none}
   <div class="ctr">
     <div class="pricing-h reveal">
       <span class="tag" style="margin-bottom:16px">Pricing</span>
-      <h2>Start free, <span class="grad-text">scale when ready</span></h2>
-      <p>The free tier is genuinely powerful. Upgrade when you need sync, multi-device, or team features.</p>
+      <h2>Free forever. Pro for the <span class="grad-text">price of a coffee</span></h2>
+      <p>Wouldn't you pay $1.49 for your privacy?</p>
     </div>
     <div class="pricing-grid reveal">
       <div class="price-card">
@@ -855,8 +855,8 @@ footer a{color:var(--tx2);text-decoration:none}
       </div>
       <div class="price-card pop">
         <div class="price-tier">Pro</div>
-        <div class="price-v">$3.99 <span>/month</span></div>
-        <p class="price-desc">Sync everywhere, unlimited AI, and browser autofill. Billed $47.88/yr.</p>
+        <div class="price-v">$1.49 <span>/month</span></div>
+        <p class="price-desc">Sync everywhere, unlimited AI, and all platforms. Billed $14.99/yr.</p>
         <ul class="price-list">
           <li>Everything in Free</li>
           <li>Unlimited AI analyses</li>
@@ -867,43 +867,9 @@ footer a{color:var(--tx2);text-decoration:none}
           <li>iOS & Android apps</li>
           <li>Advanced breach monitoring</li>
           <li>Priority support</li>
-          <li style="font-weight:600;color:var(--gn2)">Best for individuals</li>
+          <li style="font-weight:600;color:var(--gn2)">Less than a coffee/month</li>
         </ul>
         <a href="#" class="btn btn-p price-btn">Start 14-Day Trial</a>
-      </div>
-      <div class="price-card">
-        <div class="price-tier">Family</div>
-        <div class="price-v">$6.99 <span>/month</span></div>
-        <p class="price-desc">Protect the whole family with shared vaults and easy management. Up to 6 users.</p>
-        <ul class="price-list">
-          <li>Everything in Pro</li>
-          <li>6 private vaults</li>
-          <li>Unlimited shared folders</li>
-          <li>Family dashboard</li>
-          <li>Account recovery</li>
-          <li>Guest access</li>
-          <li>5 GB encrypted storage</li>
-          <li>Per-member security scores</li>
-          <li style="font-weight:600;color:var(--gn2)">Best for families</li>
-        </ul>
-        <a href="#" class="btn btn-s price-btn">Start 14-Day Trial</a>
-      </div>
-      <div class="price-card">
-        <div class="price-tier">Enterprise</div>
-        <div class="price-v">$8.99 <span>/user/mo</span></div>
-        <p class="price-desc">Self-hosted deployment, SSO, compliance, and dedicated support for your team.</p>
-        <ul class="price-list">
-          <li>Everything in Family</li>
-          <li>Unlimited users</li>
-          <li>SSO & SCIM provisioning</li>
-          <li>Admin dashboard & policies</li>
-          <li>Audit logs & compliance</li>
-          <li>Custom branding & white-label</li>
-          <li>Self-hosted option</li>
-          <li>SLA & dedicated CSM</li>
-          <li style="font-weight:600;color:var(--gn2)">Best for teams</li>
-        </ul>
-        <a href="/cdn-cgi/l/email-protection#93fbf6fffffcd3fffcf0f8f1fcebbdf2e3e3" class="btn btn-s price-btn">Contact Sales</a>
       </div>
     </div>
   </div>
@@ -916,7 +882,7 @@ footer a{color:var(--tx2);text-decoration:none}
     <div class="faq-list reveal">
       <details class="faq-item">
         <summary class="faq-q">How is WARDKEY free? What's the catch?</summary>
-        <div class="faq-a"><p>There's no catch. WARDKEY Personal is a standalone app that runs entirely on your device — there are no servers to maintain, no cloud infrastructure costs, and no user data to store. Our revenue comes from upcoming Pro and Enterprise plans with cloud sync and team features. The core app will always be free.</p></div>
+        <div class="faq-a"><p>There's no catch. WARDKEY is a standalone app that runs entirely on your device — there are no servers to maintain, no cloud infrastructure costs, and no user data to store. Our Pro plan is $1.49/month for those who want cloud sync and unlimited AI — that's it. No enterprise upsells, no hidden tiers. The free app will always be free.</p></div>
       </details>
       <details class="faq-item">
         <summary class="faq-q">Is local-first storage actually more secure than cloud?</summary>
@@ -924,7 +890,7 @@ footer a{color:var(--tx2);text-decoration:none}
       </details>
       <details class="faq-item">
         <summary class="faq-q">What happens if I lose my device?</summary>
-        <div class="faq-a"><p>WARDKEY lets you export encrypted backups anytime. We recommend regular JSON exports to a secure USB drive or other offline storage. The upcoming Pro plan will add optional end-to-end encrypted cloud sync for peace of mind across devices.</p></div>
+        <div class="faq-a"><p>WARDKEY lets you export encrypted backups anytime. We recommend regular JSON exports to a secure USB drive or other offline storage. The Pro plan ($1.49/mo) adds end-to-end encrypted cloud sync across all your devices.</p></div>
       </details>
       <details class="faq-item">
         <summary class="faq-q">How does the AI work? Is my data sent to AI servers?</summary>

@@ -1,10 +1,19 @@
 // WARDKEY Service Worker v5
-const CACHE_NAME = 'wardkey-v5';
+const CACHE_NAME = 'wardkey-v6';
 const ASSETS = [
   '/',
   '/index.html',
   '/app.html',
   '/wardkey-manifest.json',
+  '/assets/logo-icon.png',
+  '/assets/logo-icon-512.png',
+  '/assets/logo-icon-192.png',
+  '/assets/logo-icon-180.png',
+  '/assets/logo-icon-128.png',
+  '/assets/logo-icon-32.png',
+  '/assets/logo-text.png',
+  '/assets/logo-text-nav.png',
+  '/assets/logo-text-lock.png',
   'https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap',
   'https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap'
 ];

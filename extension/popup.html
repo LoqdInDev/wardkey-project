@@ -38,7 +38,9 @@ body.ready{opacity:1}
 .app{display:none;flex-direction:column;height:520px}
 .app.on{display:flex}
 .hdr{padding:10px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--bd);background:var(--bg1);flex-shrink:0}
-.hdr-logo{font-size:15px;font-weight:800;background:linear-gradient(135deg,var(--tx1),var(--ac));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hdr-logo{display:flex;align-items:center;gap:6px}
+.hdr-logo img.hdr-icon{width:20px;height:20px;border-radius:5px}
+.hdr-logo img.hdr-text{height:16px}
 .hdr-site{font-size:11px;color:var(--tx3);flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hdr-sync{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .hdr-sync.ok{background:var(--gn)}.hdr-sync.off{background:var(--tx3)}.hdr-sync.active{background:var(--yl);animation:pulse 1s infinite}
@@ -182,8 +184,8 @@ button:focus-visible,.tab:focus-visible,.item:focus-visible,.act:focus-visible,.
 
 <!-- LOCK SCREEN -->
 <div class="lock" id="lockScreen">
-  <div style="font-size:40px">🔐</div>
-  <h1>WARDKEY</h1>
+  <div style="width:48px;height:48px"><img src="icons/icon48.png" alt="WARDKEY" width="48" height="48" style="border-radius:10px"></div>
+  <img src="icons/logo-text-nav.png" alt="WARDKEY" style="height:22px;margin-top:10px">
   <p>Enter master password to unlock</p>
   <input class="inp" type="password" id="masterPw" placeholder="Master password" aria-label="Master password" autofocus>
   <div class="err-msg" id="lockErr"></div>
@@ -197,7 +199,7 @@ button:focus-visible,.tab:focus-visible,.item:focus-visible,.act:focus-visible,.
 <div class="app" id="appView">
   <!-- Header -->
   <div class="hdr">
-    <div class="hdr-logo">🔐 WARDKEY</div>
+    <div class="hdr-logo"><img src="icons/icon32.png" alt="" class="hdr-icon"><img src="icons/logo-text-nav.png" alt="WARDKEY" class="hdr-text"></div>
     <div class="hdr-site" id="curSite"></div>
     <div class="hdr-sync" id="syncDot" title="Sync status"></div>
     <div class="add-wrap">
