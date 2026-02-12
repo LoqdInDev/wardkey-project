@@ -258,6 +258,23 @@ body{font-family:var(--font);background:var(--bg0);color:var(--tx1);font-size:17
 .mo-x svg{width:12px;height:12px}
 .mo-b{padding:18px;overflow-y:auto;flex:1}
 .mo-f{padding:12px 18px;border-top:1px solid var(--bd);display:flex;justify-content:flex-end;gap:6px}
+
+/* ════════ ONBOARDING TOUR ════════ */
+#obMo{z-index:200}
+#obMo .mo-c{width:520px;max-width:92vw;max-height:none;overflow:visible}
+.ob-slide{text-align:center;padding:32px 28px 18px;animation:fadeIn .3s}
+.ob-icon{font-size:52px;line-height:1;margin-bottom:14px}
+.ob-title{font-size:20px;font-weight:700;color:var(--tx1);margin-bottom:8px}
+.ob-desc{font-size:14px;color:var(--tx2);line-height:1.6;margin-bottom:16px}
+.ob-hl{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-bottom:8px}
+.ob-tag{background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);padding:4px 10px;font-size:11px;font-weight:600;color:var(--tx2)}
+.ob-dots{display:flex;justify-content:center;gap:6px;padding:10px 0}
+.ob-dot{width:8px;height:8px;border-radius:50%;background:var(--bg3);border:1px solid var(--bd);transition:all .2s;cursor:pointer}
+.ob-dot.on{background:var(--ac);border-color:var(--ac);transform:scale(1.2)}
+.ob-nav{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--bd)}
+.ob-skip{font-size:12px;color:var(--tx3);cursor:pointer;background:none;border:none;font-family:var(--font);transition:var(--tr)}.ob-skip:hover{color:var(--tx1)}
+@media(max-width:640px){.ob-slide{padding:24px 18px 14px}.ob-icon{font-size:44px}.ob-title{font-size:17px}.ob-desc{font-size:13px}}
+
 .fg{margin-bottom:12px}
 .fl{display:block;font-size:14px;font-weight:600;color:var(--tx2);margin-bottom:3px}
 .fi{width:100%;padding:9px 11px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx1);font-family:var(--font);font-size:13px;outline:none;transition:var(--tr)}
@@ -592,6 +609,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 
 <!-- ════════ UPGRADE MODAL ════════ -->
 <div class="mo" id="upMo"><div class="mo-c" style="width:380px"><div class="mo-h"><div class="mo-t">⚡ Upgrade</div><button class="mo-x" onclick="$('upMo').classList.remove('on')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="mo-b" id="upBod"></div></div></div>
+
+<!-- ════════ ONBOARDING MODAL ════════ -->
+<div class="mo" id="obMo" onclick="if(event.target===this)closeOb()"><div class="mo-c"><div class="ob-slide" id="obSlide"></div><div class="ob-dots" id="obDots"></div><div class="ob-nav"><button class="ob-skip" onclick="closeOb()">Skip Tour</button><div style="display:flex;gap:6px"><button class="bt bt-s" id="obPrev" onclick="obNav(-1)">Back</button><button class="bt bt-p" id="obNext" onclick="obNav(1)">Next</button></div></div></div></div>
 
 <!-- ════════ 2FA MODAL ════════ -->
 <div class="mo" id="mfaMo"><div class="mo-c" style="width:420px"><div class="mo-h"><div class="mo-t">Two-Factor Authentication</div><button class="mo-x" onclick="$('mfaMo').classList.remove('on')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="mo-b" id="mfaMoBody"></div></div></div>
@@ -972,6 +992,43 @@ function checkFirstRun(){
   else{wrap.style.display='none';hint.textContent='Enter your master password (4+ characters)'}
 }
 checkFirstRun();
+
+// ════════ ONBOARDING TOUR ════════
+const OB_SLIDES=[
+{icon:'🔐',title:'Welcome to WARDKEY',desc:'Your zero-knowledge, local-first vault. All encryption happens on your device — your data never leaves unprotected.',tags:['End-to-End Encrypted','Offline-First','Open Audit']},
+{icon:'🔑',title:'Passwords',desc:'Store unlimited credentials with automatic strength scoring, breach detection, and smart organization.',tags:['Strength Score','Breach Alerts','Categories & Tags']},
+{icon:'💳',title:'Cards & IDs',desc:'Keep credit cards, IDs, and payment methods in your vault. Copy any field with one click.',tags:['Credit Cards','IDs','One-Click Copy']},
+{icon:'📝',title:'Secure Notes',desc:'Encrypted free-form notes for recovery codes, Wi-Fi passwords, sensitive documents, and more.',tags:['Recovery Codes','Wi-Fi Keys','Private Docs']},
+{icon:'⚡',title:'Password Generator',desc:'Create strong, unique passwords with customizable length, symbols, and complexity rules.',tags:['Custom Length','Symbols','Auto-Rotate']},
+{icon:'🛡️',title:'Watchtower',desc:'Real-time vault health monitoring. Get a security score and flags for weak, reused, or breached credentials.',tags:['Security Score','Weak Flags','Reuse Detection']},
+{icon:'🔢',title:'Authenticator (2FA)',desc:'Built-in TOTP code generator — no separate authenticator app needed. Your 2FA lives right in the vault.',tags:['TOTP Codes','Built-In','Auto-Refresh']},
+{icon:'🔗',title:'Secure Sharing',desc:'Share credentials via encrypted, self-destructing links with view limits and expiry. No account needed to receive.',tags:['Self-Destruct','View Limits','No Signup']},
+{icon:'📧',title:'Email Aliases',desc:'Generate unique forwarding aliases to block spam and protect your real email address.',tags:['Alias Generator','Spam Blocker','Privacy']},
+{icon:'🗝️',title:'API Keys & Licenses',desc:'Safely store tokens, license keys, and secrets. Tag by environment for easy lookup.',tags:['API Tokens','License Keys','Env Tags']},
+{icon:'🤖',title:'AI Security Tools',desc:'AI-powered password analysis, security reports, and phishing detection to keep you ahead of threats.',tags:['Password Analysis','Security Reports','Phishing Detection']},
+{icon:'🌐',title:'Credential Map & Decay',desc:'Visualize your digital footprint and track credential freshness so nothing goes stale.',tags:['Footprint Map','Freshness Score','Decay Alerts']},
+{icon:'☁️',title:'Cloud Sync',desc:'End-to-end encrypted sync across all your devices. The server only ever sees ciphertext.',tags:['E2E Encrypted','Multi-Device','Zero-Knowledge']},
+{icon:'🚀',title:"You're All Set!",desc:'Your vault is ready. Add your first password, import from another manager, or just explore.',tags:['Add Password','Import Data','Explore Features']}
+];
+let obIdx=0;
+function renderOb(){
+  const s=OB_SLIDES[obIdx],sl=$('obSlide');
+  sl.innerHTML='<div class="ob-icon">'+s.icon+'</div><div class="ob-title">'+s.title+'</div><div class="ob-desc">'+s.desc+'</div>'+(s.tags?'<div class="ob-hl">'+s.tags.map(t=>'<span class="ob-tag">'+t+'</span>').join('')+'</div>':'');
+  sl.style.animation='none';sl.offsetHeight;sl.style.animation='fadeIn .3s';
+  const dots=$('obDots');dots.innerHTML='';
+  for(let i=0;i<OB_SLIDES.length;i++){const d=document.createElement('div');d.className='ob-dot'+(i===obIdx?' on':'');d.onclick=()=>{obIdx=i;renderOb()};dots.appendChild(d)}
+  $('obPrev').style.display=obIdx===0?'none':'';
+  $('obNext').textContent=obIdx===OB_SLIDES.length-1?'Get Started':'Next';
+}
+function showOnboarding(){obIdx=0;renderOb();$('obMo').classList.add('on')}
+function obNav(dir){
+  obIdx+=dir;
+  if(obIdx>=OB_SLIDES.length){closeOb();return}
+  if(obIdx<0)obIdx=0;
+  renderOb();
+}
+function closeOb(){$('obMo').classList.remove('on');localStorage.setItem('wardkey_onboarded','1')}
+
 async function unlock(){
   const pw=$('mpIn').value;
   if(pw.length<4){$('lErr').textContent='Password must be at least 4 characters';$('lErr').style.display='block';shake($('mpIn'));return}
@@ -991,7 +1048,7 @@ async function unlock(){
     await loadV(pw);
     goBtn.disabled=false;goBtn.innerHTML='<svg viewBox="0 0 24 24" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
     failedAttempts=0;
-    $('LS').classList.add('out');$('app').classList.add('on');$('mpConfWrap').style.display='none';$('mpConf').value='';buildNav();render();updC();updateSidebar();resetAL();setTimeout(checkRotations,500);
+    $('LS').classList.add('out');$('app').classList.add('on');$('mpConfWrap').style.display='none';$('mpConf').value='';buildNav();render();updC();updateSidebar();resetAL();setTimeout(checkRotations,500);if(!localStorage.getItem('wardkey_onboarded'))setTimeout(showOnboarding,600);
   const isLight=document.documentElement.getAttribute('data-theme')==='light';
   const btn=$('thBtn');if(btn)btn.innerHTML=isLight?'<svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>':'<svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
   }catch(e){
