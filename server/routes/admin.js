@@ -8,9 +8,9 @@ const fs = require('fs');
 
 const router = express.Router();
 
-// ═══════ CORS — permissive for file:// dashboard ═══════
+// ═══════ CORS — restricted to configured admin origin ═══════
 router.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Origin', process.env.ADMIN_ORIGIN || 'https://wardkey.io');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
@@ -60,7 +60,7 @@ router.post('/login', (req, res) => {
     return res.status(401).json({ error: 'Invalid secret' });
   }
 
-  const token = jwt.sign({ role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  const token = jwt.sign({ role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '15m' });
   auditLog(null, 'admin_login', null, req);
   res.json({ token });
 });
@@ -129,8 +129,10 @@ router.get('/users', requireAdmin, (req, res) => {
   try {
     const db = getDB();
     const search = req.query.search || '';
+    // SECURITY REVIEW: sort and order are strictly validated against whitelists before interpolation
+    // This is safe because the values can only be one of the predefined constants
     const sort = VALID_SORT.includes(req.query.sort) ? req.query.sort : 'created_at';
-    const order = VALID_ORDER.includes(req.query.order) ? req.query.order : 'desc';
+    const order = VALID_ORDER.includes((req.query.order || '').toLowerCase()) ? req.query.order.toLowerCase() : 'desc';
     const page = Math.max(parseInt(req.query.page) || 1, 1);
     const limit = Math.min(Math.max(parseInt(req.query.limit) || 25, 1), 100);
     const offset = (page - 1) * limit;

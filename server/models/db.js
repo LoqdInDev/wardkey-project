@@ -104,6 +104,9 @@ function initDB() {
     CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_log(action);
   `);
 
+  // Restrict database file permissions (owner read/write only)
+  try { require('fs').chmodSync(process.env.DB_PATH || './wardkey.db', 0o600); } catch(e) {}
+
   console.log('✓ Database initialized');
   return db;
 }

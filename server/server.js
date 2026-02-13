@@ -1,4 +1,6 @@
 // WARDKEY Server — v1.0.0
+// SECURITY: Ensure JWT_SECRET and ADMIN_SECRET are strong random values in production
+// Never use development defaults in production environments
 require('dotenv').config();
 
 // ═══════ STARTUP CHECKS ═══════
@@ -35,9 +37,9 @@ app.use(helmet({
   hsts: { maxAge: 63072000, includeSubDomains: true, preload: true }
 }));
 
-// Admin CORS — permissive for file:// dashboard (all admin endpoints require JWT auth)
+// Admin CORS — restricted to configured admin origin (all admin endpoints require JWT auth)
 app.use('/api/admin', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Origin', process.env.ADMIN_ORIGIN || 'https://wardkey.io');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
@@ -95,6 +97,17 @@ app.use('/api/admin/login', adminLoginLimiter);
 // ═══════ MIDDLEWARE ═══════
 app.use(express.json({ limit: '10mb' }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+
+// CSRF protection for non-GET requests from browsers
+app.use((req, res, next) => {
+  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
+  const origin = req.headers.origin || req.headers.referer;
+  const allowed = [process.env.APP_ORIGIN || 'https://wardkey.io', 'chrome-extension://'];
+  if (origin && !allowed.some(a => origin.startsWith(a))) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  next();
+});
 
 // ═══════ STATIC FILES ═══════
 app.use(express.static(path.join(__dirname, 'public')));

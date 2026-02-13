@@ -102,14 +102,12 @@ router.delete('/:id', authenticate, (req, res) => {
 // ═══════ INCOMING EMAIL WEBHOOK ═══════
 // This endpoint receives forwarded emails from your mail server (Cloudflare Email Routing, Postfix, etc.)
 router.post('/incoming', async (req, res) => {
-  // Authenticate webhook requests — WEBHOOK_SECRET is required
-  const webhookSecret = process.env.WEBHOOK_SECRET;
-  if (!webhookSecret) {
-    console.error('WEBHOOK_SECRET not configured — rejecting incoming email webhook');
-    return res.status(500).json({ error: 'Webhook not configured' });
-  }
-  const provided = req.headers['x-webhook-secret'];
-  if (!provided || !crypto.timingSafeEqual(Buffer.from(provided), Buffer.from(webhookSecret))) {
+  // Authenticate webhook requests — timing-safe comparison to prevent timing attacks
+  const expected = process.env.WEBHOOK_SECRET || '';
+  const provided = req.headers['x-webhook-secret'] || '';
+  const expectedBuf = Buffer.from(expected.padEnd(64, '\0'));
+  const providedBuf = Buffer.from(provided.padEnd(64, '\0'));
+  if (!expected || !crypto.timingSafeEqual(expectedBuf, providedBuf)) {
     return res.status(401).json({ error: 'Unauthorized webhook request' });
   }
 

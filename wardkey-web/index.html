@@ -1088,7 +1088,7 @@ document.querySelectorAll('[data-kit-form]').forEach(form=>{
       const fd=new FormData(form);
       const resp=await fetch(form.action,{method:'POST',body:fd,headers:{'Accept':'application/json'}});
       if(resp.ok){
-        msg.innerHTML='&#10003; You\'re on the list!';
+        msg.textContent='\u2713 You\'re on the list!';
         msg.className='kit-msg success';
         input.value='';
       }else{

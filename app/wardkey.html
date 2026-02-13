@@ -704,12 +704,12 @@ let authToken=null,authUser=null,syncEnabled=false,lastSyncTime=null,syncInProgr
 
 function saveAuth(){
   if(authToken&&authUser){
-    localStorage.setItem('wardkey_auth',JSON.stringify({token:authToken,user:authUser,sync:syncEnabled,lastSync:lastSyncTime}));
-  }else{localStorage.removeItem('wardkey_auth')}
+    sessionStorage.setItem('wardkey_auth',JSON.stringify({token:authToken,user:authUser,sync:syncEnabled,lastSync:lastSyncTime}));
+  }else{sessionStorage.removeItem('wardkey_auth')}
 }
 function loadAuth(){
   try{
-    const raw=localStorage.getItem('wardkey_auth');
+    const raw=sessionStorage.getItem('wardkey_auth');
     if(!raw)return;
     const d=JSON.parse(raw);
     authToken=d.token||null;authUser=d.user||null;syncEnabled=!!d.sync;lastSyncTime=d.lastSync||null;
@@ -1014,7 +1014,7 @@ const OB_SLIDES=[
 let obIdx=0;
 function renderOb(){
   const s=OB_SLIDES[obIdx],sl=$('obSlide');
-  sl.innerHTML='<div class="ob-icon">'+s.icon+'</div><div class="ob-title">'+s.title+'</div><div class="ob-desc">'+s.desc+'</div>'+(s.tags?'<div class="ob-hl">'+s.tags.map(t=>'<span class="ob-tag">'+t+'</span>').join('')+'</div>':'');
+  sl.innerHTML='<div class="ob-icon">'+esc(s.icon)+'</div><div class="ob-title">'+esc(s.title)+'</div><div class="ob-desc">'+esc(s.desc)+'</div>'+(s.tags?'<div class="ob-hl">'+s.tags.map(t=>'<span class="ob-tag">'+esc(t)+'</span>').join('')+'</div>':'');
   sl.style.animation='none';sl.offsetHeight;sl.style.animation='fadeIn .3s';
   const dots=$('obDots');dots.innerHTML='';
   for(let i=0;i<OB_SLIDES.length;i++){const d=document.createElement('div');d.className='ob-dot'+(i===obIdx?' on':'');d.onclick=()=>{obIdx=i;renderOb()};dots.appendChild(d)}
@@ -1067,7 +1067,7 @@ async function unlock(){
 function resetVault(e){
   e.preventDefault();
   if(!confirm('This will permanently erase your vault. You will start fresh. Continue?'))return;
-  localStorage.removeItem('wardkey_v4');localStorage.removeItem('wardkey_v3');localStorage.removeItem('wardkey_auth');
+  localStorage.removeItem('wardkey_v4');localStorage.removeItem('wardkey_v3');sessionStorage.removeItem('wardkey_auth');
   authToken=null;authUser=null;syncEnabled=false;
   failedAttempts=0;lockoutUntil=0;
   $('lErr').style.display='none';$('mpIn').value='';$('mpIn').focus();
@@ -1152,7 +1152,7 @@ function showAuthErr(msg){const el=$('lErr');if(msg){el.textContent=msg;el.style
 function doLogout(){
   if(!confirm('Log out? Your vault will remain on this device but cloud sync will stop.'))return;
   authToken=null;authUser=null;syncEnabled=false;lastSyncTime=null;IS_PRO=false;
-  localStorage.removeItem('wardkey_auth');
+  sessionStorage.removeItem('wardkey_auth');
   lock();toast('Logged out','ok');
 }
 async function doDeleteAccount(){
@@ -1162,7 +1162,7 @@ async function doDeleteAccount(){
     const res=await fetch(API+'/api/auth/account',{method:'DELETE',headers:{'Authorization':'Bearer '+authToken}});
     if(!res.ok){const d=await res.json().catch(()=>({}));throw new Error(d.error||'Failed to delete account')}
     authToken=null;authUser=null;syncEnabled=false;lastSyncTime=null;IS_PRO=false;
-    localStorage.removeItem('wardkey_auth');
+    sessionStorage.removeItem('wardkey_auth');
     updateSidebar();updateSyncIcon('');render();toast('Account deleted — vault kept locally','ok');
   }catch(e){toast('Error: '+e.message,'er')}
 }
@@ -1630,7 +1630,7 @@ function formatAI(t){
 
 // ════════ PAGE: AI PASSWORD ANALYZER ════════
 function rAiPw(el){
-  const pwList=V.passwords.map(p=>'<div class="ai-pw-ch" onclick="pickAiPw(\''+p.id+'\')">'+p.name+'</div>').join('');
+  const pwList=V.passwords.map(p=>'<div class="ai-pw-ch" onclick="pickAiPw(\''+p.id+'\')">'+esc(p.name)+'</div>').join('');
   el.innerHTML=`<div class="ai-card"><div class="ai-hdr"><div class="ai-ic">🧠</div><div><h3>AI Password Analyzer</h3><p>Deep analysis of any password — patterns, entropy, crackability, and specific fix suggestions</p></div></div><div class="ai-body">
   ${aiLimitHTML()}
   <div style="margin-bottom:8px;font-size:10px;color:var(--tx3)">Quick select from vault:</div>

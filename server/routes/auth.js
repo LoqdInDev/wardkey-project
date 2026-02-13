@@ -30,10 +30,9 @@ function encryptMfaSecret(plaintext) {
 }
 
 function decryptMfaSecret(ciphertext) {
-  // Handle legacy plaintext secrets (no colons = not encrypted)
+  // Reject legacy plaintext secrets — must be migrated to encrypted format
   if (!ciphertext.includes(':')) {
-    console.warn('Legacy plaintext MFA secret detected — re-save to encrypt at rest');
-    return ciphertext;
+    throw new Error('Legacy plaintext MFA secret detected - migration required');
   }
   const [ivHex, tagHex, encrypted] = ciphertext.split(':');
   if (!ivHex || !tagHex || !encrypted) return ciphertext; // malformed, treat as plaintext
@@ -67,7 +66,8 @@ router.post('/register', async (req, res) => {
     const { email, password, name } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
     if (!isValidEmail(email)) return res.status(400).json({ error: 'Invalid email format' });
-    if (password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
+    if (password.length < 12) return res.status(400).json({ error: 'Password must be at least 12 characters' });
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) return res.status(400).json({ error: 'Password must contain uppercase, lowercase, and a number' });
 
     const safeName = sanitizeName(name);
     const db = getDB();
@@ -106,10 +106,16 @@ router.post('/login', async (req, res) => {
 
     const db = getDB();
     const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase());
-    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+    if (!user) {
+      console.log(`[AUTH] Failed login attempt for ${email} at ${new Date().toISOString()} from ${req.ip}`);
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
     const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
+    if (!valid) {
+      console.log(`[AUTH] Failed login attempt for ${email} at ${new Date().toISOString()} from ${req.ip}`);
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
     // Update last login
     db.prepare('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?').run(user.id);
@@ -209,7 +215,10 @@ router.post('/2fa/verify-login', async (req, res) => {
 
     const decryptedSecret = decryptMfaSecret(user.mfa_secret);
     const isValid = authenticator.check(totpCode, decryptedSecret);
-    if (!isValid) return res.status(401).json({ error: 'Invalid 2FA code' });
+    if (!isValid) {
+      console.log(`[AUTH] Failed 2FA attempt for ${user.email} at ${new Date().toISOString()} from ${req.ip}`);
+      return res.status(401).json({ error: 'Invalid 2FA code' });
+    }
 
     // Issue full token and create session (bound to JWT)
     const sessionId = uuid();
@@ -280,7 +289,8 @@ router.patch('/me', authenticate, async (req, res) => {
 
   if (newPassword) {
     if (!currentPassword) return res.status(400).json({ error: 'Current password required' });
-    if (newPassword.length < 8) return res.status(400).json({ error: 'New password must be at least 8 characters' });
+    if (newPassword.length < 12) return res.status(400).json({ error: 'New password must be at least 12 characters' });
+    if (!/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) return res.status(400).json({ error: 'New password must contain uppercase, lowercase, and a number' });
     const user = db.prepare('SELECT password_hash FROM users WHERE id = ?').get(req.user.id);
     const valid = await bcrypt.compare(currentPassword, user.password_hash);
     if (!valid) return res.status(401).json({ error: 'Current password incorrect' });

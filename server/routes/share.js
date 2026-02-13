@@ -15,8 +15,9 @@ router.post('/', authenticate, (req, res) => {
 
   const db = getDB();
 
-  const id = uuid().replace(/-/g, '').substring(0, 16);
-  const hours = Math.min(expiresInHours || 24, 30 * 24); // Max 30 days
+  const id = uuid().replace(/-/g, '').substring(0, 24);
+  const safeExpiresInHours = typeof expiresInHours === 'number' && expiresInHours > 0 ? expiresInHours : 24;
+  const hours = Math.min(safeExpiresInHours, 30 * 24); // Max 30 days
   const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
   const views = Math.min(maxViews || 1, 100);
 

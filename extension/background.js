@@ -81,7 +81,7 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
   if (info.status === 'loading' && tab?.url) {
     // Tab is navigating — check for captured credentials
     chrome.storage.session?.get('wardkey_capture', async (data) => {
-      if (data?.wardkey_capture?.password) {
+      if (data?.wardkey_capture?.hasPassword) {
         const capture = data.wardkey_capture;
         // Only promote if recent (within 30 seconds)
         if (Date.now() - capture.timestamp < 30000) {
@@ -160,11 +160,20 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   // Content script credential capture (via message passing, not direct session storage)
   if (msg.type === 'WARDKEY_STORE_CAPTURE') {
+    // Validate required fields and types
+    if (typeof msg.domain !== 'string' || !msg.domain) return;
+    if (typeof msg.username !== 'string') return;
+    if (typeof msg.password !== 'string' || !msg.password) return;
+    if (typeof msg.url !== 'string') return;
+    try { new URL(msg.url); } catch { return; }
+    if (typeof msg.timestamp !== 'number') return;
+
+    // Store only a flag that credentials were detected — NOT the plaintext password
     chrome.storage.session?.set({
       wardkey_capture: {
         domain: msg.domain,
         username: msg.username,
-        password: msg.password,
+        hasPassword: true,
         url: msg.url,
         timestamp: msg.timestamp
       }

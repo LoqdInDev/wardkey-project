@@ -3,6 +3,9 @@ const $ = id => document.getElementById(id);
 const API = 'https://api.wardkey.io';
 const CRYPTO_VERSION = 4;
 
+// ═══════ CRYPTO KEY STATE (closure-scoped, not on window) ═══════
+let _mk = null, _salt = null, _verify = null;
+
 // ═══════ STATE ═══════
 let vault = {};
 let unlocked = false;
@@ -17,6 +20,7 @@ let syncInProgress = false;
 let failedAttempts = 0;
 let lockoutUntil = 0;
 let mfaTempToken = null;
+let mfaTempTokenExpiry = 0;
 let lockTimeout = 0; // 0=every time, ms value, or -1=browser session
 
 // ═══════ CRYPTO (v4 — compatible with web app) ═══════
@@ -27,7 +31,7 @@ async function deriveKey(pw, salt) {
     { name: 'PBKDF2', salt, iterations: 600000, hash: 'SHA-256' },
     base,
     { name: 'AES-GCM', length: 256 },
-    false,
+    true,
     ['encrypt', 'decrypt']
   );
 }
@@ -74,9 +78,9 @@ async function loadVault(pw) {
     ['passwords','cards','notes','totp','apikeys','licenses','passkeys','aliases','breaches','trash','activity'].forEach(k => {
       if (!vault[k]) vault[k] = [];
     });
-    window._mk = key;
-    window._salt = salt;
-    window._verify = verify;
+    _mk = key;
+    _salt = salt;
+    _verify = verify;
     return true;
   } catch {
     return false;
@@ -84,9 +88,9 @@ async function loadVault(pw) {
 }
 
 async function saveVault() {
-  if (!window._mk) return;
-  const e = await encrypt(vault, window._mk);
-  const blob = { v: CRYPTO_VERSION, salt: Array.from(window._salt), verify: window._verify, data: e };
+  if (!_mk) return;
+  const e = await encrypt(vault, _mk);
+  const blob = { v: CRYPTO_VERSION, salt: Array.from(_salt), verify: _verify, data: e };
   await chrome.storage.local.set({ wardkey_v4: blob });
   if (syncEnabled && authToken) syncUp(blob);
 }
@@ -95,16 +99,16 @@ async function initVault(pw) {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const key = await deriveKey(pw, salt);
   const verify = await deriveVerifyHash(pw, salt);
-  window._mk = key;
-  window._salt = salt;
-  window._verify = verify;
+  _mk = key;
+  _salt = salt;
+  _verify = verify;
   vault = { passwords: [], cards: [], notes: [], totp: [], apikeys: [], licenses: [], passkeys: [], aliases: [], breaches: [], trash: [], activity: [] };
   await saveVault();
 }
 
 // ═══════ AUTH PERSISTENCE ═══════
 async function loadAuth() {
-  const data = await chrome.storage.local.get('wardkey_auth');
+  const data = await chrome.storage.session.get('wardkey_auth');
   if (data.wardkey_auth) {
     authToken = data.wardkey_auth.token;
     authUser = data.wardkey_auth.user;
@@ -114,9 +118,9 @@ async function loadAuth() {
 
 async function saveAuth() {
   if (authToken && authUser) {
-    await chrome.storage.local.set({ wardkey_auth: { token: authToken, user: authUser } });
+    await chrome.storage.session.set({ wardkey_auth: { token: authToken, user: authUser } });
   } else {
-    await chrome.storage.local.remove('wardkey_auth');
+    await chrome.storage.session.remove('wardkey_auth');
   }
   syncEnabled = !!authToken;
   updateSyncDot();
@@ -144,7 +148,7 @@ async function syncUp(blob) {
 }
 
 async function syncDown() {
-  if (!authToken || !window._mk) return;
+  if (!authToken || !_mk) return;
   syncInProgress = true;
   updateSyncDot('active');
   try {
@@ -155,7 +159,7 @@ async function syncDown() {
     if (data.vault && data.vault.data) {
       await chrome.storage.local.set({ wardkey_v4: data.vault });
       const salt = new Uint8Array(data.vault.salt);
-      const decrypted = await decrypt(data.vault.data, window._mk);
+      const decrypted = await decrypt(data.vault.data, _mk);
       // Validate decrypted result is a non-null, non-array object
       if (!decrypted || typeof decrypted !== 'object' || Array.isArray(decrypted)) {
         updateSyncDot('off');
@@ -166,8 +170,8 @@ async function syncDown() {
       ['passwords','cards','notes','totp','apikeys','licenses','passkeys','aliases','breaches','trash','activity'].forEach(k => {
         if (!vault[k]) vault[k] = [];
       });
-      window._salt = salt;
-      window._verify = data.vault.verify;
+      _salt = salt;
+      _verify = data.vault.verify;
       updateSyncDot('ok');
       renderList();
       toast('Vault synced');
@@ -191,7 +195,7 @@ function updateSyncDot(state) {
 // ═══════ UNLOCK ═══════
 $('unlockBtn').onclick = async () => {
   const pw = $('masterPw').value;
-  if (!pw || pw.length < 4) { shake($('masterPw')); $('lockErr').textContent = 'Min 4 characters'; return; }
+  if (!pw || pw.length < 8) { shake($('masterPw')); $('lockErr').textContent = 'Min 8 characters'; return; }
 
   // Brute force protection
   if (Date.now() < lockoutUntil) {
@@ -240,8 +244,16 @@ $('unlockBtn').onclick = async () => {
   $('unlockBtn').textContent = 'Unlock Vault';
   $('unlockBtn').disabled = false;
 
-  // Store session for auto-unlock (pw in session storage — extension-only, cleared on browser close)
-  chrome.storage.session?.set({ wardkey_session: { ts: Date.now(), pw } });
+  // Store session for auto-unlock (exported key bytes, NOT plaintext password)
+  try {
+    const rawKey = await crypto.subtle.exportKey('raw', _mk);
+    chrome.storage.session?.set({ wardkey_session: {
+      ts: Date.now(),
+      keyBytes: Array.from(new Uint8Array(rawKey)),
+      salt: Array.from(_salt),
+      verify: _verify
+    }});
+  } catch { /* session storage unavailable */ }
   chrome.runtime.sendMessage({ type: 'WARDKEY_ACTIVITY' });
 
   getCurrentSite();
@@ -257,17 +269,21 @@ $('masterPw').onkeydown = e => { if (e.key === 'Enter') $('unlockBtn').click(); 
 
 $('lockBtn').onclick = () => {
   unlocked = false;
+  // Overwrite sensitive data before nulling
+  if (_salt && _salt.fill) _salt.fill(0);
   vault = {};
-  window._mk = null;
-  window._salt = null;
-  window._verify = null;
+  _mk = null;
+  _salt = null;
+  _verify = null;
   genPw = '';
   editingItem = null;
   mfaTempToken = null;
+  mfaTempTokenExpiry = 0;
   chrome.storage.session?.remove('wardkey_session'); // clear auto-unlock session
+  // Clear all input fields to remove any sensitive data from DOM
+  document.querySelectorAll('input').forEach(el => { el.value = ''; });
   $('appView').classList.remove('on');
   $('lockScreen').style.display = '';
-  $('masterPw').value = '';
   $('lockErr').textContent = '';
   $('masterPw').focus();
   showPanel('vault');
@@ -677,6 +693,7 @@ $('authLoginBtn').onclick = async () => {
 
     if (data.requires2fa) {
       mfaTempToken = data.tempToken;
+      mfaTempTokenExpiry = Date.now() + 300000; // 5 minute expiry
       showAuth('2fa');
       return;
     }
@@ -729,9 +746,9 @@ $('authRegBtn').onclick = async () => {
     hideAuth();
 
     // Upload current vault to cloud
-    if (window._mk) {
-      const e = await encrypt(vault, window._mk);
-      const blob = { v: CRYPTO_VERSION, salt: Array.from(window._salt), verify: window._verify, data: e };
+    if (_mk) {
+      const e = await encrypt(vault, _mk);
+      const blob = { v: CRYPTO_VERSION, salt: Array.from(_salt), verify: _verify, data: e };
       await syncUp(blob);
     }
     showPanel('vault');
@@ -749,6 +766,14 @@ $('auth2faBtn').onclick = async () => {
   const code = $('auth2faCode').value.trim();
   if (!code || code.length !== 6) { $('auth2faErr').textContent = 'Enter 6-digit code'; return; }
 
+  // Check if 2FA temp token has expired
+  if (Date.now() > mfaTempTokenExpiry) {
+    $('auth2faErr').textContent = 'Code expired, please login again';
+    mfaTempToken = null;
+    mfaTempTokenExpiry = 0;
+    return;
+  }
+
   $('auth2faBtn').textContent = 'Verifying...';
   $('auth2faBtn').disabled = true;
 
@@ -765,6 +790,7 @@ $('auth2faBtn').onclick = async () => {
     authUser = data.user;
     syncEnabled = true;
     mfaTempToken = null;
+    mfaTempTokenExpiry = 0;
     await saveAuth();
     hideAuth();
     await syncDown();
@@ -778,7 +804,7 @@ $('auth2faBtn').onclick = async () => {
   }
 };
 
-$('auth2faCancel').onclick = () => { mfaTempToken = null; showAuth('login'); };
+$('auth2faCancel').onclick = () => { mfaTempToken = null; mfaTempTokenExpiry = 0; showAuth('login'); };
 $('auth2faCode').onkeydown = e => { if (e.key === 'Enter') $('auth2faBtn').click(); };
 $('authPw').onkeydown = e => { if (e.key === 'Enter') $('authLoginBtn').click(); };
 $('regPwConf').onkeydown = e => { if (e.key === 'Enter') $('authRegBtn').click(); };
@@ -1320,21 +1346,42 @@ async function tryAutoUnlock() {
   if (lockTimeout === 0) return; // every time = always ask
 
   const data = await chrome.storage.session?.get('wardkey_session');
-  if (!data?.wardkey_session?.pw) return;
+  if (!data?.wardkey_session?.keyBytes) return;
 
   const session = data.wardkey_session;
   const elapsed = Date.now() - session.ts;
 
   // Check if session is still valid
   if (lockTimeout === -1 || elapsed < lockTimeout) {
-    // Try to unlock with stored password
     $('lockErr').textContent = '';
     const hasVault = (await chrome.storage.local.get('wardkey_v4')).wardkey_v4;
     if (!hasVault) return;
 
-    const ok = await loadVault(session.pw);
-    if (!ok) {
-      // Stored pw no longer valid (vault changed?) — clear session
+    try {
+      const blob = hasVault;
+      // Verify the stored verify hash matches the vault's verify hash
+      if (session.verify !== blob.verify) {
+        chrome.storage.session?.remove('wardkey_session');
+        return;
+      }
+
+      // Re-import the key from stored raw bytes
+      const keyBytes = new Uint8Array(session.keyBytes);
+      const key = await crypto.subtle.importKey(
+        'raw', keyBytes, { name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']
+      );
+
+      const salt = new Uint8Array(session.salt || blob.salt);
+      const decrypted = await decrypt(blob.data, key);
+      vault = decrypted;
+      ['passwords','cards','notes','totp','apikeys','licenses','passkeys','aliases','breaches','trash','activity'].forEach(k => {
+        if (!vault[k]) vault[k] = [];
+      });
+      _mk = key;
+      _salt = salt;
+      _verify = session.verify;
+    } catch {
+      // Stored key no longer valid (vault changed?) — clear session
       chrome.storage.session?.remove('wardkey_session');
       return;
     }
@@ -1343,8 +1390,13 @@ async function tryAutoUnlock() {
     $('lockScreen').style.display = 'none';
     $('appView').classList.add('on');
 
-    // Refresh session timestamp
-    chrome.storage.session?.set({ wardkey_session: { ts: Date.now(), pw: session.pw } });
+    // Refresh session timestamp (key bytes stay the same)
+    chrome.storage.session?.set({ wardkey_session: {
+      ts: Date.now(),
+      keyBytes: session.keyBytes,
+      salt: session.salt,
+      verify: session.verify
+    }});
 
     getCurrentSite();
     renderList();
