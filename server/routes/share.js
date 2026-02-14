@@ -28,7 +28,7 @@ router.post('/', authenticate, (req, res) => {
   const createShare = db.transaction(() => {
     const user = db.prepare('SELECT plan FROM users WHERE id = ?').get(req.user.id);
     if (user?.plan === 'free') {
-      const activeShares = db.prepare('SELECT COUNT(*) as count FROM shares WHERE user_id = ? AND revoked = 0 AND expires_at > datetime("now")').get(req.user.id);
+      const activeShares = db.prepare("SELECT COUNT(*) as count FROM shares WHERE user_id = ? AND revoked = 0 AND expires_at > datetime('now')").get(req.user.id);
       if (activeShares.count >= 5) {
         return { error: 'Free plan limited to 5 active share links. Upgrade to Pro for unlimited.' };
       }
