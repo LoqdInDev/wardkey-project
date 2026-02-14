@@ -157,21 +157,28 @@ async function syncDown() {
     if (!res.ok) throw new Error('Download failed');
     const data = await res.json();
     if (data.vault && data.vault.data) {
-      await chrome.storage.local.set({ wardkey_v4: data.vault });
       const salt = new Uint8Array(data.vault.salt);
-      const decrypted = await decrypt(data.vault.data, _mk);
-      // Validate decrypted result is a non-null, non-array object
+      // Decrypt and validate BEFORE touching local storage
+      let decrypted;
+      try {
+        decrypted = await decrypt(data.vault.data, _mk);
+      } catch {
+        updateSyncDot('off');
+        toast('Sync failed: could not decrypt cloud vault');
+        return;
+      }
       if (!decrypted || typeof decrypted !== 'object' || Array.isArray(decrypted)) {
         updateSyncDot('off');
         toast('Sync failed: invalid vault data');
         return;
       }
+      // Only persist after successful decryption
+      await chrome.storage.local.set({ wardkey_v4: data.vault });
       vault = decrypted;
       ['passwords','cards','notes','totp','apikeys','licenses','passkeys','aliases','breaches','trash','activity'].forEach(k => {
         if (!vault[k]) vault[k] = [];
       });
       _salt = salt;
-      _verify = data.vault.verify;
       updateSyncDot('ok');
       renderList();
       toast('Vault synced');

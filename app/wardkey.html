@@ -508,7 +508,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
     <div id="mpConfWrap" style="display:none;margin-top:8px">
       <input type="password" class="lock-fi" id="mpConf" placeholder="Confirm master password" style="font-family:var(--mono);letter-spacing:2px" aria-label="Confirm master password">
     </div>
-    <div class="lock-hint" id="mpHint">Enter your master password (4+ characters)</div>
+    <div class="lock-hint" id="mpHint">Enter your master password (8+ characters)</div>
     <div class="lock-info">Your vault stays on this device. No account needed.</div>
   </div>
   <!-- CLOUD SYNC PANEL -->
@@ -531,7 +531,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
       <input type="email" class="lock-fi" id="arEmail" placeholder="Email address" autocomplete="email" aria-label="Email address">
       <input type="password" class="lock-fi" id="arPw" placeholder="Account password (8+ characters)" autocomplete="new-password" aria-label="Account password">
       <input type="password" class="lock-fi" id="arPwC" placeholder="Confirm account password" autocomplete="new-password" aria-label="Confirm account password">
-      <input type="password" class="lock-fi" id="arMp" placeholder="Master password (4+ characters, for vault encryption)" style="font-family:var(--mono);letter-spacing:2px" aria-label="Master password for vault encryption">
+      <input type="password" class="lock-fi" id="arMp" placeholder="Master password (8+ characters, for vault encryption)" style="font-family:var(--mono);letter-spacing:2px" aria-label="Master password for vault encryption">
       <button class="lock-bt lock-bt-p" onclick="doRegister()">Create Account & Unlock</button>
       <div class="lock-info">Your master password never leaves your device. The server only sees encrypted data.</div>
     </div>
@@ -876,6 +876,7 @@ function secureClear() {
   document.querySelectorAll('[data-pw]').forEach(el => el.removeAttribute('data-pw'));
   const aiIn=document.getElementById('aiPwIn');if(aiIn)aiIn.value='';
   window._cpw = null;
+  window._pwHistory = null;
   // Clear clipboard if we wrote to it
   try { navigator.clipboard.writeText(''); } catch {}
   // Clear auth tokens from memory (remain in localStorage for restore on re-unlock)
@@ -997,8 +998,8 @@ function seed(){
 function checkFirstRun(){
   const hasVault=!!(localStorage.getItem('wardkey_v4')||localStorage.getItem('wardkey_v3'));
   const wrap=$('mpConfWrap'),hint=$('mpHint');
-  if(!hasVault){wrap.style.display='block';hint.textContent='Choose a master password (4+ characters)'}
-  else{wrap.style.display='none';hint.textContent='Enter your master password (4+ characters)'}
+  if(!hasVault){wrap.style.display='block';hint.textContent='Choose a master password (8+ characters)'}
+  else{wrap.style.display='none';hint.textContent='Enter your master password (8+ characters)'}
 }
 checkFirstRun();
 
@@ -1441,7 +1442,7 @@ el.innerHTML='<div style="max-width:720px"><div class="st" style="margin-bottom:
 
 // ════════ DETAIL PANEL ════════
 function showD(type,id){const item=V[type]?.find(i=>i.id===id);if(!item)return;curD={type,id,item};$('dTit').textContent=item.name;const fv=item.fav||item.favorite;$('fBtn').textContent=fv?'★':'☆';$('fBtn').style.color=fv?'var(--yl)':'var(--tx2)';let h='';
-if(type==='passwords'){const s=str(item.password);window._cpw=item.password;h=`<div style="text-align:center;font-size:28px;margin-bottom:14px">${esc(item.icon)||'🔑'}</div>
+if(type==='passwords'){const s=str(item.password);window._cpw=item.password;window._pwHistory=item.history?item.history.map(h=>h.pw):[];h=`<div style="text-align:center;font-size:28px;margin-bottom:14px">${esc(item.icon)||'🔑'}</div>
 ${F('Username',item.username,true)}
 <div class="df"><div class="df-l">Password</div><div class="df-v"><span id="pwV">••••••••••••••</span><button class="cb" onclick="let e=$('pwV');if(e.textContent.includes('•')){e.textContent=window._cpw;e.style.color='var(--tx1)'}else{e.textContent='••••••••••••••';e.style.color=''}">${IC.eye}</button><button class="cb" onclick="cpTx(window._cpw)">${IC.cp}</button></div>
 <div style="margin-top:4px"><div class="sb2"><div class="sb2-f" style="width:${s.s}%;background:${s.c}"></div></div><div class="sb2-l" style="color:${s.c}">${s.l} · ${Math.round(s.s)}%</div></div></div>
@@ -1470,7 +1471,7 @@ ${item.url?F('URL',item.url,true):''}
 ${item.url?`<button class="bt bt-p" style="width:100%;justify-content:center;padding:10px;margin-bottom:8px;gap:6px;font-size:13px" onclick="launchSite('passwords','${item.id}')">${IC.launch} Launch & Autofill</button>`:''}
 ${(item.fields||[]).map(f=>F(f.l,f.v,true)).join('')}
 ${item.notes?`<div class="df"><div class="df-l">Notes</div><div style="padding:7px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);font-size:11px;color:var(--tx2);line-height:1.5;white-space:pre-wrap">${esc(item.notes)}</div></div>`:''}
-${item.history?.length?`<div class="df"><div class="df-l">Password History (${item.history.length})</div>${item.history.map((h,hi)=>{const hid='ph'+hi+Math.random().toString(36).substr(2,4);const b64=btoa(unescape(encodeURIComponent(h.pw)));return`<div style="padding:6px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);margin-bottom:3px;display:flex;align-items:center;gap:6px"><div style="flex:1"><div style="font-size:9px;color:var(--tx3);margin-bottom:2px">Changed ${new Date(h.at).toLocaleDateString()}</div><div style="font-family:var(--mono);font-size:11px" id="${hid}">••••••••••</div></div><button class="cb" data-pw="${b64}" data-hid="${hid}" onclick="const pw=decodeURIComponent(escape(atob(this.dataset.pw)));const e=document.getElementById(this.dataset.hid);e.textContent=e.textContent.includes('•')?pw:'••••••••••'">${IC.eye}</button><button class="cb" data-pw="${b64}" onclick="cpTx(decodeURIComponent(escape(atob(this.dataset.pw))))">${IC.cp}</button></div>`}).join('')}</div>`:''}
+${item.history?.length?`<div class="df"><div class="df-l">Password History (${item.history.length})</div>${item.history.map((h,hi)=>{const hid='ph'+hi+Math.random().toString(36).substr(2,4);return`<div style="padding:6px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);margin-bottom:3px;display:flex;align-items:center;gap:6px"><div style="flex:1"><div style="font-size:9px;color:var(--tx3);margin-bottom:2px">Changed ${new Date(h.at).toLocaleDateString()}</div><div style="font-family:var(--mono);font-size:11px" id="${hid}">••••••••••</div></div><button class="cb" onclick="const pw=window._pwHistory[${hi}];const e=document.getElementById('${hid}');e.textContent=e.textContent.includes('•')?pw:'••••••••••'">${IC.eye}</button><button class="cb" onclick="cpTx(window._pwHistory[${hi}])">${IC.cp}</button></div>`}).join('')}</div>`:''}
 <div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:8px">${(item.tags||[]).map(t=>`<span class="tg">${esc(t)}</span>`).join('')}</div>
 <div style="margin-top:8px;font-size:9px;color:var(--tx3)">Created ${new Date(item.created).toLocaleDateString()} · Modified ${new Date(item.modified).toLocaleDateString()}</div>`}
 else if(type==='cards'){h=`<div style="text-align:center;font-size:28px;margin-bottom:14px">${item.type==='id'?'🪪':'💳'}</div>${F('Number',item.number,true)}${F('Holder',item.holder)}${F('Expiry',item.exp,true)}${item.cvv?F('CVV',item.cvv,true):''}${item.pin?F('PIN',item.pin,true):''}${item.billing?F('Billing Address',item.billing):''}`}
@@ -1482,7 +1483,7 @@ ${F('Relying Party',item.rpId)}${F('Username',item.username,true)}${F('Credentia
 ${item.rpId?`<button class="bt bt-p" style="width:100%;justify-content:center;padding:10px;margin-top:8px;gap:6px;font-size:13px" onclick="launchSite('passkeys','${item.id}')">${IC.launch} Launch Site</button>`:''}
 <div style="margin-top:8px;font-size:10px;color:var(--tx3)">Registered ${new Date(item.created).toLocaleDateString()} · Last used ${timeAgo(item.lastUsed)}</div>`}
 $('dBod').innerHTML=h;$('dP').classList.add('on')}
-function closeD(){$('dP').classList.remove('on');curD=null;$('dBod').innerHTML='';window._cpw=null}
+function closeD(){$('dP').classList.remove('on');curD=null;$('dBod').innerHTML='';window._cpw=null;window._pwHistory=null}
 function delCur(){if(!curD)return;const{type,id,item}=curD;V.trash.push({...item,deletedAt:Date.now(),origType:type});V[type]=V[type].filter(i=>i.id!==id);logA('Deleted',item.name,'delete');saveV();updC();render();closeD();toast('Moved to trash','ok')}
 function toggleFav(){if(!curD)return;const i=V[curD.type].find(x=>x.id===curD.id);if(i){i.fav=!i.fav;logA(i.fav?'Favorited':'Unfavorited',i.name,'fav');saveV();showD(curD.type,curD.id);render()}}
 function restoreI(id){const t=V.trash.find(i=>i.id===id);if(!t)return;const{deletedAt,origType,...item}=t;if(V[origType])V[origType].push(item);V.trash=V.trash.filter(i=>i.id!==id);logA('Restored',item.name,'add');saveV();updC();render();toast('Item restored','ok')}
