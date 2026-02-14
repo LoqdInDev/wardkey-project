@@ -669,7 +669,6 @@ const NAV=[
 {id:'decay',ic:'hourglass',l:'Decay Timeline'},
 {s:'Tools'},
 {id:'sharing',ic:'share',l:'Sharing'},
-{id:'aliases',ic:'mail',l:'Email Aliases'},
 {id:'emergency',ic:'users',l:'Emergency'},
 {id:'analytics',ic:'bar',l:'Analytics'},
 {id:'activity',ic:'pulse',l:'Activity'},
@@ -1013,7 +1012,6 @@ const OB_SLIDES=[
 {icon:'🛡️',title:'Watchtower',desc:'Real-time vault health monitoring. Get a security score and flags for weak, reused, or breached credentials.',tags:['Security Score','Weak Flags','Reuse Detection']},
 {icon:'🔢',title:'Authenticator (2FA)',desc:'Built-in TOTP code generator — no separate authenticator app needed. Your 2FA lives right in the vault.',tags:['TOTP Codes','Built-In','Auto-Refresh']},
 {icon:'🔗',title:'Secure Sharing',desc:'Share credentials via encrypted, self-destructing links with view limits and expiry. No account needed to receive.',tags:['Self-Destruct','View Limits','No Signup']},
-{icon:'📧',title:'Email Aliases',desc:'Generate unique forwarding aliases to block spam and protect your real email address.',tags:['Alias Generator','Spam Blocker','Privacy']},
 {icon:'🗝️',title:'API Keys & Licenses',desc:'Safely store tokens, license keys, and secrets. Tag by environment for easy lookup.',tags:['API Tokens','License Keys','Env Tags']},
 {icon:'🤖',title:'AI Security Tools',desc:'AI-powered password analysis, security reports, and phishing detection to keep you ahead of threats.',tags:['Password Analysis','Security Reports','Phishing Detection']},
 {icon:'🌐',title:'Credential Map & Decay',desc:'Visualize your digital footprint and track credential freshness so nothing goes stale.',tags:['Footprint Map','Freshness Score','Decay Alerts']},
@@ -1220,10 +1218,10 @@ document.addEventListener('contextmenu', e => {
 
 // ════════ NAVIGATION ════════
 function buildNav(){$('sNav').innerHTML=NAV.map(n=>{if(n.s)return`<div class="sb-sec">${n.s}</div>`;const dot=n.dot&&V.breaches.some(b=>!b.resolved);return`<div class="ni${pg===n.id?' on':''}" data-p="${n.id}" onclick="nav('${n.id}')">${ICONS[n.ic]}<span>${n.l}</span>${n.b?`<span class="c" id="${n.b}">0</span>`:''}${dot?'<div class="rd"></div>':''}</div>`}).join('')}
-function nav(p,skipHistory){if(!skipHistory&&pg!==p)navHistory.push(pg);pg=p;sq='';af='all';$('gSch').value='';document.querySelectorAll('.ni').forEach(e=>e.classList.toggle('on',e.dataset.p===p));const T={dashboard:'Dashboard',favorites:'⭐ Favorites',passwords:'Passwords',cards:'Cards & IDs',notes:'Secure Notes',apikeys:'API Keys & Tokens',licenses:'Software Licenses',passkeys:'🔑 Passkeys',generator:'Password Generator',authenticator:'Authenticator',watchtower:'Watchtower',audit:'Security Audit',scanner:'Breach Scanner',credmap:'🕸️ Credential Map',decay:'⏳ Decay Timeline',sharing:'Secure Sharing',aliases:'📧 Email Aliases',emergency:'Emergency Access',analytics:'Analytics',activity:'Activity Log',trash:'Trash',settings:'Settings','ai-analyzer':'🧠 AI Password Analyzer','ai-report':'📋 AI Security Report','ai-phishing':'🎣 AI Phishing Detector'};$('pTit').textContent=T[p]||p;updBackBtn();render();closeD();closeSB();updBnav(p)}
+function nav(p,skipHistory){if(!skipHistory&&pg!==p)navHistory.push(pg);pg=p;sq='';af='all';$('gSch').value='';document.querySelectorAll('.ni').forEach(e=>e.classList.toggle('on',e.dataset.p===p));const T={dashboard:'Dashboard',favorites:'⭐ Favorites',passwords:'Passwords',cards:'Cards & IDs',notes:'Secure Notes',apikeys:'API Keys & Tokens',licenses:'Software Licenses',passkeys:'🔑 Passkeys',generator:'Password Generator',authenticator:'Authenticator',watchtower:'Watchtower',audit:'Security Audit',scanner:'Breach Scanner',credmap:'🕸️ Credential Map',decay:'⏳ Decay Timeline',sharing:'Secure Sharing',emergency:'Emergency Access',analytics:'Analytics',activity:'Activity Log',trash:'Trash',settings:'Settings','ai-analyzer':'🧠 AI Password Analyzer','ai-report':'📋 AI Security Report','ai-phishing':'🎣 AI Phishing Detector'};$('pTit').textContent=T[p]||p;updBackBtn();render();closeD();closeSB();updBnav(p)}
 function goBack(){if(navHistory.length){const prev=navHistory.pop();nav(prev,true)}else{nav('dashboard',true)}}
 function updBackBtn(){const b=$('backBtn');if(b)b.style.display=navHistory.length?'flex':'none'}
-function render(){const c=$('ct');c.innerHTML='';const d=document.createElement('div');d.className='pg';c.appendChild(d);const R={dashboard:rDash,favorites:rFav,passwords:rPw,cards:rCards,notes:rNotes,apikeys:rApi,licenses:rLic,passkeys:rPasskeys,generator:rGen,authenticator:rAuth,watchtower:rWatch,audit:rAudit,scanner:rScan,credmap:rCredMap,decay:rDecay,sharing:rShare,aliases:rAliases,emergency:rEmer,analytics:rAnl,activity:rAct,trash:rTrash,settings:rSet,'ai-analyzer':rAiPw,'ai-report':rAiReport,'ai-phishing':rAiPhish};(R[pg]||(()=>{}))(d)}
+function render(){const c=$('ct');c.innerHTML='';const d=document.createElement('div');d.className='pg';c.appendChild(d);const R={dashboard:rDash,favorites:rFav,passwords:rPw,cards:rCards,notes:rNotes,apikeys:rApi,licenses:rLic,passkeys:rPasskeys,generator:rGen,authenticator:rAuth,watchtower:rWatch,audit:rAudit,scanner:rScan,credmap:rCredMap,decay:rDecay,sharing:rShare,emergency:rEmer,analytics:rAnl,activity:rAct,trash:rTrash,settings:rSet,'ai-analyzer':rAiPw,'ai-report':rAiReport,'ai-phishing':rAiPhish};(R[pg]||(()=>{}))(d)}
 function updC(){const s=(i,v)=>{const e=$(i);if(e)e.textContent=v};s('pwC',V.passwords.length);s('cdC',V.cards.length);s('ntC',V.notes.length);s('tpC',V.totp.length);s('akC',V.apikeys.length);s('lcC',V.licenses.length);s('pkC',V.passkeys.length);s('trC',V.trash.length)}
 
 // ════════ UTILITIES ════════
@@ -1352,9 +1350,9 @@ el.innerHTML=`
   <div class="card" style="cursor:pointer" onclick="nav('audit')"><div class="card-v" style="color:var(--yl);font-size:18px">${o}</div><div class="card-l">Aging (90d+)</div></div>
   <div class="card"><div class="card-v" style="color:var(--pp);font-size:18px">${V.totp.length}</div><div class="card-l">2FA Enabled</div></div>
 </div>
-<div class="sh"><div class="st">Breach Monitor</div></div>
-${ub.length?ub.map(b=>{const sc2={high:{b:'var(--rdb)',f:'var(--rd)'},medium:{b:'var(--ogb)',f:'var(--og)'},low:{b:'var(--ylb)',f:'var(--yl)'}};const c=sc2[b.sev]||sc2.low;return`<div class="bc"><div class="bc-i" style="background:${c.b}"><svg viewBox="0 0 24 24" fill="none" stroke="${c.f}" stroke-width="2" style="width:14px;height:14px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="bc-n"><div class="bc-t">${esc(b.site)}</div><div class="bc-d">${esc(b.date)} · ${esc(b.recs)} records · ${esc(b.type)}</div></div><span class="sv" style="background:${c.b};color:${c.f}">${b.sev.toUpperCase()}</span><button class="bt bt-ok" style="font-size:9px" onclick="event.stopPropagation();V.breaches.find(x=>x.id==='${b.id}').resolved=true;logA('Resolved breach','${b.site}','edit');saveV();render();toast('Marked resolved','ok')">Resolve</button></div>`}).join(''):`<div style="padding:16px;text-align:center;background:var(--gnb);border-radius:var(--r);color:var(--gn);font-weight:600;font-size:12px">✓ No unresolved breaches</div>`}
-<div style="margin-top:10px">${V.breaches.filter(b=>b.resolved).map(b=>`<div class="bc" style="opacity:.4"><div class="bc-i" style="background:var(--bg3)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" style="width:14px;height:14px"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="bc-n"><div class="bc-t">${esc(b.site)} <span style="color:var(--gn);font-size:9px">✓ Resolved</span></div><div class="bc-d">${esc(b.date)} · ${esc(b.recs)} records</div></div></div>`).join('')}</div>`;
+<div class="sh"><div class="st">Breach Monitor</div>${authToken?`<button class="bt bt-s" style="font-size:10px" onclick="nav('scanner')">Scan Now</button>`:''}</div>
+${ub.length?ub.map(b=>{const sc2={high:{b:'var(--rdb)',f:'var(--rd)'},medium:{b:'var(--ogb)',f:'var(--og)'},low:{b:'var(--ylb)',f:'var(--yl)'}};const c=sc2[b.sev]||sc2.low;return`<div class="bc"><div class="bc-i" style="background:${c.b}"><svg viewBox="0 0 24 24" fill="none" stroke="${c.f}" stroke-width="2" style="width:14px;height:14px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="bc-n"><div class="bc-t">${esc(b.site)}</div><div class="bc-d">${esc(b.date)} · ${b.recs||0} records${b.source==='hibp'?' · HIBP':''}</div></div><span class="sv" style="background:${c.b};color:${c.f}">${(b.sev||'low').toUpperCase()}</span><button class="bt bt-ok" style="font-size:9px" onclick="event.stopPropagation();V.breaches.find(x=>x.id==='${b.id}').resolved=true;logA('Resolved breach','${esc(b.site)}','edit');saveV();render();toast('Marked resolved','ok')">Resolve</button></div>`}).join(''):`<div style="padding:16px;text-align:center;background:var(--gnb);border-radius:var(--r);color:var(--gn);font-weight:600;font-size:12px">✓ No unresolved breaches${authToken?'':' — sign in to scan with HIBP'}</div>`}
+<div style="margin-top:10px">${V.breaches.filter(b=>b.resolved).map(b=>`<div class="bc" style="opacity:.4"><div class="bc-i" style="background:var(--bg3)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" style="width:14px;height:14px"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="bc-n"><div class="bc-t">${esc(b.site)} <span style="color:var(--gn);font-size:9px">✓ Resolved</span></div><div class="bc-d">${esc(b.date)} · ${b.recs||0} records</div></div></div>`).join('')}</div>`;
 }
 
 // ════════ PAGE: AUDIT ════════
@@ -1365,36 +1363,172 @@ ${r.length?`<div class="sh"><div class="st" style="color:var(--og)">🔄 Reused 
 ${o.length?`<div class="sh"><div class="st" style="color:var(--yl)">⏳ Aging Passwords (90d+)</div></div><div class="vl">${o.map((p,i)=>{const days=Math.floor((Date.now()-p.modified)/864e5);return`<div class="vi" onclick="showD('passwords','${p.id}')"><div class="vi-i">${esc(p.icon)||'🔑'}</div><div class="vi-n"><div class="vi-t">${esc(p.name)}</div><div class="vi-d">${esc(p.username)}</div></div><span class="sv" style="background:var(--ylb);color:var(--yl)">${days}d old</span></div>`}).join('')}</div>`:''}
 ${!w.length&&!r.length&&!o.length?'<div style="padding:30px;text-align:center"><div style="font-size:40px;margin-bottom:8px">🛡️</div><div style="font-size:16px;font-weight:700;color:var(--gn);margin-bottom:4px">Perfect Score</div><div style="font-size:12px;color:var(--tx2)">All passwords are strong, unique, and up-to-date</div></div>':''}`}
 
-// ════════ PAGE: SCANNER ════════
-function rScan(el){el.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:24px;text-align:center"><div style="font-size:36px;margin-bottom:8px">🔍</div><div style="font-size:16px;font-weight:700;margin-bottom:4px">Dark Web Breach Scanner</div><div style="font-size:12px;color:var(--tx2);margin-bottom:16px;max-width:340px;margin-left:auto;margin-right:auto">Check if your email appears in known data breaches. All checks are performed locally.</div><div style="max-width:300px;margin:0 auto"><div style="display:flex;gap:5px;margin-bottom:12px"><input class="fi" id="scEm" value="david@gmail.com" style="font-size:12px"><button class="bt bt-p" onclick="runScan()">Scan</button></div><div id="scR"></div></div></div>`}
-function runScan(){const e=$('scEm').value,r=$('scR');r.innerHTML='<div style="padding:14px;color:var(--tx3)"><div style="width:18px;height:18px;border:2px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 6px"></div>Scanning breach databases…</div>';setTimeout(()=>{const m=V.breaches.filter(b=>b.email===e);r.innerHTML=m.length?m.map(b=>`<div class="bc" style="margin-bottom:3px"><div class="bc-i" style="background:var(--rdb)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--rd)" stroke-width="2" style="width:13px;height:13px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="bc-n"><div class="bc-t">${esc(b.site)}</div><div class="bc-d">${esc(b.date)} · ${esc(b.type)}</div></div></div>`).join(''):`<div style="padding:10px;background:var(--gnb);border-radius:var(--rs);color:var(--gn);font-weight:600;font-size:11px">✓ No breaches found for ${esc(e)}</div>`},2000)}
+// ════════ PAGE: SCANNER (HIBP Pwned Passwords) ════════
+let _lastScanTime=null;
+function rScan(el){
+  const hasResults=V.breaches.some(b=>b.source==='hibp');
+  el.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:24px;text-align:center"><div style="font-size:36px;margin-bottom:8px">🔍</div><div style="font-size:16px;font-weight:700;margin-bottom:4px">Breach Scanner</div><div style="font-size:12px;color:var(--tx2);margin-bottom:16px;max-width:400px;margin-left:auto;margin-right:auto">Check your vault passwords against the Have I Been Pwned database of ${authToken?'breached passwords. Passwords are checked using k-anonymity — only a 5-character hash prefix is sent, never your actual passwords.':'breached passwords. Sign in to scan your vault.'}</div>${authToken?`<button class="bt bt-p" onclick="scanBreaches()" id="scBtn">Scan My Vault</button>`:'<div style="font-size:11px;color:var(--tx3)">Sign in to enable scanning</div>'}</div>${_lastScanTime?`<div style="text-align:center;font-size:10px;color:var(--tx3);margin:8px 0">Last scan: ${new Date(_lastScanTime).toLocaleString()}</div>`:''}
+  <div id="scR">${hasResults?renderBreachResults():''}</div>`;
+}
+function renderBreachResults(){
+  const breached=V.breaches.filter(b=>b.source==='hibp'&&!b.resolved);
+  const resolved=V.breaches.filter(b=>b.source==='hibp'&&b.resolved);
+  if(!breached.length&&!resolved.length)return'<div style="padding:16px;text-align:center;background:var(--gnb);border-radius:var(--r);color:var(--gn);font-weight:600;font-size:12px;margin-top:12px">✓ No compromised passwords found</div>';
+  return(breached.length?'<div class="sh" style="margin-top:12px"><div class="st" style="color:var(--rd)">Compromised Passwords ('+breached.length+')</div></div>'+breached.map(b=>`<div class="bc" style="margin-bottom:4px"><div class="bc-i" style="background:var(--rdb)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--rd)" stroke-width="2" style="width:13px;height:13px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="bc-n"><div class="bc-t">${esc(b.site)}</div><div class="bc-d">Found in ${b.recs} breached records · Password should be changed</div></div><button class="bt bt-ok" style="font-size:9px" onclick="event.stopPropagation();V.breaches.find(x=>x.id==='${b.id}').resolved=true;logA('Resolved breach','${esc(b.site)}','edit');saveV();render();toast('Marked resolved','ok')">Resolve</button></div>`).join(''):'')+(resolved.length?'<div class="sh" style="margin-top:12px"><div class="st" style="color:var(--tx3)">Resolved ('+resolved.length+')</div></div>'+resolved.map(b=>`<div class="bc" style="opacity:.4;margin-bottom:4px"><div class="bc-i" style="background:var(--bg3)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" style="width:13px;height:13px"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="bc-n"><div class="bc-t">${esc(b.site)} <span style="color:var(--gn);font-size:9px">✓ Resolved</span></div></div></div>`).join(''):'');
+}
+async function scanBreaches(){
+  if(!authToken){toast('Sign in to scan','er');return}
+  if(!V.passwords.length){toast('No passwords to scan','in');return}
+  const btn=$('scBtn'),sr=$('scR');
+  if(btn){btn.disabled=true;btn.textContent='Scanning…'}
+  if(sr)sr.innerHTML='<div style="padding:20px;text-align:center;color:var(--tx3)"><div style="width:18px;height:18px;border:2px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 8px"></div>Hashing passwords and checking HIBP…</div>';
+  try{
+    // SHA-1 hash each password via Web Crypto
+    const hashes=[];
+    for(const p of V.passwords){
+      if(!p.password)continue;
+      const buf=await crypto.subtle.digest('SHA-1',new TextEncoder().encode(p.password));
+      const hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
+      hashes.push({id:p.id,name:p.name,url:p.url,hash:hex,prefix:hex.substring(0,5),suffix:hex.substring(5)});
+    }
+    // Collect unique prefixes
+    const prefixes=[...new Set(hashes.map(h=>h.prefix))];
+    // POST to server proxy
+    const res=await fetch(API+'/api/breach/check',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},body:JSON.stringify({prefixes})});
+    if(!res.ok){const e=await res.json();toast(e.error||'Scan failed','er');return}
+    const d=await res.json();
+    // Check each password's full suffix against HIBP results
+    const newBreaches=[];
+    for(const h of hashes){
+      const rangeData=d.results[h.prefix];
+      if(!rangeData)continue;
+      const lines=rangeData.split('\n');
+      for(const line of lines){
+        const[suffix,count]=line.split(':');
+        if(suffix&&suffix.trim()===h.suffix){
+          // Check if already tracked
+          const existing=V.breaches.find(b=>b.source==='hibp'&&b.passwordId===h.id);
+          if(!existing){
+            newBreaches.push({id:'br'+Math.random().toString(36).substr(2,6),site:h.name,passwordId:h.id,date:new Date().toISOString().split('T')[0],recs:parseInt(count)||0,source:'hibp',resolved:false,sev:parseInt(count)>100?'high':parseInt(count)>10?'medium':'low'});
+          }else if(!existing.resolved){existing.recs=parseInt(count)||0}
+          break;
+        }
+      }
+    }
+    // Remove old HIBP breaches for passwords no longer compromised (except resolved ones)
+    const compromisedIds=new Set(hashes.filter(h=>{const r=d.results[h.prefix];if(!r)return false;return r.split('\n').some(l=>l.split(':')[0]?.trim()===h.suffix)}).map(h=>h.id));
+    V.breaches=V.breaches.filter(b=>b.source!=='hibp'||b.resolved||compromisedIds.has(b.passwordId));
+    V.breaches.push(...newBreaches);
+    _lastScanTime=Date.now();
+    logA('Breach scan',`${compromisedIds.size} compromised`,'breach');
+    saveV();render();
+    toast(compromisedIds.size?`Found ${compromisedIds.size} compromised password${compromisedIds.size>1?'s':''}`:'No compromised passwords found',compromisedIds.size?'er':'ok');
+  }catch(err){toast('Scan failed: '+err.message,'er')}
+  finally{if(btn){btn.disabled=false;btn.textContent='Scan My Vault'}}
+}
 
 // ════════ PAGE: SHARING (One-Time Links) ════════
+let _serverShares=[];
+async function loadServerShares(){
+  if(!authToken)return;
+  try{const r=await fetch(API+'/api/share',{headers:{'Authorization':'Bearer '+authToken}});if(r.ok){const d=await r.json();_serverShares=d.shares||[]}}catch{}
+}
 function rShare(el){
-  el.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:12px"><div style="font-size:14px;font-weight:700;margin-bottom:2px">🔗 One-Time Share Links</div><div style="font-size:11px;color:var(--tx2);margin-bottom:10px">Share credentials via secure, self-destructing links. No account required for recipients. Links expire after the view limit or time limit is reached.</div>
+  if(!authToken){el.innerHTML='<div style="padding:30px;text-align:center"><div style="font-size:40px;margin-bottom:8px">🔗</div><div style="font-size:16px;font-weight:700;margin-bottom:4px">Secure Sharing</div><div style="font-size:12px;color:var(--tx2);margin-bottom:12px">Sign in to create encrypted share links. The encryption key stays in the URL fragment and never reaches the server.</div></div>';return}
+  loadServerShares().then(()=>{renderShareList(el)});
+  renderShareList(el);
+}
+function renderShareList(el){
+  el.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:12px"><div style="font-size:14px;font-weight:700;margin-bottom:2px">🔗 One-Time Share Links</div><div style="font-size:11px;color:var(--tx2);margin-bottom:10px">Share credentials via secure, self-destructing links. The encryption key is in the URL fragment — it never reaches the server.</div>
   <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px"><select class="fs" id="shSel" style="flex:1;max-width:240px;font-size:12px"><option value="">Select item to share…</option>${V.passwords.map(p=>'<option value="'+p.id+'">🔑 '+esc(p.name)+'</option>').join('')}${V.notes.map(n=>'<option value="'+n.id+'">📝 '+esc(n.name)+'</option>').join('')}</select><select class="fs" id="shExp" style="width:120px;font-size:12px"><option value="1">1 hour</option><option value="24" selected>24 hours</option><option value="168">7 days</option></select><select class="fs" id="shMax" style="width:100px;font-size:12px"><option value="1">1 view</option><option value="3" selected>3 views</option><option value="5">5 views</option></select></div>
-  <button class="bt bt-p" onclick="createShare()">🔗 Generate Secure Link</button></div>
-  ${V.shares.length?V.shares.map(s=>{const dead=Date.now()>s.exp||s.views>=s.maxV;const link='https://wardkey.io/s/'+s.id.substr(1,8);return`<div class="bc"${dead?' style="opacity:.4"':''}><div class="bc-i" style="background:${dead?'var(--bg3)':'var(--acg)'}"><svg viewBox="0 0 24 24" fill="none" stroke="${dead?'var(--tx3)':'var(--ac)'}" stroke-width="2" style="width:13px;height:13px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/></svg></div><div class="bc-n"><div class="bc-t">${esc(s.name)} → ${esc(s.to)||'Anyone with link'}</div><div class="bc-d" style="font-family:var(--mono);font-size:10px;margin:2px 0">${link}</div><div class="bc-d">${s.views}/${s.maxV} views · Expires ${new Date(s.exp).toLocaleDateString()}</div></div><div style="display:flex;gap:3px">${!dead?`<button class="bt bt-s" style="font-size:9px;padding:3px 8px" onclick="event.stopPropagation();cpTx('${link}')">Copy Link</button>`:''}
-  <button class="bt bt-d" style="font-size:9px;padding:3px 8px" onclick="event.stopPropagation();V.shares=V.shares.filter(x=>x.id!=='${s.id}');saveV();render();toast('Share revoked','ok')">Revoke</button></div>
-  <span class="sv" style="background:${dead?'var(--bg3);color:var(--tx3)':'var(--gnb);color:var(--gn)'}">${dead?'Expired':'Active'}</span></div>`}).join(''):'<div style="padding:16px;text-align:center;color:var(--tx3);font-size:12px">No active shares. Generate a link above.</div>'}`}
-function createShare(){
+  <button class="bt bt-p" onclick="createShare()" id="shBtn">🔗 Generate Secure Link</button></div>
+  ${_serverShares.length?_serverShares.map(s=>{const dead=s.status!=='active';return`<div class="bc"${dead?' style="opacity:.4"':''}><div class="bc-i" style="background:${dead?'var(--bg3)':'var(--acg)'}"><svg viewBox="0 0 24 24" fill="none" stroke="${dead?'var(--tx3)':'var(--ac)'}" stroke-width="2" style="width:13px;height:13px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/></svg></div><div class="bc-n"><div class="bc-t">Share #${s.id.substring(0,8)}</div><div class="bc-d">${s.current_views}/${s.max_views} views · ${s.status} · Expires ${new Date(s.expires_at).toLocaleDateString()}</div></div><div style="display:flex;gap:3px">${!dead?`<button class="bt bt-d" style="font-size:9px;padding:3px 8px" onclick="event.stopPropagation();revokeShare('${s.id}')">Revoke</button>`:''}</div><span class="sv" style="background:${dead?'var(--bg3);color:var(--tx3)':'var(--gnb);color:var(--gn)'}">${s.status}</span></div>`}).join(''):'<div style="padding:16px;text-align:center;color:var(--tx3);font-size:12px">No active shares. Generate a link above.</div>'}`}
+async function createShare(){
+  if(!authToken){toast('Sign in to create share links','er');return}
   const sel=$('shSel')?.value;if(!sel){toast('Select an item to share','er');return}
   const item=V.passwords.find(p=>p.id===sel)||V.notes.find(n=>n.id===sel);
   if(!item){toast('Item not found','er');return}
   const hrs=parseInt($('shExp')?.value)||24;
   const maxV=parseInt($('shMax')?.value)||3;
-  V.shares.push({id:'s'+Date.now()+Math.random().toString(36).substr(2,4),name:item.name,to:'Anyone with link',created:Date.now(),exp:Date.now()+36e5*hrs,views:0,maxV,active:true});
-  logA('Created share link',item.name,'share');saveV();render();toast('Share link created for '+item.name,'ok');
+  const btn=$('shBtn');if(btn){btn.disabled=true;btn.textContent='Encrypting…'}
+  try{
+    // Generate random AES-256 key and IV
+    const rawKey=crypto.getRandomValues(new Uint8Array(32));
+    const iv=crypto.getRandomValues(new Uint8Array(12));
+    const key=await crypto.subtle.importKey('raw',rawKey,{name:'AES-GCM'},false,['encrypt']);
+    const plaintext=new TextEncoder().encode(JSON.stringify({name:item.name,username:item.username||'',password:item.password||'',url:item.url||'',notes:item.notes||''}));
+    const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,plaintext);
+    const encB64=btoa(String.fromCharCode(...new Uint8Array(ct)));
+    const ivB64=btoa(String.fromCharCode(...iv));
+    // POST to server (server never sees the key)
+    const res=await fetch(API+'/api/share',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},body:JSON.stringify({encryptedData:encB64,iv:ivB64,maxViews:maxV,expiresInHours:hrs})});
+    if(!res.ok){const e=await res.json();toast(e.error||'Failed to create share','er');return}
+    const d=await res.json();
+    // URL fragment key (base64url)
+    const keyB64=btoa(String.fromCharCode(...rawKey)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    const shareUrl='https://wardkey.io/s/'+d.id+'#'+keyB64;
+    await cpTx(shareUrl);
+    logA('Created share link',item.name,'share');
+    toast('Share link copied to clipboard!','ok');
+    loadServerShares().then(()=>render());
+  }catch(err){toast('Share failed: '+err.message,'er')}
+  finally{if(btn){btn.disabled=false;btn.textContent='🔗 Generate Secure Link'}}
+}
+async function revokeShare(id){
+  if(!authToken)return;
+  try{await fetch(API+'/api/share/'+id,{method:'DELETE',headers:{'Authorization':'Bearer '+authToken}});toast('Share revoked','ok');loadServerShares().then(()=>render())}catch{toast('Failed to revoke','er')}
 }
 
 // ════════ PAGE: EMERGENCY ════════
-function rEmer(el){el.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:12px"><div style="font-size:14px;font-weight:700;margin-bottom:2px">🚨 Emergency Access</div><div style="font-size:11px;color:var(--tx2);margin-bottom:10px">Trusted contacts who can request vault access after a waiting period</div><button class="bt bt-p" onclick="toast('Emergency invite sent','ok')">+ Add Contact</button></div>${V.emergency.map(e=>`<div class="bc"><div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--ac2),var(--cy));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--bg0);font-size:12px;flex-shrink:0">${esc(e.name[0])}</div><div class="bc-n"><div class="bc-t">${esc(e.name)}</div><div class="bc-d">${esc(e.email)} · ${esc(e.rel)} · ${e.wait}h wait</div></div><span class="sv" style="background:var(--gnb);color:var(--gn)">${e.status}</span></div>`).join('')}`}
+let _emerContacts=[],_emerIncoming=[];
+async function loadEmerContacts(){
+  if(!authToken)return;
+  try{
+    const[r1,r2]=await Promise.all([fetch(API+'/api/emergency',{headers:{'Authorization':'Bearer '+authToken}}),fetch(API+'/api/emergency/incoming',{headers:{'Authorization':'Bearer '+authToken}})]);
+    if(r1.ok){const d=await r1.json();_emerContacts=d.contacts||[]}
+    if(r2.ok){const d=await r2.json();_emerIncoming=d.contacts||[]}
+  }catch{}
+}
+function rEmer(el){
+  if(!authToken){el.innerHTML='<div style="padding:30px;text-align:center"><div style="font-size:40px;margin-bottom:8px">🚨</div><div style="font-size:16px;font-weight:700;margin-bottom:4px">Emergency Access</div><div style="font-size:12px;color:var(--tx2)">Sign in to set up emergency contacts. Trusted contacts can request vault access after a waiting period.</div></div>';return}
+  loadEmerContacts().then(()=>renderEmer(el));
+  renderEmer(el);
+}
+function renderEmer(el){
+  const stColors={invited:'var(--tx3)',confirmed:'var(--ac)',requesting:'var(--og)',approved:'var(--gn)',denied:'var(--rd)'};
+  const stBg={invited:'var(--bg3)',confirmed:'var(--acg)',requesting:'var(--ogb)',approved:'var(--gnb)',denied:'var(--rdb)'};
+  el.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:12px"><div style="font-size:14px;font-weight:700;margin-bottom:2px">🚨 Emergency Access</div><div style="font-size:11px;color:var(--tx2);margin-bottom:10px">Add trusted contacts who can request vault access after a waiting period. You'll be notified of any requests and can approve or deny them.</div>
+  <div id="emerForm" style="display:none;margin-bottom:10px"><div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px"><input class="fi" id="emerEmail" placeholder="Contact email" style="flex:1;min-width:180px;font-size:12px"><select class="fs" id="emerWait" style="width:110px;font-size:12px"><option value="24">24h wait</option><option value="48" selected>48h wait</option><option value="168">7 days wait</option></select></div><div style="display:flex;gap:5px"><button class="bt bt-p" onclick="addEmerContact()">Send Invite</button><button class="bt bt-s" onclick="$('emerForm').style.display='none'">Cancel</button></div></div>
+  <button class="bt bt-p" onclick="$('emerForm').style.display='block';this.style.display='none'" id="emerAddBtn">+ Add Contact</button></div>
+  ${_emerContacts.length?'<div class="sh"><div class="st">My Emergency Contacts</div></div>'+_emerContacts.map(c=>{
+    const st=c.status;const isReq=st==='requesting';const reqTime=c.request_at?new Date(c.request_at):null;
+    const waitEnd=reqTime?new Date(reqTime.getTime()+c.waiting_hours*36e5):null;
+    const timeLeft=waitEnd?Math.max(0,Math.ceil((waitEnd-Date.now())/36e5)):0;
+    return`<div class="bc"><div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--ac2),var(--cy));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--bg0);font-size:12px;flex-shrink:0">${esc(c.grantee_email[0].toUpperCase())}</div><div class="bc-n"><div class="bc-t">${esc(c.grantee_email)}</div><div class="bc-d">${c.waiting_hours}h wait${isReq?' · '+timeLeft+'h remaining':''}</div></div><div style="display:flex;gap:3px;align-items:center">${isReq?`<button class="bt bt-ok" style="font-size:9px;padding:3px 8px" onclick="event.stopPropagation();emerAction('${c.id}','approve')">Approve</button><button class="bt bt-d" style="font-size:9px;padding:3px 8px" onclick="event.stopPropagation();emerAction('${c.id}','deny')">Deny</button>`:st==='approved'?`<button class="bt bt-s" style="font-size:9px;padding:3px 8px" onclick="event.stopPropagation();doExport('json')">Export Vault</button>`:''}<button class="bt-i" title="Remove" onclick="event.stopPropagation();removeEmerContact('${c.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="var(--rd)" stroke-width="2" style="width:11px;height:11px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></div><span class="sv" style="background:${stBg[st]||'var(--bg3)'};color:${stColors[st]||'var(--tx3)'}">${st}</span></div>`}).join(''):''}
+  ${_emerIncoming.length?'<div class="sh" style="margin-top:16px"><div class="st">Vaults I Have Access To</div></div>'+_emerIncoming.map(c=>{const st=c.status;return`<div class="bc"><div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--pp),var(--ac));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--bg0);font-size:12px;flex-shrink:0">${esc((c.grantor_name||c.grantor_email||'?')[0].toUpperCase())}</div><div class="bc-n"><div class="bc-t">${esc(c.grantor_name||c.grantor_email)}</div><div class="bc-d">${c.waiting_hours}h wait · ${st}</div></div>${st==='confirmed'?`<button class="bt bt-p" style="font-size:9px;padding:3px 8px" onclick="event.stopPropagation();requestEmerAccess('${c.id}')">Request Access</button>`:''}<span class="sv" style="background:${stBg[st]||'var(--bg3)'};color:${stColors[st]||'var(--tx3)'}">${st}</span></div>`}).join(''):''}`;
+}
+async function addEmerContact(){
+  const email=$('emerEmail')?.value;if(!email||!email.includes('@')){toast('Enter a valid email','er');return}
+  const wait=parseInt($('emerWait')?.value)||48;
+  try{const r=await fetch(API+'/api/emergency',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},body:JSON.stringify({contactEmail:email,waitingHours:wait})});const d=await r.json();if(!r.ok){toast(d.error||'Failed','er');return}toast('Emergency invite sent to '+email,'ok');loadEmerContacts().then(()=>render())}catch(err){toast('Failed: '+err.message,'er')}
+}
+async function emerAction(id,action){
+  try{const r=await fetch(API+'/api/emergency/'+id+'/'+action,{method:'POST',headers:{'Authorization':'Bearer '+authToken}});if(!r.ok){const d=await r.json();toast(d.error||'Failed','er');return}toast('Request '+action+'d','ok');loadEmerContacts().then(()=>render())}catch(err){toast('Failed: '+err.message,'er')}
+}
+async function removeEmerContact(id){
+  if(!confirm('Remove this emergency contact?'))return;
+  try{await fetch(API+'/api/emergency/'+id,{method:'DELETE',headers:{'Authorization':'Bearer '+authToken}});toast('Contact removed','ok');loadEmerContacts().then(()=>render())}catch{toast('Failed to remove','er')}
+}
+async function requestEmerAccess(id){
+  if(!confirm('Request emergency access? The vault owner will be notified and can deny within the waiting period.'))return;
+  try{const r=await fetch(API+'/api/emergency/'+id+'/request',{method:'POST',headers:{'Authorization':'Bearer '+authToken}});if(!r.ok){const d=await r.json();toast(d.error||'Failed','er');return}toast('Access requested — waiting period started','ok');loadEmerContacts().then(()=>render())}catch(err){toast('Failed: '+err.message,'er')}
+}
 
 // ════════ PAGE: ANALYTICS ════════
 function rAnl(el){const cats={};V.passwords.forEach(p=>cats[p.cat]=(cats[p.cat]||0)+1);const sd={Strong:0,Good:0,Fair:0,Weak:0};V.passwords.forEach(p=>{const s=str(p.password);sd[s.l]=(sd[s.l]||0)+1});const sc={Strong:'var(--gn)',Good:'var(--yl)',Fair:'var(--og)',Weak:'var(--rd)'};const cc=['var(--ac)','var(--gn)','var(--pp)','var(--og)','var(--cy)','var(--yl)'];const t=V.passwords.length||1;
 el.innerHTML=`<div class="grid2"><div class="ch"><div class="ch-t">Password Strength</div>${Object.entries(sd).map(([k,v])=>`<div class="br"><div class="br-l">${k}</div><div class="br-t"><div class="br-f" style="width:${Math.max(2,(v/t)*100)}%;background:${sc[k]}">${v}</div></div></div>`).join('')}</div>
 <div class="ch"><div class="ch-t">Categories</div>${Object.entries(cats).map(([k,v],i)=>`<div class="br"><div class="br-l">${esc(k)}</div><div class="br-t"><div class="br-f" style="width:${Math.max(2,(v/t)*100)}%;background:${cc[i%cc.length]}">${v}</div></div></div>`).join('')}</div>
-<div class="ch"><div class="ch-t">Vault Composition</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center">${[['Passwords',V.passwords.length,'var(--ac)'],['Cards',V.cards.length,'var(--pp)'],['Notes',V.notes.length,'var(--cy)'],['API Keys',V.apikeys.length,'var(--gn)'],['Licenses',V.licenses.length,'var(--yl)'],['2FA',V.totp.length,'var(--og)'],['Passkeys',V.passkeys.length,'var(--ac2)'],['Aliases',V.aliases.length,'var(--cy)']].map(([l,v,c])=>`<div><div style="font-size:20px;font-weight:700;color:${c}">${v}</div><div style="font-size:9px;color:var(--tx3)">${l}</div></div>`).join('')}</div></div>
+<div class="ch"><div class="ch-t">Vault Composition</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center">${[['Passwords',V.passwords.length,'var(--ac)'],['Cards',V.cards.length,'var(--pp)'],['Notes',V.notes.length,'var(--cy)'],['API Keys',V.apikeys.length,'var(--gn)'],['Licenses',V.licenses.length,'var(--yl)'],['2FA',V.totp.length,'var(--og)'],['Passkeys',V.passkeys.length,'var(--ac2)']].map(([l,v,c])=>`<div><div style="font-size:20px;font-weight:700;color:${c}">${v}</div><div style="font-size:9px;color:var(--tx3)">${l}</div></div>`).join('')}</div></div>
 <div class="ch"><div class="ch-t">Password Age Distribution</div>${[['< 7 days',V.passwords.filter(p=>p.modified>Date.now()-864e5*7).length,'var(--gn)'],['7-30 days',V.passwords.filter(p=>p.modified<=Date.now()-864e5*7&&p.modified>Date.now()-864e5*30).length,'var(--cy)'],['30-90 days',V.passwords.filter(p=>p.modified<=Date.now()-864e5*30&&p.modified>Date.now()-864e5*90).length,'var(--yl)'],['90+ days',V.passwords.filter(p=>p.modified<=Date.now()-864e5*90).length,'var(--rd)']].map(([k,v,c])=>`<div class="br"><div class="br-l">${k}</div><div class="br-t"><div class="br-f" style="width:${Math.max(2,(v/t)*100)}%;background:${c}">${v}</div></div></div>`).join('')}</div></div>`}
 
 // ════════ PAGE: ACTIVITY ════════
@@ -1568,7 +1702,79 @@ async function doImport(input){const f=input.files[0];if(!f)return;
   const pw=await askPassword('Re-enter master password to import data:');
   if(!pw){input.value='';return}
   try{const hash=await deriveVerifyHash(pw,window._vaultSalt);if(hash!==window._verifyHash){toast('Wrong password — import denied','er');input.value='';return}}catch{toast('Authentication failed','er');input.value='';return}
-  const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);let c=0;if(Array.isArray(d))d.forEach(x=>{if(x.password||x.Password){V.passwords.push({id:'i'+Math.random().toString(36).substr(2,6),name:x.name||x.Name||x.title||'Import',username:x.username||x.Username||x.login||'',password:x.password||x.Password||'',url:x.url||x.URL||'',cat:'other',tags:['imported'],notes:'',created:Date.now(),modified:Date.now(),history:[],icon:'📥',fav:false,sens:false,fields:[]});c++}});logA(`Imported ${c} items`,'','add');saveV();updC();render();$('impMo').classList.remove('on');toast(`${c} items imported`,'ok')}catch(err){toast('Import failed: '+err.message,'er')}};r.readAsText(f)}
+  const r=new FileReader();r.onload=e=>{try{
+    const text=e.target.result;const ext=f.name.split('.').pop().toLowerCase();
+    let items=[],fmt='Unknown';
+    if(ext==='json'){
+      const d=JSON.parse(text);
+      if(d.items&&Array.isArray(d.items)){
+        // Bitwarden JSON
+        fmt='Bitwarden JSON';
+        items=d.items.filter(i=>i.type===1&&i.login).map(i=>({name:i.name||'Import',username:i.login?.username||'',password:i.login?.password||'',url:i.login?.uris?.[0]?.uri||'',notes:i.notes||'',cat:i.folderId||'other'}));
+      }else if(Array.isArray(d)){
+        // Generic JSON array
+        fmt='Generic JSON';
+        items=d.filter(x=>x.password||x.Password).map(x=>({name:x.name||x.Name||x.title||'Import',username:x.username||x.Username||x.login||'',password:x.password||x.Password||'',url:x.url||x.URL||'',notes:x.notes||'',cat:'other'}));
+      }
+    }else if(ext==='csv'){
+      const rows=parseCSV(text);
+      if(rows.length<2){toast('CSV file is empty','er');return}
+      const hdr=rows[0].map(h=>h.toLowerCase().trim());
+      if(hdr.includes('url')&&hdr.includes('username')&&hdr.includes('password')&&hdr.includes('extra')&&hdr.includes('grouping')){
+        // LastPass CSV: url,username,password,totp,extra,name,grouping,fav
+        fmt='LastPass CSV';
+        const idx={url:hdr.indexOf('url'),user:hdr.indexOf('username'),pw:hdr.indexOf('password'),extra:hdr.indexOf('extra'),name:hdr.indexOf('name'),group:hdr.indexOf('grouping')};
+        items=rows.slice(1).filter(r=>r[idx.pw]).map(r=>({name:r[idx.name]||'Import',username:r[idx.user]||'',password:r[idx.pw]||'',url:r[idx.url]||'',notes:r[idx.extra]||'',cat:r[idx.group]||'other'}));
+      }else if(hdr[0]==='name'&&hdr[1]==='url'&&hdr[2]==='username'&&hdr[3]==='password'){
+        // Chrome CSV: name,url,username,password[,note]
+        fmt='Chrome CSV';
+        items=rows.slice(1).filter(r=>r[3]).map(r=>({name:r[0]||'Import',url:r[1]||'',username:r[2]||'',password:r[3]||'',notes:r[4]||'',cat:'other'}));
+      }else if(hdr.includes('title')&&hdr.includes('username')&&hdr.includes('password')){
+        // 1Password CSV: Title,Website/URL,Username,Password,Notes,...
+        fmt='1Password CSV';
+        const idx={title:hdr.indexOf('title'),url:hdr.findIndex(h=>h==='url'||h==='website'),user:hdr.indexOf('username'),pw:hdr.indexOf('password'),notes:hdr.indexOf('notes')};
+        items=rows.slice(1).filter(r=>r[idx.pw]).map(r=>({name:r[idx.title]||'Import',url:idx.url>=0?r[idx.url]:'',username:r[idx.user]||'',password:r[idx.pw]||'',notes:idx.notes>=0?r[idx.notes]:'',cat:'other'}));
+      }else if(hdr.includes('login uri')&&hdr.includes('login_username')){
+        // Bitwarden CSV
+        fmt='Bitwarden CSV';
+        const idx={name:hdr.indexOf('name'),url:hdr.indexOf('login uri')||hdr.indexOf('login_uri'),user:hdr.indexOf('login_username'),pw:hdr.indexOf('login_password'),notes:hdr.indexOf('notes')};
+        items=rows.slice(1).filter(r=>r[idx.pw]).map(r=>({name:r[idx.name]||'Import',url:r[idx.url]||'',username:r[idx.user]||'',password:r[idx.pw]||'',notes:idx.notes>=0?r[idx.notes]:'',cat:'other'}));
+      }else{
+        // Generic CSV fallback — try to find password-like columns
+        fmt='Generic CSV';
+        const pwCol=hdr.findIndex(h=>/passw/i.test(h));const nameCol=hdr.findIndex(h=>/name|title/i.test(h));const userCol=hdr.findIndex(h=>/user|login|email/i.test(h));const urlCol=hdr.findIndex(h=>/url|site|web/i.test(h));
+        if(pwCol>=0)items=rows.slice(1).filter(r=>r[pwCol]).map(r=>({name:nameCol>=0?r[nameCol]:'Import',username:userCol>=0?r[userCol]:'',password:r[pwCol],url:urlCol>=0?r[urlCol]:'',notes:'',cat:'other'}));
+      }
+    }
+    if(!items.length){toast('No importable items found in file','er');return}
+    // Deduplicate against existing passwords
+    let added=0,skipped=0;
+    for(const it of items){
+      const dup=V.passwords.some(p=>p.username===it.username&&p.password===it.password&&p.url===it.url);
+      if(dup){skipped++;continue}
+      V.passwords.push({id:'i'+Math.random().toString(36).substr(2,6),name:it.name,username:it.username,password:it.password,url:it.url,cat:it.cat||'other',tags:['imported'],notes:it.notes||'',created:Date.now(),modified:Date.now(),history:[],icon:'📥',fav:false,sens:false,fields:[]});
+      added++;
+    }
+    logA(`Imported ${added} items (${fmt})`,'','add');saveV();updC();render();$('impMo').classList.remove('on');
+    toast(`${fmt}: ${added} imported${skipped?' ('+skipped+' duplicates skipped)':''}`,added?'ok':'in');
+  }catch(err){toast('Import failed: '+err.message,'er')}};r.readAsText(f)}
+function parseCSV(text){
+  const rows=[]; let row=[]; let field=''; let inQuote=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(inQuote){
+      if(c==='"'){if(text[i+1]==='"'){field+='"';i++}else{inQuote=false}}
+      else{field+=c}
+    }else{
+      if(c==='"'){inQuote=true}
+      else if(c===','){row.push(field);field=''}
+      else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(field);if(row.some(f=>f))rows.push(row);row=[];field=''}
+      else{field+=c}
+    }
+  }
+  if(field||row.length){row.push(field);if(row.some(f=>f))rows.push(row)}
+  return rows;
+}
 function askPassword(msg){return new Promise(resolve=>{const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:9999';const bx=document.createElement('div');bx.style.cssText='background:var(--card,#1a1a2e);border-radius:12px;padding:24px;max-width:360px;width:90%';bx.innerHTML='<p style="color:var(--text,#e0e0e0);margin:0 0 12px">'+esc(msg)+'</p><input type="password" id="reAuthPw" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--bd,#333);background:var(--bg,#0a0a1a);color:var(--text,#e0e0e0);margin:0 0 12px;box-sizing:border-box" placeholder="Master password"><div style="display:flex;gap:8px;justify-content:flex-end"><button id="reAuthCancel" style="padding:8px 16px;border-radius:8px;border:1px solid var(--bd,#333);background:transparent;color:var(--text,#e0e0e0);cursor:pointer">Cancel</button><button id="reAuthOk" style="padding:8px 16px;border-radius:8px;border:none;background:var(--ac,#6c5ce7);color:#fff;cursor:pointer">Confirm</button></div>';ov.appendChild(bx);document.body.appendChild(ov);const inp=$('reAuthPw');inp.focus();$('reAuthOk').onclick=()=>{document.body.removeChild(ov);resolve(inp.value)};$('reAuthCancel').onclick=()=>{document.body.removeChild(ov);resolve(null)};inp.onkeydown=e=>{if(e.key==='Enter')$('reAuthOk').click()}})}
 async function doExport(fmt){
   // Re-authenticate before exporting plaintext
@@ -2002,21 +2208,6 @@ function addPasskey(){
   logA('Passkey registered','New Service','add');saveV();updC();render();toast('Passkey registered','ok');
 }
 
-// ════════ PAGE: EMAIL ALIASES ════════
-function rAliases(el){
-  el.innerHTML=`<div class="sh"><div><div class="st">Email Aliases</div><div class="ss">Protect your real email with masked addresses</div></div><button class="bt bt-p" onclick="genAlias()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Generate Alias</button></div>
-  <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:14px;display:flex;align-items:center;gap:10px"><div style="font-size:24px">📧</div><div><div style="font-size:13px;font-weight:600">How it works</div><div style="font-size:11px;color:var(--tx2);line-height:1.5">Use unique aliases per site — if one gets leaked or spammed, just disable it. Mail forwards to your real inbox. Your real email stays private.</div></div></div>
-  <div class="vl">${V.aliases.length?V.aliases.map((a,i)=>`<div class="vi" style="animation-delay:${i*.03}s"><div class="vi-i" style="background:${a.active?'var(--acg)':'var(--bg4)'}">📧</div><div class="vi-n"><div class="vi-t" style="font-family:var(--mono);font-size:13px">${a.alias}</div><div class="vi-d">${a.site} → ${a.target} · ${a.forwarded} forwarded</div></div><div style="display:flex;align-items:center;gap:4px"><button class="bt-i" title="Copy alias" onclick="event.stopPropagation();cpTx('${a.alias}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button><div class="tgl${a.active?' on':''}" onclick="event.stopPropagation();toggleAlias('${a.id}')" style="width:28px;height:16px"><div class="tgl-k" style="width:10px;height:10px;top:2px;left:${a.active?'14':'2'}px"></div></div><button class="bt-i" title="Delete" onclick="event.stopPropagation();delAlias('${a.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="var(--rd)" stroke-width="2" style="width:11px;height:11px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></div></div>`).join(''):emp('No Aliases','Generate your first email alias')}</div>`;
-}
-function genAlias(){
-  const rnd=Math.random().toString(36).substr(2,4);
-  const id='al'+Math.random().toString(36).substr(2,6);
-  const alias='david.'+rnd+'@wardkey.email';
-  V.aliases.push({id,alias,target:'david@gmail.com',site:'Untitled',created:Date.now(),active:true,forwarded:0});
-  logA('Alias created',alias,'add');saveV();render();toast('Alias generated: '+alias,'ok');
-}
-function toggleAlias(id){const a=V.aliases.find(x=>x.id===id);if(a){a.active=!a.active;saveV();render();toast(a.active?'Alias enabled':'Alias disabled','ok')}}
-function delAlias(id){V.aliases=V.aliases.filter(x=>x.id!==id);saveV();render();toast('Alias deleted','ok')}
 
 // ════════ MOBILE NAV ════════
 function toggleSB(){const sb=document.querySelector('.sb'),ov=$('mobOv');sb.classList.toggle('open');ov.classList.toggle('on')}
@@ -2072,6 +2263,61 @@ if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone
   document.body.style.paddingTop='env(safe-area-inset-top)';
   document.body.style.paddingBottom='env(safe-area-inset-bottom)';
 }
+
+// ════════ SHARE VIEWER (detect /s/:id URL) ════════
+(function checkShareUrl(){
+  const path=window.location.pathname;
+  if(!path.startsWith('/s/'))return;
+  const shareId=path.split('/s/')[1]?.split('/')[0]?.split('?')[0];
+  const keyB64url=window.location.hash.substring(1);
+  if(!shareId||!keyB64url)return;
+  // Show share viewer instead of normal app
+  document.getElementById('LS').style.display='none';
+  document.getElementById('app').style.display='none';
+  const viewer=document.createElement('div');
+  viewer.style.cssText='min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px';
+  viewer.innerHTML='<div style="background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:32px;max-width:420px;width:100%;text-align:center"><div style="font-size:32px;margin-bottom:8px">🔐</div><div style="font-size:16px;font-weight:700;margin-bottom:4px">Decrypting shared credential…</div><div style="width:18px;height:18px;border:2px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:spin 1s linear infinite;margin:12px auto" id="svSpin"></div><div id="svContent"></div></div>';
+  document.body.appendChild(viewer);
+  (async()=>{
+    try{
+      const res=await fetch(API+'/api/share/'+shareId);
+      if(!res.ok){const e=await res.json();throw new Error(e.error||'Share not found')}
+      const d=await res.json();
+      // Decode base64url key
+      const keyB64=keyB64url.replace(/-/g,'+').replace(/_/g,'/');
+      const keyBytes=Uint8Array.from(atob(keyB64),c=>c.charCodeAt(0));
+      const ivBytes=Uint8Array.from(atob(d.iv),c=>c.charCodeAt(0));
+      const ctBytes=Uint8Array.from(atob(d.data),c=>c.charCodeAt(0));
+      const key=await crypto.subtle.importKey('raw',keyBytes,{name:'AES-GCM'},false,['decrypt']);
+      const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:ivBytes},key,ctBytes);
+      const item=JSON.parse(new TextDecoder().decode(plain));
+      document.getElementById('svSpin').style.display='none';
+      const ct=document.getElementById('svContent');
+      ct.innerHTML=`<div style="text-align:left;margin-top:16px"><div style="font-size:18px;font-weight:700;margin-bottom:12px">${esc(item.name||'Shared Credential')}</div>
+        ${item.username?`<div style="margin-bottom:10px"><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;margin-bottom:2px">Username</div><div style="display:flex;align-items:center;gap:6px"><code style="flex:1;font-size:13px;background:var(--bg3);padding:6px 10px;border-radius:6px;word-break:break-all">${esc(item.username)}</code><button class="bt bt-s" style="font-size:10px;padding:4px 10px;flex-shrink:0" onclick="navigator.clipboard.writeText('${esc(item.username).replace(/'/g,"\\'")}')">Copy</button></div></div>`:''}
+        ${item.password?`<div style="margin-bottom:10px"><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;margin-bottom:2px">Password</div><div style="display:flex;align-items:center;gap:6px"><code id="svPw" style="flex:1;font-size:13px;background:var(--bg3);padding:6px 10px;border-radius:6px;word-break:break-all;filter:blur(6px);cursor:pointer" onclick="this.style.filter=this.style.filter?'':'blur(6px)'">${esc(item.password)}</code><button class="bt bt-s" style="font-size:10px;padding:4px 10px;flex-shrink:0" onclick="navigator.clipboard.writeText('${esc(item.password).replace(/'/g,"\\'")}')">Copy</button></div></div>`:''}
+        ${item.url?`<div style="margin-bottom:10px"><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;margin-bottom:2px">URL</div><a href="${esc(item.url)}" target="_blank" rel="noopener" style="font-size:12px;color:var(--ac)">${esc(item.url)}</a></div>`:''}
+        ${item.notes?`<div style="margin-bottom:10px"><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;margin-bottom:2px">Notes</div><div style="font-size:12px;color:var(--tx2);white-space:pre-wrap">${esc(item.notes)}</div></div>`:''}
+        <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--bd);font-size:11px;color:var(--tx3)">${d.viewsRemaining!==undefined?d.viewsRemaining+' view'+(d.viewsRemaining!==1?'s':'')+' remaining · ':''} Expires ${new Date(d.expiresAt).toLocaleString()}</div>
+        <div style="margin-top:12px;text-align:center"><a href="/" style="color:var(--ac);font-size:12px;text-decoration:none">Powered by WARDKEY</a></div>
+      </div>`;
+    }catch(err){
+      document.getElementById('svSpin').style.display='none';
+      document.getElementById('svContent').innerHTML='<div style="color:var(--rd);margin-top:12px;font-size:13px">'+esc(err.message)+'</div><div style="margin-top:12px"><a href="/" style="color:var(--ac);font-size:12px">Go to WARDKEY</a></div>';
+    }
+  })();
+})();
+
+// ════════ EMERGENCY HASH HANDLERS ════════
+(function checkEmergencyHash(){
+  const hash=window.location.hash;
+  if(hash.startsWith('#emergency-confirm=')){
+    const token=hash.split('=')[1];
+    if(token)fetch(API+'/api/emergency/confirm/'+token,{method:'POST',headers:authToken?{'Authorization':'Bearer '+authToken}:{}}).then(r=>r.json()).then(d=>{
+      if(d.success){toast('Emergency contact confirmed!','ok');window.location.hash=''}else{toast(d.error||'Failed','er')}
+    }).catch(()=>toast('Failed to confirm','er'));
+  }
+})();
 </script>
 </body>
 </html>

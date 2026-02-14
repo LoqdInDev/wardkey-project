@@ -70,6 +70,19 @@ function initDB() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    -- Emergency contacts
+    CREATE TABLE IF NOT EXISTS emergency_contacts (
+      id TEXT PRIMARY KEY,
+      grantor_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      grantee_email TEXT NOT NULL,
+      grantee_id TEXT REFERENCES users(id),
+      waiting_hours INTEGER NOT NULL DEFAULT 48,
+      status TEXT NOT NULL DEFAULT 'invited',
+      request_at DATETIME,
+      invite_token TEXT UNIQUE,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     -- Sessions / refresh tokens
     CREATE TABLE IF NOT EXISTS sessions (
       id TEXT PRIMARY KEY,
@@ -102,6 +115,8 @@ function initDB() {
     CREATE INDEX IF NOT EXISTS idx_sync_user ON sync_log(user_id);
     CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_log(user_id);
     CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_log(action);
+    CREATE INDEX IF NOT EXISTS idx_ec_grantor ON emergency_contacts(grantor_id);
+    CREATE INDEX IF NOT EXISTS idx_ec_grantee ON emergency_contacts(grantee_id);
   `);
 
   // Restrict database file permissions (owner read/write only)

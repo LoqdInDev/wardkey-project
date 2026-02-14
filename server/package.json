@@ -1,7 +1,7 @@
 {
   "name": "wardkey-server",
   "version": "1.0.0",
-  "description": "WARDKEY Backend API — Sync, Sharing, Aliases",
+  "description": "WARDKEY Backend API — Sync, Sharing, Breach Scanner, Emergency Access",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

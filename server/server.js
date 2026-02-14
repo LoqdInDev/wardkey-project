@@ -21,9 +21,11 @@ const fs = require('fs');
 const authRoutes = require('./routes/auth');
 const vaultRoutes = require('./routes/vault');
 const shareRoutes = require('./routes/share');
-const aliasRoutes = require('./routes/aliases');
 const adminRoutes = require('./routes/admin');
-const { initDB } = require('./models/db');
+const breachRoutes = require('./routes/breach');
+const emergencyRoutes = require('./routes/emergency');
+const { initDB, getDB } = require('./models/db');
+const emailService = require('./services/email');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -88,6 +90,20 @@ const shareLimiter = rateLimit({
 });
 app.use('/api/share/', shareLimiter);
 
+const breachLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Too many breach scan requests. Please try again later.' }
+});
+app.use('/api/breach/', breachLimiter);
+
+const emergencyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Too many emergency access requests. Please try again later.' }
+});
+app.use('/api/emergency/', emergencyLimiter);
+
 const adminLoginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
@@ -132,8 +148,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/auth', authRoutes);
 app.use('/api/vault', vaultRoutes);
 app.use('/api/share', shareRoutes);
-app.use('/api/aliases', aliasRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/breach', breachRoutes);
+app.use('/api/emergency', emergencyRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -169,6 +186,31 @@ const dataDir = path.dirname(process.env.DB_PATH || './data/wardkey.db');
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
 initDB();
+
+// ═══════ EMERGENCY ACCESS: Waiting period auto-approval ═══════
+setInterval(() => {
+  try {
+    const db = getDB();
+    const expired = db.prepare(
+      `SELECT ec.id, ec.grantee_email, ec.grantor_id, u.email as grantor_email
+       FROM emergency_contacts ec
+       JOIN users u ON u.id = ec.grantor_id
+       WHERE ec.status = 'requesting'
+       AND datetime(ec.request_at, '+' || ec.waiting_hours || ' hours') <= datetime('now')`
+    ).all();
+
+    for (const contact of expired) {
+      db.prepare("UPDATE emergency_contacts SET status = 'approved' WHERE id = ?").run(contact.id);
+      const tpl = emailService.emergencyApproved(contact.grantor_email);
+      emailService.send(contact.grantee_email, tpl.subject, tpl.html).catch(err => {
+        console.error('Failed to send auto-approval email:', err.message);
+      });
+      console.log(`Emergency access auto-approved for ${contact.grantee_email}`);
+    }
+  } catch (err) {
+    console.error('Emergency checker error:', err.message);
+  }
+}, 5 * 60 * 1000); // Every 5 minutes
 
 app.listen(PORT, () => {
   console.log(`
