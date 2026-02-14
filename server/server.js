@@ -102,7 +102,8 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use((req, res, next) => {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
   const origin = req.headers.origin || req.headers.referer;
-  const allowed = [process.env.APP_ORIGIN || 'https://wardkey.io', 'chrome-extension://'];
+  const extOrigin = process.env.EXTENSION_ID ? `chrome-extension://${process.env.EXTENSION_ID}` : 'chrome-extension://';
+  const allowed = [process.env.APP_ORIGIN || 'https://wardkey.io', extOrigin];
   if (!origin) {
     // Allow API clients with Bearer token (extension, scripts)
     if (req.headers.authorization?.startsWith('Bearer ')) return next();

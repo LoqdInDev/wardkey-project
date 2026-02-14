@@ -341,6 +341,8 @@ router.delete('/me', authenticate, async (req, res) => {
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) return res.status(401).json({ error: 'Invalid password' });
 
+  // Revoke all sessions before deleting user
+  db.prepare('UPDATE sessions SET revoked = 1 WHERE user_id = ?').run(req.user.id);
   auditLog(req.user.id, 'account_deleted', null, req);
   db.prepare('DELETE FROM users WHERE id = ?').run(req.user.id);
   res.json({ success: true, message: 'Account and all data permanently deleted' });

@@ -17,13 +17,21 @@ function authenticate(req, res, next) {
   try {
     const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
 
-    // Validate session is not revoked/expired (if JWT contains sid)
-    if (decoded.sid) {
-      const db = getDB();
-      const session = db.prepare('SELECT id, revoked, expires_at FROM sessions WHERE id = ?').get(decoded.sid);
-      if (!session || session.revoked || new Date(session.expires_at) < new Date()) {
-        return res.status(401).json({ error: 'Session revoked or expired', code: 'SESSION_REVOKED' });
-      }
+    // Reject 2FA temp tokens — they must not access authenticated endpoints
+    if (decoded.purpose) {
+      return res.status(401).json({ error: 'Token not valid for this operation' });
+    }
+
+    // Require session ID on all authenticated tokens
+    if (!decoded.sid) {
+      return res.status(401).json({ error: 'Invalid token — missing session' });
+    }
+
+    // Validate session is not revoked/expired
+    const db = getDB();
+    const session = db.prepare('SELECT id, revoked, expires_at FROM sessions WHERE id = ?').get(decoded.sid);
+    if (!session || session.revoked || new Date(session.expires_at) < new Date()) {
+      return res.status(401).json({ error: 'Session revoked or expired', code: 'SESSION_REVOKED' });
     }
 
     req.user = decoded;
@@ -41,14 +49,13 @@ function optionalAuth(req, res, next) {
   if (header && header.startsWith('Bearer ')) {
     try {
       const decoded = jwt.verify(header.split(' ')[1], JWT_SECRET, { algorithms: ['HS256'] });
-      if (decoded.sid) {
+      if (decoded.purpose) { /* reject temp tokens */ }
+      else if (decoded.sid) {
         const db = getDB();
         const session = db.prepare('SELECT id, revoked, expires_at FROM sessions WHERE id = ?').get(decoded.sid);
         if (session && !session.revoked && new Date(session.expires_at) >= new Date()) {
           req.user = decoded;
         }
-      } else {
-        req.user = decoded;
       }
     } catch {}
   }

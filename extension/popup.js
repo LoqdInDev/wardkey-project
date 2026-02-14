@@ -816,10 +816,10 @@ async function checkPendingSave() {
 
   const pending = data.wardkey_pendingSave;
 
-  // If user already confirmed via the page dialog, auto-save directly
-  if (pending.confirmed && pending.password) {
-    await autoSavePending(pending);
-    return;
+  // If user already confirmed via the page dialog, show save banner
+  // (password is not stored in session storage for security — user confirms in popup)
+  if (pending.confirmed) {
+    // Show banner so user can save from the popup
   }
 
   $('saveBannerTitle').textContent = `Save password for ${pending.domain}?`;

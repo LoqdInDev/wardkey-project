@@ -207,6 +207,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   // Legacy: content script form submit detection (backup path)
   if (msg.type === 'WARDKEY_SAVE_PROMPT') {
+    if (typeof msg.domain !== 'string' || !msg.domain) return;
+    if (typeof msg.username !== 'string') return;
+    if (typeof msg.url !== 'string') return;
+    try { new URL(msg.url); } catch { return; }
     (async () => {
       if (await isNeverSave(msg.domain)) return;
       await chrome.storage.session?.set({
@@ -215,7 +219,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           username: msg.username,
           hasPassword: true,
           url: msg.url,
-          timestamp: msg.timestamp
+          timestamp: Date.now()
         }
       });
       chrome.runtime.sendMessage({ type: 'WARDKEY_PENDING_SAVE' }).catch(() => {});
@@ -224,6 +228,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   // User clicked "Save" in content script dialog
   if (msg.type === 'WARDKEY_SAVE_CONFIRM') {
+    if (typeof msg.domain !== 'string' || !msg.domain) return;
+    if (typeof msg.username !== 'string') return;
+    if (typeof msg.url !== 'string') return;
+    try { new URL(msg.url); } catch { return; }
     (async () => {
       await chrome.storage.session.set({
         wardkey_pendingSave: {
