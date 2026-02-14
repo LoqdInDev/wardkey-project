@@ -40,6 +40,7 @@ app.use(helmet({
 // Admin CORS — restricted to configured admin origin (all admin endpoints require JWT auth)
 app.use('/api/admin', (req, res, next) => {
   res.header('Access-Control-Allow-Origin', process.env.ADMIN_ORIGIN || 'https://wardkey.io');
+  res.header('Vary', 'Origin');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
@@ -102,8 +103,8 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use((req, res, next) => {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
   const origin = req.headers.origin || req.headers.referer;
-  const extOrigin = process.env.EXTENSION_ID ? `chrome-extension://${process.env.EXTENSION_ID}` : 'chrome-extension://';
-  const allowed = [process.env.APP_ORIGIN || 'https://wardkey.io', extOrigin];
+  const extOrigin = process.env.EXTENSION_ID ? `chrome-extension://${process.env.EXTENSION_ID}` : null;
+  const allowed = [process.env.APP_ORIGIN || 'https://wardkey.io', extOrigin].filter(Boolean);
   if (!origin) {
     // Allow API clients with valid Bearer token (extension, scripts)
     const authHeader = req.headers.authorization;
@@ -118,7 +119,7 @@ app.use((req, res, next) => {
     }
     return res.status(403).json({ error: 'Origin header required' });
   }
-  if (!allowed.some(a => origin.startsWith(a))) {
+  if (!allowed.some(a => origin === a)) {
     return res.status(403).json({ error: 'Forbidden' });
   }
   next();

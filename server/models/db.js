@@ -107,6 +107,16 @@ function initDB() {
   // Restrict database file permissions (owner read/write only)
   try { require('fs').chmodSync(DB_PATH, 0o600); } catch(e) {}
 
+  // Periodic cleanup of stale data (every 6 hours)
+  setInterval(() => {
+    try {
+      db.prepare("DELETE FROM sessions WHERE revoked = 1 OR expires_at < datetime('now', '-7 days')").run();
+      db.prepare("DELETE FROM sync_log WHERE timestamp < datetime('now', '-90 days')").run();
+    } catch (err) {
+      console.error('Cleanup error:', err.message);
+    }
+  }, 6 * 60 * 60 * 1000);
+
   console.log('✓ Database initialized');
   return db;
 }

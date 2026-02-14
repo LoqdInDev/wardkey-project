@@ -124,11 +124,13 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === 'wardkey-autolock') {
     chrome.storage.local.get('wardkey_lockTimeout', (settings) => {
       const timeout = settings.wardkey_lockTimeout ?? 0;
-      if (timeout === 0 || timeout === -1) return;
+      if (timeout === 0) return;
+      // For "browser session" mode, enforce a hard cap of 24 hours
+      const effectiveTimeout = timeout === -1 ? 86400000 : timeout;
       chrome.storage.session?.get('wardkey_session', (data) => {
         if (data?.wardkey_session?.ts) {
           const elapsed = Date.now() - data.wardkey_session.ts;
-          if (elapsed > timeout) {
+          if (elapsed > effectiveTimeout) {
             chrome.storage.session?.remove('wardkey_session');
           }
         }
@@ -249,9 +251,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   // User clicked "Never" for a domain
   if (msg.type === 'WARDKEY_SAVE_NEVER') {
+    if (typeof msg.domain !== 'string' || !msg.domain || msg.domain.length > 255) return;
+    if (!/^[a-zA-Z0-9.-]+$/.test(msg.domain)) return;
     (async () => {
       const data = await chrome.storage.local.get('wardkey_neverSave');
       const list = data.wardkey_neverSave || [];
+      if (list.length >= 500) return;
       if (!list.includes(msg.domain)) {
         list.push(msg.domain);
         await chrome.storage.local.set({ wardkey_neverSave: list });

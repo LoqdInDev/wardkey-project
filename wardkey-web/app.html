@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#0c0c14" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="description" content="AI-powered password manager. Local-first, zero-knowledge, free forever.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.wardkey.io; frame-ancestors 'none'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.wardkey.io; frame-ancestors 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="WARDKEY">
@@ -259,6 +259,23 @@ body{font-family:var(--font);background:var(--bg0);color:var(--tx1);font-size:17
 .mo-x svg{width:12px;height:12px}
 .mo-b{padding:18px;overflow-y:auto;flex:1}
 .mo-f{padding:12px 18px;border-top:1px solid var(--bd);display:flex;justify-content:flex-end;gap:6px}
+
+/* ════════ ONBOARDING TOUR ════════ */
+#obMo{z-index:200}
+#obMo .mo-c{width:520px;max-width:92vw;max-height:none;overflow:visible}
+.ob-slide{text-align:center;padding:32px 28px 18px;animation:fadeIn .3s}
+.ob-icon{font-size:52px;line-height:1;margin-bottom:14px}
+.ob-title{font-size:20px;font-weight:700;color:var(--tx1);margin-bottom:8px}
+.ob-desc{font-size:14px;color:var(--tx2);line-height:1.6;margin-bottom:16px}
+.ob-hl{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-bottom:8px}
+.ob-tag{background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);padding:4px 10px;font-size:11px;font-weight:600;color:var(--tx2)}
+.ob-dots{display:flex;justify-content:center;gap:6px;padding:10px 0}
+.ob-dot{width:8px;height:8px;border-radius:50%;background:var(--bg3);border:1px solid var(--bd);transition:all .2s;cursor:pointer}
+.ob-dot.on{background:var(--ac);border-color:var(--ac);transform:scale(1.2)}
+.ob-nav{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--bd)}
+.ob-skip{font-size:12px;color:var(--tx3);cursor:pointer;background:none;border:none;font-family:var(--font);transition:var(--tr)}.ob-skip:hover{color:var(--tx1)}
+@media(max-width:640px){.ob-slide{padding:24px 18px 14px}.ob-icon{font-size:44px}.ob-title{font-size:17px}.ob-desc{font-size:13px}}
+
 .fg{margin-bottom:12px}
 .fl{display:block;font-size:14px;font-weight:600;color:var(--tx2);margin-bottom:3px}
 .fi{width:100%;padding:9px 11px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx1);font-family:var(--font);font-size:13px;outline:none;transition:var(--tr)}
@@ -526,7 +543,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
     <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Zero-knowledge</div>
   </div>
   <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:24px;width:100%">
-    <a href="/" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid var(--bd);color:var(--tx1);font-size:13px;font-weight:600;text-decoration:none;transition:all .2s;background:rgba(108,92,231,.04)" onmouseover="this.style.borderColor='var(--ac)';this.style.background='rgba(108,92,231,.1)'" onmouseout="this.style.borderColor='var(--bd)';this.style.background='rgba(108,92,231,.04)'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back to home</a>
+    <a href="landing.html" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid var(--bd);color:var(--tx1);font-size:13px;font-weight:600;text-decoration:none;transition:all .2s;background:rgba(108,92,231,.04)" onmouseover="this.style.borderColor='var(--ac)';this.style.background='rgba(108,92,231,.1)'" onmouseout="this.style.borderColor='var(--bd)';this.style.background='rgba(108,92,231,.04)'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back to home</a>
     <button onclick="toggleTheme();updateLockThemeBtn()" id="lockThemeBtn" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid var(--bd);background:transparent;color:var(--tx2);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;transition:all .2s" onmouseover="this.style.borderColor='var(--ac)';this.style.background='rgba(108,92,231,.1)'" onmouseout="this.style.borderColor='var(--bd)';this.style.background='transparent'" title="Toggle light/dark mode" aria-label="Toggle light/dark mode"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>Theme</button>
   </div>
 </div>
@@ -594,6 +611,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <!-- ════════ UPGRADE MODAL ════════ -->
 <div class="mo" id="upMo"><div class="mo-c" style="width:380px"><div class="mo-h"><div class="mo-t">⚡ Upgrade</div><button class="mo-x" onclick="$('upMo').classList.remove('on')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="mo-b" id="upBod"></div></div></div>
 
+<!-- ════════ ONBOARDING MODAL ════════ -->
+<div class="mo" id="obMo" onclick="if(event.target===this)closeOb()"><div class="mo-c"><div class="ob-slide" id="obSlide"></div><div class="ob-dots" id="obDots"></div><div class="ob-nav"><button class="ob-skip" onclick="closeOb()">Skip Tour</button><div style="display:flex;gap:6px"><button class="bt bt-s" id="obPrev" onclick="obNav(-1)">Back</button><button class="bt bt-p" id="obNext" onclick="obNav(1)">Next</button></div></div></div></div>
+
 <!-- ════════ 2FA MODAL ════════ -->
 <div class="mo" id="mfaMo"><div class="mo-c" style="width:420px"><div class="mo-h"><div class="mo-t">Two-Factor Authentication</div><button class="mo-x" onclick="$('mfaMo').classList.remove('on')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="mo-b" id="mfaMoBody"></div></div></div>
 
@@ -622,7 +642,8 @@ function launchSite(type,id,e){
   // Open in new tab
   let target=url;
   if(!target.startsWith('http'))target='https://'+target;
-  window.open(target,'_blank');
+  if(!/^https?:\/\//i.test(target))return;
+  window.open(target,'_blank','noopener,noreferrer');
   logA('Launched',item.name,'edit');saveV();
   toast('🚀 Opened '+item.name+(secret?' · password copied':''),'ok');
 }
@@ -684,12 +705,12 @@ let authToken=null,authUser=null,syncEnabled=false,lastSyncTime=null,syncInProgr
 
 function saveAuth(){
   if(authToken&&authUser){
-    localStorage.setItem('wardkey_auth',JSON.stringify({token:authToken,user:authUser,sync:syncEnabled,lastSync:lastSyncTime}));
-  }else{localStorage.removeItem('wardkey_auth')}
+    sessionStorage.setItem('wardkey_auth',JSON.stringify({token:authToken,user:authUser,sync:syncEnabled,lastSync:lastSyncTime}));
+  }else{sessionStorage.removeItem('wardkey_auth')}
 }
 function loadAuth(){
   try{
-    const raw=localStorage.getItem('wardkey_auth');
+    const raw=sessionStorage.getItem('wardkey_auth');
     if(!raw)return;
     const d=JSON.parse(raw);
     authToken=d.token||null;authUser=d.user||null;syncEnabled=!!d.sync;lastSyncTime=d.lastSync||null;
@@ -708,10 +729,14 @@ loadAuth();
 // - Brute-force lockout after 5 failed attempts
 
 const CRYPTO_VERSION = 4; // bump on any format change
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_TIMES = [60000, 300000, 900000, 3600000]; // 1m, 5m, 15m, 1h progressive
 let failedAttempts = 0;
 let lockoutUntil = 0;
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_MS = 60000; // 1 minute lockout
+let lockoutLevel = 0;
+let _memDelay = 0; // in-memory backoff, survives localStorage clear
+// Restore lockout state from localStorage
+try{const ls=JSON.parse(localStorage.getItem('wardkey_lockout')||'{}');failedAttempts=ls.f||0;lockoutUntil=ls.u||0;lockoutLevel=ls.l||0}catch{}
 
 async function deriveKey(pw, salt) {
   const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
@@ -848,11 +873,14 @@ function secureClear() {
   V = {passwords:[],cards:[],notes:[],totp:[],apikeys:[],licenses:[],passkeys:[],aliases:[],breaches:[],trash:[],activity:[]};
   // Clear any displayed passwords from DOM
   document.querySelectorAll('[id^="pwV"],[id^="ph"]').forEach(el => { el.textContent = ''; });
+  document.querySelectorAll('[data-pw]').forEach(el => el.removeAttribute('data-pw'));
+  const aiIn=document.getElementById('aiPwIn');if(aiIn)aiIn.value='';
   window._cpw = null;
   // Clear clipboard if we wrote to it
   try { navigator.clipboard.writeText(''); } catch {}
-  // Note: authToken/authUser/syncEnabled are preserved across locks (session persistence)
-  // They are only cleared on explicit logout or vault wipe
+  // Clear auth tokens from memory (remain in localStorage for restore on re-unlock)
+  authToken=null;
+  authUser=null;
   window._pendingMp=null;
   mfaPendingToken=null;
 }
@@ -916,10 +944,11 @@ async function start2faSetup(){
     const res=await fetch(API+'/api/auth/2fa/setup',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken}});
     const data=await res.json();
     if(!res.ok)throw new Error(data.error||'Setup failed');
-    $('mfaMoBody').innerHTML='<div style="text-align:center;padding:6px 0"><div style="font-size:14px;font-weight:700;margin-bottom:10px">Scan this QR code</div><div style="font-size:12px;color:var(--tx3);margin-bottom:12px">Use Google Authenticator, Authy, or any TOTP app</div><img src="'+data.qrDataUri+'" style="width:200px;height:200px;margin:0 auto;display:block;border-radius:var(--r);border:1px solid var(--bd)"><div style="margin:12px 0;padding:8px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs)"><div style="font-size:10px;color:var(--tx3);margin-bottom:2px">Manual entry key</div><div style="font-family:var(--mono);font-size:12px;word-break:break-all;user-select:all">'+data.secret+'</div></div><div style="font-size:12px;color:var(--tx2);margin-bottom:8px">Enter the 6-digit code from your app to confirm:</div><input type="text" class="lock-fi" id="mfaConfCode" placeholder="000000" maxlength="6" inputmode="numeric" pattern="[0-9]*" style="text-align:center;font-family:var(--mono);font-size:18px;letter-spacing:6px"><div style="display:flex;gap:6px;margin-top:8px"><button class="bt bt-p" style="flex:1;justify-content:center" onclick="confirm2faSetup()">Verify & Enable</button><button class="bt bt-s" style="flex:1;justify-content:center" onclick="$(\'mfaMo\').classList.remove(\'on\')">Cancel</button></div><div id="mfaSetupErr" style="color:var(--rd);font-size:12px;margin-top:8px;display:none"></div></div>';
+    const safeQr=(data.qrDataUri&&data.qrDataUri.startsWith('data:image/'))?data.qrDataUri:'';
+    $('mfaMoBody').innerHTML='<div style="text-align:center;padding:6px 0"><div style="font-size:14px;font-weight:700;margin-bottom:10px">Scan this QR code</div><div style="font-size:12px;color:var(--tx3);margin-bottom:12px">Use Google Authenticator, Authy, or any TOTP app</div><img src="'+escHtml(safeQr)+'" style="width:200px;height:200px;margin:0 auto;display:block;border-radius:var(--r);border:1px solid var(--bd)"><div style="margin:12px 0;padding:8px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs)"><div style="font-size:10px;color:var(--tx3);margin-bottom:2px">Manual entry key</div><div style="font-family:var(--mono);font-size:12px;word-break:break-all;user-select:all">'+escHtml(data.secret||'')+'</div></div><div style="font-size:12px;color:var(--tx2);margin-bottom:8px">Enter the 6-digit code from your app to confirm:</div><input type="text" class="lock-fi" id="mfaConfCode" placeholder="000000" maxlength="6" inputmode="numeric" pattern="[0-9]*" style="text-align:center;font-family:var(--mono);font-size:18px;letter-spacing:6px"><div style="display:flex;gap:6px;margin-top:8px"><button class="bt bt-p" style="flex:1;justify-content:center" onclick="confirm2faSetup()">Verify & Enable</button><button class="bt bt-s" style="flex:1;justify-content:center" onclick="$(\'mfaMo\').classList.remove(\'on\')">Cancel</button></div><div id="mfaSetupErr" style="color:var(--rd);font-size:12px;margin-top:8px;display:none"></div></div>';
     setTimeout(()=>{$('mfaConfCode')?.focus();$('mfaConfCode')?.addEventListener('keydown',e=>{if(e.key==='Enter')confirm2faSetup()})},100);
   }catch(e){
-    $('mfaMoBody').innerHTML='<div style="text-align:center;padding:20px 0;color:var(--rd)">'+e.message+'<br><button class="bt bt-s" style="margin-top:10px" onclick="$(\'mfaMo\').classList.remove(\'on\')">Close</button></div>';
+    $('mfaMoBody').innerHTML='<div style="text-align:center;padding:20px 0;color:var(--rd)">'+escHtml(e.message)+'<br><button class="bt bt-s" style="margin-top:10px" onclick="$(\'mfaMo\').classList.remove(\'on\')">Close</button></div>';
   }
 }
 
@@ -972,9 +1001,46 @@ function checkFirstRun(){
   else{wrap.style.display='none';hint.textContent='Enter your master password (4+ characters)'}
 }
 checkFirstRun();
+
+// ════════ ONBOARDING TOUR ════════
+const OB_SLIDES=[
+{icon:'🔐',title:'Welcome to WARDKEY',desc:'Your zero-knowledge, local-first vault. All encryption happens on your device — your data never leaves unprotected.',tags:['End-to-End Encrypted','Offline-First','Open Audit']},
+{icon:'🔑',title:'Passwords',desc:'Store unlimited credentials with automatic strength scoring, breach detection, and smart organization.',tags:['Strength Score','Breach Alerts','Categories & Tags']},
+{icon:'💳',title:'Cards & IDs',desc:'Keep credit cards, IDs, and payment methods in your vault. Copy any field with one click.',tags:['Credit Cards','IDs','One-Click Copy']},
+{icon:'📝',title:'Secure Notes',desc:'Encrypted free-form notes for recovery codes, Wi-Fi passwords, sensitive documents, and more.',tags:['Recovery Codes','Wi-Fi Keys','Private Docs']},
+{icon:'⚡',title:'Password Generator',desc:'Create strong, unique passwords with customizable length, symbols, and complexity rules.',tags:['Custom Length','Symbols','Auto-Rotate']},
+{icon:'🛡️',title:'Watchtower',desc:'Real-time vault health monitoring. Get a security score and flags for weak, reused, or breached credentials.',tags:['Security Score','Weak Flags','Reuse Detection']},
+{icon:'🔢',title:'Authenticator (2FA)',desc:'Built-in TOTP code generator — no separate authenticator app needed. Your 2FA lives right in the vault.',tags:['TOTP Codes','Built-In','Auto-Refresh']},
+{icon:'🔗',title:'Secure Sharing',desc:'Share credentials via encrypted, self-destructing links with view limits and expiry. No account needed to receive.',tags:['Self-Destruct','View Limits','No Signup']},
+{icon:'📧',title:'Email Aliases',desc:'Generate unique forwarding aliases to block spam and protect your real email address.',tags:['Alias Generator','Spam Blocker','Privacy']},
+{icon:'🗝️',title:'API Keys & Licenses',desc:'Safely store tokens, license keys, and secrets. Tag by environment for easy lookup.',tags:['API Tokens','License Keys','Env Tags']},
+{icon:'🤖',title:'AI Security Tools',desc:'AI-powered password analysis, security reports, and phishing detection to keep you ahead of threats.',tags:['Password Analysis','Security Reports','Phishing Detection']},
+{icon:'🌐',title:'Credential Map & Decay',desc:'Visualize your digital footprint and track credential freshness so nothing goes stale.',tags:['Footprint Map','Freshness Score','Decay Alerts']},
+{icon:'☁️',title:'Cloud Sync',desc:'End-to-end encrypted sync across all your devices. The server only ever sees ciphertext.',tags:['E2E Encrypted','Multi-Device','Zero-Knowledge']},
+{icon:'🚀',title:"You're All Set!",desc:'Your vault is ready. Add your first password, import from another manager, or just explore.',tags:['Add Password','Import Data','Explore Features']}
+];
+let obIdx=0;
+function renderOb(){
+  const s=OB_SLIDES[obIdx],sl=$('obSlide');
+  sl.innerHTML='<div class="ob-icon">'+esc(s.icon)+'</div><div class="ob-title">'+esc(s.title)+'</div><div class="ob-desc">'+esc(s.desc)+'</div>'+(s.tags?'<div class="ob-hl">'+s.tags.map(t=>'<span class="ob-tag">'+esc(t)+'</span>').join('')+'</div>':'');
+  sl.style.animation='none';sl.offsetHeight;sl.style.animation='fadeIn .3s';
+  const dots=$('obDots');dots.innerHTML='';
+  for(let i=0;i<OB_SLIDES.length;i++){const d=document.createElement('div');d.className='ob-dot'+(i===obIdx?' on':'');d.onclick=()=>{obIdx=i;renderOb()};dots.appendChild(d)}
+  $('obPrev').style.display=obIdx===0?'none':'';
+  $('obNext').textContent=obIdx===OB_SLIDES.length-1?'Get Started':'Next';
+}
+function showOnboarding(){obIdx=0;renderOb();$('obMo').classList.add('on')}
+function obNav(dir){
+  obIdx+=dir;
+  if(obIdx>=OB_SLIDES.length){closeOb();return}
+  if(obIdx<0)obIdx=0;
+  renderOb();
+}
+function closeOb(){$('obMo').classList.remove('on');localStorage.setItem('wardkey_onboarded','1')}
+
 async function unlock(){
   const pw=$('mpIn').value;
-  if(pw.length<4){$('lErr').textContent='Password must be at least 4 characters';$('lErr').style.display='block';shake($('mpIn'));return}
+  if(pw.length<8){$('lErr').textContent='Password must be at least 8 characters';$('lErr').style.display='block';shake($('mpIn'));return}
   // First-time setup: require confirmation
   const hasVault=!!(localStorage.getItem('wardkey_v4')||localStorage.getItem('wardkey_v3'));
   if(!hasVault){
@@ -984,21 +1050,23 @@ async function unlock(){
   }
   // Brute force protection
   if(Date.now()<lockoutUntil){const sec=Math.ceil((lockoutUntil-Date.now())/1000);$('lErr').textContent=`Too many attempts. Try again in ${sec}s`;$('lErr').style.display='block';shake($('mpIn'));return}
+  if(_memDelay>0){$('lErr').textContent='Please wait...';$('lErr').style.display='block';await new Promise(r=>setTimeout(r,_memDelay));$('lErr').style.display='none'}
   $('lErr').style.display='none';
   const goBtn=$('mpIn').parentElement.querySelector('.lock-go');
   goBtn.disabled=true;goBtn.innerHTML='<svg style="animation:spin .6s linear infinite" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-dasharray="50" stroke-dashoffset="15"/></svg>';
   try{
     await loadV(pw);
     goBtn.disabled=false;goBtn.innerHTML='<svg viewBox="0 0 24 24" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
-    failedAttempts=0;
-    $('LS').classList.add('out');$('app').classList.add('on');$('mpConfWrap').style.display='none';$('mpConf').value='';buildNav();render();updC();updateSidebar();resetAL();setTimeout(checkRotations,500);
+    failedAttempts=0;lockoutLevel=0;_memDelay=0;localStorage.removeItem('wardkey_lockout');
+    $('LS').classList.add('out');$('app').classList.add('on');$('mpConfWrap').style.display='none';$('mpConf').value='';buildNav();render();updC();updateSidebar();resetAL();setTimeout(checkRotations,500);if(!localStorage.getItem('wardkey_onboarded'))setTimeout(showOnboarding,600);
   const isLight=document.documentElement.getAttribute('data-theme')==='light';
   const btn=$('thBtn');if(btn)btn.innerHTML=isLight?'<svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>':'<svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
   }catch(e){
     goBtn.disabled=false;goBtn.innerHTML='<svg viewBox="0 0 24 24" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
     failedAttempts++;
+    _memDelay=Math.min((_memDelay||500)*2,30000);
     const hasVault = !!(localStorage.getItem('wardkey_v4')||localStorage.getItem('wardkey_v3'));
-    if(failedAttempts>=MAX_ATTEMPTS){lockoutUntil=Date.now()+LOCKOUT_MS;$('lErr').innerHTML=`Too many failed attempts. Locked for 60 seconds.`+
+    if(failedAttempts>=MAX_ATTEMPTS){const lockMs=LOCKOUT_TIMES[Math.min(lockoutLevel,LOCKOUT_TIMES.length-1)];lockoutUntil=Date.now()+lockMs;lockoutLevel++;localStorage.setItem('wardkey_lockout',JSON.stringify({f:failedAttempts,u:lockoutUntil,l:lockoutLevel}));const lockSec=Math.round(lockMs/1000);$('lErr').innerHTML=`Too many failed attempts. Locked for ${lockSec>=60?Math.round(lockSec/60)+'m':lockSec+'s'}.`+
       (hasVault?`<br><a href="#" onclick="resetVault(event)" style="color:var(--ac);font-size:11px;text-decoration:underline;margin-top:4px;display:inline-block">Forgot password? Reset vault</a>`:'')}
     else{$('lErr').innerHTML=`Wrong password (${MAX_ATTEMPTS-failedAttempts} attempt${MAX_ATTEMPTS-failedAttempts>1?'s':''} remaining)`+
       (hasVault?`<br><a href="#" onclick="resetVault(event)" style="color:var(--ac);font-size:11px;text-decoration:underline;margin-top:4px;display:inline-block">Forgot password? Reset vault</a>`:'')}
@@ -1009,9 +1077,9 @@ async function unlock(){
 function resetVault(e){
   e.preventDefault();
   if(!confirm('This will permanently erase your vault. You will start fresh. Continue?'))return;
-  localStorage.removeItem('wardkey_v4');localStorage.removeItem('wardkey_v3');localStorage.removeItem('wardkey_auth');
+  localStorage.removeItem('wardkey_v4');localStorage.removeItem('wardkey_v3');sessionStorage.removeItem('wardkey_auth');
   authToken=null;authUser=null;syncEnabled=false;
-  failedAttempts=0;lockoutUntil=0;
+  failedAttempts=0;lockoutUntil=0;lockoutLevel=0;localStorage.removeItem('wardkey_lockout');
   $('lErr').style.display='none';$('mpIn').value='';$('mpIn').focus();
   toast('Vault reset — enter a new master password','ok');
   checkFirstRun();
@@ -1038,7 +1106,8 @@ async function doRegister(){
   if(!name||!email){showAuthErr('Name and email are required');return}
   if(pw.length<8){showAuthErr('Account password must be at least 8 characters');return}
   if(pw!==pwc){showAuthErr('Account passwords do not match');return}
-  if(mp.length<4){showAuthErr('Master password must be at least 4 characters');return}
+  if(mp.length<8){showAuthErr('Master password must be at least 8 characters');return}
+  if(Date.now()<lockoutUntil){const sec=Math.ceil((lockoutUntil-Date.now())/1000);showAuthErr('Too many attempts. Try again in '+sec+'s');return}
   showAuthErr('');
   try{
     const res=await fetch(API+'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password:pw})});
@@ -1057,7 +1126,8 @@ async function doRegister(){
 async function doLogin(){
   const email=$('alEmail').value.trim(),pw=$('alPw').value,mp=$('alMp').value;
   if(!email||!pw){showAuthErr('Email and account password are required');return}
-  if(mp.length<4){showAuthErr('Master password must be at least 4 characters');return}
+  if(mp.length<8){showAuthErr('Master password must be at least 8 characters');return}
+  if(Date.now()<lockoutUntil){const sec=Math.ceil((lockoutUntil-Date.now())/1000);showAuthErr('Too many attempts. Try again in '+sec+'s');return}
   showAuthErr('');
   window._pendingMp=mp;
   try{
@@ -1088,13 +1158,18 @@ async function doLogin(){
     window._pendingMp=null;
     await unlock();
     toast('Logged in — vault synced','ok');
-  }catch(e){showAuthErr(e.message)}
+  }catch(e){
+    failedAttempts++;
+    if(failedAttempts>=MAX_ATTEMPTS){const lockMs=LOCKOUT_TIMES[Math.min(lockoutLevel,LOCKOUT_TIMES.length-1)];lockoutUntil=Date.now()+lockMs;lockoutLevel++;localStorage.setItem('wardkey_lockout',JSON.stringify({f:failedAttempts,u:lockoutUntil,l:lockoutLevel}))}
+    window._pendingMp=null;
+    showAuthErr(e.message);
+  }
 }
 function showAuthErr(msg){const el=$('lErr');if(msg){el.textContent=msg;el.style.display='block'}else{el.style.display='none'}}
 function doLogout(){
   if(!confirm('Log out? Your vault will remain on this device but cloud sync will stop.'))return;
   authToken=null;authUser=null;syncEnabled=false;lastSyncTime=null;IS_PRO=false;
-  localStorage.removeItem('wardkey_auth');
+  sessionStorage.removeItem('wardkey_auth');
   lock();toast('Logged out','ok');
 }
 async function doDeleteAccount(){
@@ -1104,7 +1179,7 @@ async function doDeleteAccount(){
     const res=await fetch(API+'/api/auth/account',{method:'DELETE',headers:{'Authorization':'Bearer '+authToken}});
     if(!res.ok){const d=await res.json().catch(()=>({}));throw new Error(d.error||'Failed to delete account')}
     authToken=null;authUser=null;syncEnabled=false;lastSyncTime=null;IS_PRO=false;
-    localStorage.removeItem('wardkey_auth');
+    sessionStorage.removeItem('wardkey_auth');
     updateSidebar();updateSyncIcon('');render();toast('Account deleted — vault kept locally','ok');
   }catch(e){toast('Error: '+e.message,'er')}
 }
@@ -1174,7 +1249,7 @@ const WL=['abandon','alpine','anchor','arctic','aurora','bamboo','beacon','blaze
 function genPhrase(n=5){const a=new Uint32Array(n);crypto.getRandomValues(a);return Array.from(a,v=>WL[v%WL.length]).join('-')}
 
 // ════════ VAULT ITEM RENDERER ════════
-function vI(p,type,i=0){const st=type==='passwords'?str(p.password):null;const fav=p.fav||p.favorite;const hasUrl=p.url||p.rpId;const rot=type==='passwords'&&p.rotate?.enabled?getRotateStatus(p):null;return`<div class="vi" style="animation-delay:${i*.02}s" onclick="showD('${type}','${p.id}')"><div class="vi-i">${esc(p.icon)||esc(p.favicon)||'🔑'}</div><div class="vi-n"><div class="vi-t">${fav?'<span class="fv">★</span>':''}${esc(p.name)}${p.sens?' <span style="font-size:8px;color:var(--og)">🔒</span>':''}${rot?` <span style="font-size:8px;color:${rot.color}" title="Auto-rotate: ${esc(rot.label)}">🔄${rot.overdue?' !':''}</span>`:''}</div><div class="vi-d">${esc(p.username)||esc(p.holder)||esc(p.key?.substring(0,22))||esc(p.content?.substring(0,35))||esc(p.product)||''}</div></div><div class="vi-m">${st?`<div class="vi-sb"><div class="vi-sf" style="width:${st.s}%;background:${st.c}"></div></div>`:''}<div class="vi-a">${hasUrl?`<button class="vi-b" title="Launch & copy password" onclick="launchSite('${type}','${p.id}',event)" style="color:var(--ac)">${IC.launch}</button>`:''}<button class="vi-b" onclick="event.stopPropagation();cpItem('${type}','${p.id}')">${IC.cp}</button></div></div></div>`}
+function vI(p,type,i=0){const st=type==='passwords'?str(p.password):null;const fav=p.fav||p.favorite;const hasUrl=p.url||p.rpId;const rot=type==='passwords'&&p.rotate?.enabled?getRotateStatus(p):null;return`<div class="vi" style="animation-delay:${i*.02}s" onclick="showD('${type}','${p.id}')"><div class="vi-i">${esc(p.icon||p.favicon||'🔑')}</div><div class="vi-n"><div class="vi-t">${fav?'<span class="fv">★</span>':''}${esc(p.name)}${p.sens?' <span style="font-size:8px;color:var(--og)">🔒</span>':''}${rot?` <span style="font-size:8px;color:${rot.color}" title="Auto-rotate: ${esc(rot.label)}">🔄${rot.overdue?' !':''}</span>`:''}</div><div class="vi-d">${esc(p.username||p.holder||p.key?.substring(0,22)||p.content?.substring(0,35)||p.product||'')}</div></div><div class="vi-m">${st?`<div class="vi-sb"><div class="vi-sf" style="width:${st.s}%;background:${st.c}"></div></div>`:''}<div class="vi-a">${hasUrl?`<button class="vi-b" title="Launch & copy password" onclick="launchSite('${type}','${p.id}',event)" style="color:var(--ac)">${IC.launch}</button>`:''}<button class="vi-b" onclick="event.stopPropagation();cpItem('${type}','${p.id}')">${IC.cp}</button></div></div></div>`}
 
 // ════════ PAGE: DASHBOARD ════════
 function isVaultEmpty(){return !V.passwords.length&&!V.cards.length&&!V.notes.length&&!V.totp.length&&!V.apikeys.length&&!V.licenses.length&&!V.passkeys.length&&!V.aliases.length}
@@ -1240,7 +1315,7 @@ function rPw(el){const cats=['all',...new Set(V.passwords.map(p=>p.cat))];let L=
 el.innerHTML=`<div class="vf">${cats.map(c=>`<div class="chip${af===c?' on':''}" onclick="af='${c}';render()">${c==='all'?'All':c}</div>`).join('')}<div style="margin-left:auto;display:flex;gap:4px"><button class="bt bt-s" onclick="$('impMo').classList.add('on')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import</button></div></div><div class="vl">${!L.length?emp('No passwords found','Try a different filter or add new items'):L.map((p,i)=>vI(p,'passwords',i)).join('')}</div>`}
 
 // ════════ PAGE: CARDS ════════
-function rCards(el){if(!V.cards.length){el.innerHTML=emp('No Cards Yet','Add your credit cards, debit cards, and IDs')+'<div style="display:flex;justify-content:center;margin-top:12px"><button class="bt bt-p" onclick="addTp=\'card\';openAdd()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Card</button></div>';return}el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px">${V.cards.map(c=>`<div class="tc" onclick="showD('cards','${c.id}')" style="background:linear-gradient(135deg,${/^#[0-9a-fA-F]{3,8}$/.test(c.color)?c.color:'var(--ac)'},${/^#[0-9a-fA-F]{3,8}$/.test(c.color)?c.color:'var(--ac)'}88);border-color:${/^#[0-9a-fA-F]{3,8}$/.test(c.color)?c.color:'var(--ac)'}44"><div style="display:flex;justify-content:space-between;margin-bottom:16px"><div style="font-size:12px;font-weight:600;opacity:.9">${esc(c.name)}</div><div style="font-size:18px">${c.type==='id'?'🪪':c.type==='mc'?'🟡':'💳'}</div></div><div style="font-family:var(--mono);font-size:15px;letter-spacing:2.5px;margin-bottom:14px">${esc(c.number)}</div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx2)"><span>${esc(c.holder)}</span><span>${esc(c.exp)}</span></div></div>`).join('')}</div>`}
+function rCards(el){if(!V.cards.length){el.innerHTML=emp('No Cards Yet','Add your credit cards, debit cards, and IDs')+'<div style="display:flex;justify-content:center;margin-top:12px"><button class="bt bt-p" onclick="addTp=\'card\';openAdd()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Card</button></div>';return}el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px">${V.cards.map(c=>{const safeColor=/^#[0-9a-fA-F]{3,8}$|^var\(--\w+\)$/.test(c.color)?c.color:'var(--ac)';return`<div class="tc" onclick="showD('cards','${c.id}')" style="background:linear-gradient(135deg,${safeColor},${safeColor}88);border-color:${safeColor}44"><div style="display:flex;justify-content:space-between;margin-bottom:16px"><div style="font-size:12px;font-weight:600;opacity:.9">${esc(c.name)}</div><div style="font-size:18px">${c.type==='id'?'🪪':c.type==='mc'?'🟡':'💳'}</div></div><div style="font-family:var(--mono);font-size:15px;letter-spacing:2.5px;margin-bottom:14px">${esc(c.number)}</div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx2)"><span>${esc(c.holder)}</span><span>${esc(c.exp)}</span></div></div>`}).join('')}</div>`}
 
 // ════════ PAGE: NOTES ════════
 function rNotes(el){const cm={rd:'var(--rd)',pp:'var(--pp)',cy:'var(--cy)',gn:'var(--gn)',yl:'var(--yl)'};let L=travel?V.notes.filter(n=>!n.sens):V.notes;if(!L.length){el.innerHTML=emp('No Secure Notes','Store sensitive text, recovery codes, and private documents')+'<div style="display:flex;justify-content:center;margin-top:12px"><button class="bt bt-p" onclick="addTp=\'note\';openAdd()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Note</button></div>';return}el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px">${L.map(n=>`<div class="tc" onclick="showD('notes','${n.id}')" style="border-left:3px solid ${cm[n.color]||'var(--bd)'}"><div style="display:flex;align-items:center;gap:5px;margin-bottom:5px">${n.fav?'<span style="color:var(--yl);font-size:9px">★</span>':''}<div style="font-size:12px;font-weight:600">${esc(n.name)}</div>${n.sens?'<span style="font-size:8px;color:var(--og)">🔒</span>':''}</div><div style="font-size:10px;color:var(--tx3);line-height:1.4;max-height:38px;overflow:hidden;font-family:var(--mono)">${esc(n.content.substring(0,80))}…</div><div style="display:flex;gap:3px;margin-top:6px">${(n.tags||[]).map(t=>`<span class="tg">${esc(t)}</span>`).join('')}</div></div>`).join('')}</div>`}
@@ -1395,8 +1470,8 @@ ${item.url?F('URL',item.url,true):''}
 ${item.url?`<button class="bt bt-p" style="width:100%;justify-content:center;padding:10px;margin-bottom:8px;gap:6px;font-size:13px" onclick="launchSite('passwords','${item.id}')">${IC.launch} Launch & Autofill</button>`:''}
 ${(item.fields||[]).map(f=>F(f.l,f.v,true)).join('')}
 ${item.notes?`<div class="df"><div class="df-l">Notes</div><div style="padding:7px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);font-size:11px;color:var(--tx2);line-height:1.5;white-space:pre-wrap">${esc(item.notes)}</div></div>`:''}
-${item.history?.length?`<div class="df"><div class="df-l">Password History (${item.history.length})</div>${item.history.map((h,hi)=>{const hid='ph'+hi+Math.random().toString(36).substr(2,4);return`<div style="padding:6px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);margin-bottom:3px;display:flex;align-items:center;gap:6px"><div style="flex:1"><div style="font-size:9px;color:var(--tx3);margin-bottom:2px">Changed ${new Date(h.at).toLocaleDateString()}</div><div style="font-family:var(--mono);font-size:11px" id="${hid}">••••••••••</div></div><button class="cb" onclick="const e=document.getElementById('${hid}');e.textContent=e.textContent.includes('•')?'${h.pw.replace(/'/g,"\\'")}':'••••••••••'">${IC.eye}</button><button class="cb" onclick="cpTx('${h.pw.replace(/'/g,"\\'")}')">${IC.cp}</button></div>`}).join('')}</div>`:''}
-<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:8px">${(item.tags||[]).map(t=>`<span class="tg">${t}</span>`).join('')}</div>
+${item.history?.length?`<div class="df"><div class="df-l">Password History (${item.history.length})</div>${item.history.map((h,hi)=>{const hid='ph'+hi+Math.random().toString(36).substr(2,4);const b64=btoa(unescape(encodeURIComponent(h.pw)));return`<div style="padding:6px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);margin-bottom:3px;display:flex;align-items:center;gap:6px"><div style="flex:1"><div style="font-size:9px;color:var(--tx3);margin-bottom:2px">Changed ${new Date(h.at).toLocaleDateString()}</div><div style="font-family:var(--mono);font-size:11px" id="${hid}">••••••••••</div></div><button class="cb" data-pw="${b64}" data-hid="${hid}" onclick="const pw=decodeURIComponent(escape(atob(this.dataset.pw)));const e=document.getElementById(this.dataset.hid);e.textContent=e.textContent.includes('•')?pw:'••••••••••'">${IC.eye}</button><button class="cb" data-pw="${b64}" onclick="cpTx(decodeURIComponent(escape(atob(this.dataset.pw))))">${IC.cp}</button></div>`}).join('')}</div>`:''}
+<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:8px">${(item.tags||[]).map(t=>`<span class="tg">${esc(t)}</span>`).join('')}</div>
 <div style="margin-top:8px;font-size:9px;color:var(--tx3)">Created ${new Date(item.created).toLocaleDateString()} · Modified ${new Date(item.modified).toLocaleDateString()}</div>`}
 else if(type==='cards'){h=`<div style="text-align:center;font-size:28px;margin-bottom:14px">${item.type==='id'?'🪪':'💳'}</div>${F('Number',item.number,true)}${F('Holder',item.holder)}${F('Expiry',item.exp,true)}${item.cvv?F('CVV',item.cvv,true):''}${item.pin?F('PIN',item.pin,true):''}${item.billing?F('Billing Address',item.billing):''}`}
 else if(type==='notes'){h='<div class="df"><div class="df-l">Content</div><div style="padding:10px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);font-family:var(--mono);font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--tx2)" id="ntCt">'+esc(item.content)+'</div></div><button class="bt bt-s" style="width:100%;justify-content:center" onclick="cpTx(document.getElementById(\'ntCt\').textContent)">'+IC.cp+' Copy content</button>'}
@@ -1407,7 +1482,7 @@ ${F('Relying Party',item.rpId)}${F('Username',item.username,true)}${F('Credentia
 ${item.rpId?`<button class="bt bt-p" style="width:100%;justify-content:center;padding:10px;margin-top:8px;gap:6px;font-size:13px" onclick="launchSite('passkeys','${item.id}')">${IC.launch} Launch Site</button>`:''}
 <div style="margin-top:8px;font-size:10px;color:var(--tx3)">Registered ${new Date(item.created).toLocaleDateString()} · Last used ${timeAgo(item.lastUsed)}</div>`}
 $('dBod').innerHTML=h;$('dP').classList.add('on')}
-function closeD(){$('dP').classList.remove('on');curD=null}
+function closeD(){$('dP').classList.remove('on');curD=null;$('dBod').innerHTML='';window._cpw=null}
 function delCur(){if(!curD)return;const{type,id,item}=curD;V.trash.push({...item,deletedAt:Date.now(),origType:type});V[type]=V[type].filter(i=>i.id!==id);logA('Deleted',item.name,'delete');saveV();updC();render();closeD();toast('Moved to trash','ok')}
 function toggleFav(){if(!curD)return;const i=V[curD.type].find(x=>x.id===curD.id);if(i){i.fav=!i.fav;logA(i.fav?'Favorited':'Unfavorited',i.name,'fav');saveV();showD(curD.type,curD.id);render()}}
 function restoreI(id){const t=V.trash.find(i=>i.id===id);if(!t)return;const{deletedAt,origType,...item}=t;if(V[origType])V[origType].push(item);V.trash=V.trash.filter(i=>i.id!==id);logA('Restored',item.name,'add');saveV();updC();render();toast('Item restored','ok')}
@@ -1461,13 +1536,13 @@ function checkRotations(){
 function openAdd(type=null,item=null){editI=item?curD:null;$('mTit').textContent=item?`Edit ${item.name}`:'Add New Item';$('mSav').textContent=item?'Update':'Save';
 if(!type&&!item){$('mBod').innerHTML=`<div class="fg"><div class="fl">Item Type</div><select class="fs" id="aType" onchange="addTp=this.value;updF()"><option value="password">Password</option><option value="card">Card / ID</option><option value="note">Secure Note</option><option value="totp">TOTP Secret</option><option value="apikey">API Key</option><option value="license">License</option><option value="passkey">Passkey</option></select></div><div id="fF"></div>`;addTp='password';updF()}else{addTp=type==='passwords'?'password':type==='cards'?'card':type==='notes'?'note':type==='apikeys'?'apikey':type==='licenses'?'license':type==='passkeys'?'passkey':'totp';$('mBod').innerHTML='<div id="fF"></div>';updF(item)}$('addMo').classList.add('on')}
 function updF(item=null){const f=$('fF');if(!f)return;const forms={
-password:`<div class="fg"><div class="fl">Name</div><input class="fi" id="f_n" value="${item?.name||''}"></div><div class="fg"><div class="fl">Username / Email</div><input class="fi" id="f_u" value="${item?.username||''}"></div><div class="fg"><div class="fl">Password</div><div style="display:flex;gap:4px"><input class="fi" id="f_pw" value="${item?.password||''}" style="flex:1;font-family:var(--mono)"><button class="bt bt-s" onclick="$('f_pw').value=genPw(20)">Generate</button></div></div><div class="fg"><div class="fl">Website URL</div><input class="fi" id="f_url" value="${item?.url||''}"></div><div class="fr"><div class="fg"><div class="fl">Category</div><select class="fs" id="f_cat">${['email','dev','finance','streaming','social','work','other'].map(c=>`<option${item?.cat===c?' selected':''}>${c}</option>`).join('')}</select></div><div class="fg"><div class="fl">Tags (comma separated)</div><input class="fi" id="f_tg" value="${(item?.tags||[]).join(', ')}"></div></div><div class="fg"><div class="fl">Notes</div><textarea class="ft" id="f_nt">${item?.notes||''}</textarea></div><div style="display:flex;align-items:center;gap:7px;padding:8px 0"><div class="tgl${item?.sens?' on':''}" id="f_sn" onclick="this.classList.toggle('on')"><div class="tgl-k"></div></div><span style="font-size:11px">Mark as sensitive (hidden in Travel Mode)</span></div>`,
-card:`<div class="fg"><div class="fl">Name</div><input class="fi" id="f_n" value="${item?.name||''}"></div><div class="fg"><div class="fl">Type</div><select class="fs" id="f_tp"><option value="visa"${item?.type==='visa'?' selected':''}>Visa</option><option value="mc"${item?.type==='mc'?' selected':''}>Mastercard</option><option value="id"${item?.type==='id'?' selected':''}>ID Card</option></select></div><div class="fg"><div class="fl">Number</div><input class="fi" id="f_num" value="${item?.number||''}"></div><div class="fr"><div class="fg"><div class="fl">Expiry</div><input class="fi" id="f_exp" value="${item?.exp||''}"></div><div class="fg"><div class="fl">CVV</div><input class="fi" id="f_cvv" value="${item?.cvv||''}"></div></div><div class="fr"><div class="fg"><div class="fl">Cardholder</div><input class="fi" id="f_hld" value="${item?.holder||''}"></div><div class="fg"><div class="fl">PIN</div><input class="fi" id="f_pin" value="${item?.pin||''}"></div></div>`,
-note:`<div class="fg"><div class="fl">Title</div><input class="fi" id="f_n" value="${item?.name||''}"></div><div class="fg"><div class="fl">Content</div><textarea class="ft" id="f_cnt" style="min-height:120px;font-family:var(--mono)">${item?.content||''}</textarea></div><div class="fr"><div class="fg"><div class="fl">Tags</div><input class="fi" id="f_tg" value="${(item?.tags||[]).join(', ')}"></div><div class="fg"><div class="fl">Color</div><select class="fs" id="f_cl">${['cy','gn','pp','rd','yl'].map(c=>`<option value="${c}"${item?.color===c?' selected':''}>${c}</option>`).join('')}</select></div></div><div style="display:flex;align-items:center;gap:7px;padding:8px 0"><div class="tgl${item?.sens?' on':''}" id="f_sn" onclick="this.classList.toggle('on')"><div class="tgl-k"></div></div><span style="font-size:11px">Mark as sensitive</span></div>`,
-totp:`<div class="fg"><div class="fl">Service Name</div><input class="fi" id="f_n" value="${item?.name||''}"></div><div class="fg"><div class="fl">Account</div><input class="fi" id="f_acc" value="${item?.acct||''}"></div><div class="fg"><div class="fl">Secret Key (Base32)</div><input class="fi" id="f_sec" value="${item?.secret||''}" style="font-family:var(--mono)"></div>`,
-apikey:`<div class="fg"><div class="fl">Name</div><input class="fi" id="f_n" value="${item?.name||''}"></div><div class="fg"><div class="fl">API Key</div><input class="fi" id="f_key" value="${item?.key||''}" style="font-family:var(--mono)"></div><div class="fr"><div class="fg"><div class="fl">Service</div><input class="fi" id="f_svc" value="${item?.svc||''}"></div><div class="fg"><div class="fl">Environment</div><select class="fs" id="f_env">${['production','staging','development'].map(e=>`<option${item?.env===e?' selected':''}>${e}</option>`).join('')}</select></div></div><div class="fg"><div class="fl">Notes</div><textarea class="ft" id="f_nt">${item?.notes||''}</textarea></div>`,
-license:`<div class="fg"><div class="fl">Name</div><input class="fi" id="f_n" value="${item?.name||''}"></div><div class="fg"><div class="fl">License Key</div><input class="fi" id="f_key" value="${item?.key||''}" style="font-family:var(--mono)"></div><div class="fr"><div class="fg"><div class="fl">Product</div><input class="fi" id="f_prod" value="${item?.product||''}"></div><div class="fg"><div class="fl">Seats</div><input class="fi" id="f_seats" type="number" value="${item?.seats||1}"></div></div>`,
-passkey:`<div class="fg"><div class="fl">Service Name</div><input class="fi" id="f_n" value="${item?.name||''}"></div><div class="fg"><div class="fl">Relying Party (domain)</div><input class="fi" id="f_rpid" value="${item?.rpId||''}" placeholder="e.g. google.com"></div><div class="fg"><div class="fl">Username</div><input class="fi" id="f_u" value="${item?.username||''}"></div><div class="fg"><div class="fl">Algorithm</div><select class="fs" id="f_alg"><option value="ES256"${item?.alg==='ES256'?' selected':''}>ES256 (ECDSA)</option><option value="RS256"${item?.alg==='RS256'?' selected':''}>RS256 (RSA)</option></select></div>`};
+password:`<div class="fg"><div class="fl">Name</div><input class="fi" id="f_n" value="${esc(item?.name||'')}"></div><div class="fg"><div class="fl">Username / Email</div><input class="fi" id="f_u" value="${esc(item?.username||'')}"></div><div class="fg"><div class="fl">Password</div><div style="display:flex;gap:4px"><input class="fi" id="f_pw" value="${esc(item?.password||'')}" style="flex:1;font-family:var(--mono)"><button class="bt bt-s" onclick="$('f_pw').value=genPw(20)">Generate</button></div></div><div class="fg"><div class="fl">Website URL</div><input class="fi" id="f_url" value="${esc(item?.url||'')}"></div><div class="fr"><div class="fg"><div class="fl">Category</div><select class="fs" id="f_cat">${['email','dev','finance','streaming','social','work','other'].map(c=>`<option${item?.cat===c?' selected':''}>${c}</option>`).join('')}</select></div><div class="fg"><div class="fl">Tags (comma separated)</div><input class="fi" id="f_tg" value="${esc((item?.tags||[]).join(', '))}"></div></div><div class="fg"><div class="fl">Notes</div><textarea class="ft" id="f_nt">${esc(item?.notes||'')}</textarea></div><div style="display:flex;align-items:center;gap:7px;padding:8px 0"><div class="tgl${item?.sens?' on':''}" id="f_sn" onclick="this.classList.toggle('on')"><div class="tgl-k"></div></div><span style="font-size:11px">Mark as sensitive (hidden in Travel Mode)</span></div>`,
+card:`<div class="fg"><div class="fl">Name</div><input class="fi" id="f_n" value="${esc(item?.name||'')}"></div><div class="fg"><div class="fl">Type</div><select class="fs" id="f_tp"><option value="visa"${item?.type==='visa'?' selected':''}>Visa</option><option value="mc"${item?.type==='mc'?' selected':''}>Mastercard</option><option value="id"${item?.type==='id'?' selected':''}>ID Card</option></select></div><div class="fg"><div class="fl">Number</div><input class="fi" id="f_num" value="${esc(item?.number||'')}"></div><div class="fr"><div class="fg"><div class="fl">Expiry</div><input class="fi" id="f_exp" value="${esc(item?.exp||'')}"></div><div class="fg"><div class="fl">CVV</div><input class="fi" id="f_cvv" value="${esc(item?.cvv||'')}"></div></div><div class="fr"><div class="fg"><div class="fl">Cardholder</div><input class="fi" id="f_hld" value="${esc(item?.holder||'')}"></div><div class="fg"><div class="fl">PIN</div><input class="fi" id="f_pin" value="${esc(item?.pin||'')}"></div></div>`,
+note:`<div class="fg"><div class="fl">Title</div><input class="fi" id="f_n" value="${esc(item?.name||'')}"></div><div class="fg"><div class="fl">Content</div><textarea class="ft" id="f_cnt" style="min-height:120px;font-family:var(--mono)">${esc(item?.content||'')}</textarea></div><div class="fr"><div class="fg"><div class="fl">Tags</div><input class="fi" id="f_tg" value="${esc((item?.tags||[]).join(', '))}"></div><div class="fg"><div class="fl">Color</div><select class="fs" id="f_cl">${['cy','gn','pp','rd','yl'].map(c=>`<option value="${c}"${item?.color===c?' selected':''}>${c}</option>`).join('')}</select></div></div><div style="display:flex;align-items:center;gap:7px;padding:8px 0"><div class="tgl${item?.sens?' on':''}" id="f_sn" onclick="this.classList.toggle('on')"><div class="tgl-k"></div></div><span style="font-size:11px">Mark as sensitive</span></div>`,
+totp:`<div class="fg"><div class="fl">Service Name</div><input class="fi" id="f_n" value="${esc(item?.name||'')}"></div><div class="fg"><div class="fl">Account</div><input class="fi" id="f_acc" value="${esc(item?.acct||'')}"></div><div class="fg"><div class="fl">Secret Key (Base32)</div><input class="fi" id="f_sec" value="${esc(item?.secret||'')}" style="font-family:var(--mono)"></div>`,
+apikey:`<div class="fg"><div class="fl">Name</div><input class="fi" id="f_n" value="${esc(item?.name||'')}"></div><div class="fg"><div class="fl">API Key</div><input class="fi" id="f_key" value="${esc(item?.key||'')}" style="font-family:var(--mono)"></div><div class="fr"><div class="fg"><div class="fl">Service</div><input class="fi" id="f_svc" value="${esc(item?.svc||'')}"></div><div class="fg"><div class="fl">Environment</div><select class="fs" id="f_env">${['production','staging','development'].map(e=>`<option${item?.env===e?' selected':''}>${e}</option>`).join('')}</select></div></div><div class="fg"><div class="fl">Notes</div><textarea class="ft" id="f_nt">${esc(item?.notes||'')}</textarea></div>`,
+license:`<div class="fg"><div class="fl">Name</div><input class="fi" id="f_n" value="${esc(item?.name||'')}"></div><div class="fg"><div class="fl">License Key</div><input class="fi" id="f_key" value="${esc(item?.key||'')}" style="font-family:var(--mono)"></div><div class="fr"><div class="fg"><div class="fl">Product</div><input class="fi" id="f_prod" value="${esc(item?.product||'')}"></div><div class="fg"><div class="fl">Seats</div><input class="fi" id="f_seats" type="number" value="${item?.seats||1}"></div></div>`,
+passkey:`<div class="fg"><div class="fl">Service Name</div><input class="fi" id="f_n" value="${esc(item?.name||'')}"></div><div class="fg"><div class="fl">Relying Party (domain)</div><input class="fi" id="f_rpid" value="${esc(item?.rpId||'')}" placeholder="e.g. google.com"></div><div class="fg"><div class="fl">Username</div><input class="fi" id="f_u" value="${esc(item?.username||'')}"></div><div class="fg"><div class="fl">Algorithm</div><select class="fs" id="f_alg"><option value="ES256"${item?.alg==='ES256'?' selected':''}>ES256 (ECDSA)</option><option value="RS256"${item?.alg==='RS256'?' selected':''}>RS256 (RSA)</option></select></div>`};
 f.innerHTML=forms[addTp]||''}
 function saveItem(){const n=Date.now(),id=editI?editI.id:'x'+Math.random().toString(36).substr(2,8),g=i=>$(i)?.value||'',tg=g('f_tg').split(',').map(t=>t.trim()).filter(Boolean),sn=$('f_sn')?.classList.contains('on');
 const B={password:()=>({id,name:g('f_n'),username:g('f_u'),password:g('f_pw'),url:g('f_url'),cat:g('f_cat')||'other',tags:tg,notes:g('f_nt'),created:editI?.item.created||n,modified:n,history:editI?[...(editI.item.history||[]),...(editI.item.password!==g('f_pw')?[{pw:editI.item.password,at:n}]:[])]:[], icon:editI?.item.icon||['🔵','🟢','🟡','🟠','🔴','🟣','⚫','▲'][~~(Math.random()*8)],fav:editI?.item.fav||false,sens:sn,fields:editI?.item.fields||[]}),
@@ -1486,22 +1561,28 @@ function closeAdd(){$('addMo').classList.remove('on')}
 // ════════ TOOLS ════════
 function toggleTravel(){travel=!travel;$('tBan').classList.toggle('on',travel);render();toast(travel?'Travel Mode ON — sensitive items hidden':'Travel Mode OFF','in')}
 async function cpTx(t){try{await navigator.clipboard.writeText(t);toast('Copied to clipboard','ok');startClip(30)}catch{toast('Copy failed','er')}}
-function startClip(s){clearInterval(clipI);clipS=s;$('cBan').classList.add('on');$('cTmr').textContent=s;clipI=setInterval(()=>{clipS--;$('cTmr').textContent=clipS;if(clipS<=0){clearInterval(clipI);try{navigator.clipboard.writeText('')}catch{};$('cBan').classList.remove('on')}},1000)}
+function startClip(s){clearInterval(clipI);const endTime=Date.now()+s*1000;$('cBan').classList.add('on');$('cTmr').textContent=s;clipI=setInterval(()=>{const remaining=Math.ceil((endTime-Date.now())/1000);$('cTmr').textContent=Math.max(0,remaining);if(Date.now()>=endTime){clearInterval(clipI);try{navigator.clipboard.writeText('')}catch{};$('cBan').classList.remove('on')}},1000)}
 function doSearch(q){sq=q;if(q.length>0&&!['passwords','notes','apikeys'].includes(pg))nav('passwords');else render()}
-function doImport(input){const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);let c=0;if(Array.isArray(d))d.forEach(x=>{if(x.password||x.Password){V.passwords.push({id:'i'+Math.random().toString(36).substr(2,6),name:x.name||x.Name||x.title||'Import',username:x.username||x.Username||x.login||'',password:x.password||x.Password||'',url:x.url||x.URL||'',cat:'other',tags:['imported'],notes:'',created:Date.now(),modified:Date.now(),history:[],icon:'📥',fav:false,sens:false,fields:[]});c++}});logA(`Imported ${c} items`,'','add');saveV();updC();render();$('impMo').classList.remove('on');toast(`${c} items imported`,'ok')}catch(err){toast('Import failed: '+err.message,'er')}};r.readAsText(f)}
+async function doImport(input){const f=input.files[0];if(!f)return;
+  const pw=await askPassword('Re-enter master password to import data:');
+  if(!pw){input.value='';return}
+  try{const hash=await deriveVerifyHash(pw,window._vaultSalt);if(hash!==window._verifyHash){toast('Wrong password — import denied','er');input.value='';return}}catch{toast('Authentication failed','er');input.value='';return}
+  const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);let c=0;if(Array.isArray(d))d.forEach(x=>{if(x.password||x.Password){V.passwords.push({id:'i'+Math.random().toString(36).substr(2,6),name:x.name||x.Name||x.title||'Import',username:x.username||x.Username||x.login||'',password:x.password||x.Password||'',url:x.url||x.URL||'',cat:'other',tags:['imported'],notes:'',created:Date.now(),modified:Date.now(),history:[],icon:'📥',fav:false,sens:false,fields:[]});c++}});logA(`Imported ${c} items`,'','add');saveV();updC();render();$('impMo').classList.remove('on');toast(`${c} items imported`,'ok')}catch(err){toast('Import failed: '+err.message,'er')}};r.readAsText(f)}
+function askPassword(msg){return new Promise(resolve=>{const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:9999';const bx=document.createElement('div');bx.style.cssText='background:var(--card,#1a1a2e);border-radius:12px;padding:24px;max-width:360px;width:90%';bx.innerHTML='<p style="color:var(--text,#e0e0e0);margin:0 0 12px">'+esc(msg)+'</p><input type="password" id="reAuthPw" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--bd,#333);background:var(--bg,#0a0a1a);color:var(--text,#e0e0e0);margin:0 0 12px;box-sizing:border-box" placeholder="Master password"><div style="display:flex;gap:8px;justify-content:flex-end"><button id="reAuthCancel" style="padding:8px 16px;border-radius:8px;border:1px solid var(--bd,#333);background:transparent;color:var(--text,#e0e0e0);cursor:pointer">Cancel</button><button id="reAuthOk" style="padding:8px 16px;border-radius:8px;border:none;background:var(--ac,#6c5ce7);color:#fff;cursor:pointer">Confirm</button></div>';ov.appendChild(bx);document.body.appendChild(ov);const inp=$('reAuthPw');inp.focus();$('reAuthOk').onclick=()=>{document.body.removeChild(ov);resolve(inp.value)};$('reAuthCancel').onclick=()=>{document.body.removeChild(ov);resolve(null)};inp.onkeydown=e=>{if(e.key==='Enter')$('reAuthOk').click()}})}
 async function doExport(fmt){
   // Re-authenticate before exporting plaintext
-  const pw=prompt('Re-enter master password to export vault:');
+  const pw=await askPassword('Re-enter master password to export vault:');
   if(!pw)return;
   try{
     const hash=await deriveVerifyHash(pw,window._vaultSalt);
     if(hash!==window._verifyHash){toast('Wrong password — export denied','er');return}
   }catch{toast('Authentication failed','er');return}
-  if(fmt==='json'){dl(JSON.stringify(V.passwords,null,2),'wardkey-vault.json','application/json')}else{const csv='name,username,password,url,category\n'+V.passwords.map(p=>`"${p.name}","${p.username}","${p.password}","${p.url}","${p.cat}"`).join('\n');dl(csv,'wardkey-vault.csv','text/csv')}$('impMo').classList.remove('on');logA('Vault exported','','gen');toast(`Exported as ${fmt.toUpperCase()}`,'ok')}
+  function csvSafe(s){if(!s)return'';s=String(s).replace(/"/g,'""');if(/^[=+\-@\t\r]/.test(s))s="'"+s;return s}
+  if(fmt==='json'){if(!confirm('WARNING: JSON export contains all passwords in plaintext. Keep this file secure and delete it after use.\n\nContinue with JSON export?'))return;dl(JSON.stringify(V.passwords,null,2),'wardkey-vault.json','application/json')}else{if(!confirm('WARNING: CSV export contains all passwords in plaintext. This file will NOT be encrypted. Make sure to delete it after use and never share it.\n\nContinue with CSV export?'))return;const csv='name,username,password,url,category\n'+V.passwords.map(p=>`"${csvSafe(p.name)}","${csvSafe(p.username)}","${csvSafe(p.password)}","${csvSafe(p.url)}","${csvSafe(p.cat)}"`).join('\n');dl(csv,'wardkey-vault.csv','text/csv')}$('impMo').classList.remove('on');logA('Vault exported','','gen');toast(`Exported as ${fmt.toUpperCase()}`,'ok')}
 
 async function wipeVault(){
   if(!confirm('⚠️ This will PERMANENTLY erase all vault data. This cannot be undone.'))return;
-  const pw=prompt('Re-enter master password to confirm:');
+  const pw=await askPassword('Re-enter master password to confirm wipe:');
   if(!pw)return;
   try{
     const hash=await deriveVerifyHash(pw,window._vaultSalt);
@@ -1548,16 +1629,21 @@ async function aiCall(prompt, sys, outId){
   aiUsage.count++;
   el.innerHTML='<div class="ai-ld">Analyzing with AI… ('+(!IS_PRO?(AI_DAILY_LIMIT-aiUsage.count)+' remaining today':'unlimited')+')</div>';
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:[{role:'user',content:prompt}]})
+    const hdrs={'Content-Type':'application/json'};
+    if(authToken)hdrs['Authorization']='Bearer '+authToken;
+    const r=await fetch('https://api.wardkey.io/api/ai/analyze',{
+      method:'POST',headers:hdrs,
+      body:JSON.stringify({prompt,system:sys,max_tokens:1000})
     });
     const d=await r.json();
-    const txt=(d.content||[]).map(b=>b.text||'').join('\n').trim();
+    const txt=d.text||(d.content||[]).map(b=>b.text||'').join('\n').trim();
     el.innerHTML='<div class="ai-res">'+formatAI(txt)+'</div>';
-  }catch(e){el.innerHTML='<div class="ai-res" style="color:var(--rd)">⚠️ AI request failed: '+e.message+'<br><br>This feature requires an active connection to Claude API.</div>'}
+  }catch(e){el.innerHTML='<div class="ai-res" style="color:var(--rd)">⚠️ AI request failed: '+escHtml(e.message)+'<br><br>This feature requires an active connection to Claude API.</div>'}
 }
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function formatAI(t){
+  // Escape HTML entities BEFORE applying markdown formatting
+  t=escHtml(t);
   return t
     .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
     .replace(/\n/g,'<br>')
@@ -1569,13 +1655,13 @@ function formatAI(t){
 
 // ════════ PAGE: AI PASSWORD ANALYZER ════════
 function rAiPw(el){
-  const pwList=V.passwords.map(p=>'<div class="ai-pw-ch" onclick="pickAiPw(\''+p.id+'\')">'+p.name+'</div>').join('');
+  const pwList=V.passwords.map(p=>'<div class="ai-pw-ch" onclick="pickAiPw(\''+p.id+'\')">'+esc(p.name)+'</div>').join('');
   el.innerHTML=`<div class="ai-card"><div class="ai-hdr"><div class="ai-ic">🧠</div><div><h3>AI Password Analyzer</h3><p>Deep analysis of any password — patterns, entropy, crackability, and specific fix suggestions</p></div></div><div class="ai-body">
   ${aiLimitHTML()}
   <div style="margin-bottom:8px;font-size:10px;color:var(--tx3)">Quick select from vault:</div>
   <div class="ai-pw-list">${pwList}</div>
   <div id="aiPwName" style="font-size:10px;color:var(--pp);margin-bottom:4px;min-height:14px"></div>
-  <div class="ai-in"><input type="text" id="aiPwIn" placeholder="Enter or select a password to analyze…" style="font-family:var(--mono)"><button class="ai-go" onclick="runAiPw()" id="aiPwGo"><svg viewBox="0 0 24 24" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Analyze</button></div>
+  <div class="ai-in"><input type="password" id="aiPwIn" placeholder="Enter or select a password to analyze…" style="font-family:var(--mono)"><button class="ai-go" onclick="runAiPw()" id="aiPwGo"><svg viewBox="0 0 24 24" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Analyze</button></div>
   <div id="aiPwOut"></div></div></div>`}
 function pickAiPw(id){const p=V.passwords.find(x=>x.id===id);if(p){document.getElementById('aiPwIn').value=p.password;document.getElementById('aiPwName').textContent='Analyzing: '+p.name}}
 
@@ -1583,11 +1669,30 @@ function runAiPw(){
   const pw=document.getElementById('aiPwIn').value.trim();
   if(!pw){toast('Enter a password to analyze','er');return}
   const s=str(pw);
-  const sys=`You are a cybersecurity expert analyzing passwords. Be specific and actionable. Use **bold** for emphasis. Start with a severity rating (use exactly one of: CRITICAL, WARNING, or SAFE). Then analyze: character composition, pattern detection (keyboard walks, dictionary words, dates, leet speak, common substitutions), estimated crack time (online throttled vs offline GPU), entropy bits, and end with 3 specific improvement suggestions. Keep it concise but thorough. Never reproduce the full password in your response — refer to patterns you found.`;
-  const prompt=`Analyze this password for security: "${pw}"
+  // Analyze password characteristics locally — NEVER send the actual password
+  const charClasses=[];
+  if(/[a-z]/.test(pw))charClasses.push('lowercase');
+  if(/[A-Z]/.test(pw))charClasses.push('uppercase');
+  if(/\d/.test(pw))charClasses.push('digits');
+  if(/[^a-zA-Z0-9]/.test(pw))charClasses.push('symbols');
+  const repeats=pw.length-new Set(pw).size;
+  const sequential=(pw.match(/(012|123|234|345|456|567|678|789|abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)/gi)||[]).length;
+  const entropy=Math.round(Math.log2(Math.pow(charClasses.length*20,pw.length/4)));
+  const sys=`You are a cybersecurity expert analyzing password characteristics (NOT the actual password — it is never shared). Be specific and actionable. Use **bold** for emphasis. Start with a severity rating (use exactly one of: CRITICAL, WARNING, or SAFE). Then analyze the characteristics provided: composition quality, pattern concerns, estimated crack time (online throttled vs offline GPU), entropy assessment, and end with 3 specific improvement suggestions. Keep it concise but thorough.`;
+  const prompt=`Analyze these password characteristics (the actual password is NOT provided for zero-knowledge security):
 
-Quick stats: Length=${pw.length}, Score=${Math.round(s.s)}/100, Rating="${s.l}"
-Has uppercase: ${/[A-Z]/.test(pw)}, lowercase: ${/[a-z]/.test(pw)}, numbers: ${/\d/.test(pw)}, symbols: ${/[^a-zA-Z0-9]/.test(pw)}`;
+Length: ${pw.length}
+Strength Score: ${Math.round(s.s)}/100
+Rating: "${s.label||s.l}"
+Character classes used: ${charClasses.join(', ')||'none'}
+Number of character classes: ${charClasses.length}/4
+Unique characters: ${new Set(pw).size}/${pw.length}
+Repeated characters: ${repeats}
+Sequential patterns detected: ${sequential}
+Estimated entropy: ~${entropy} bits
+Starts with uppercase: ${/^[A-Z]/.test(pw)}
+Ends with digit/symbol: ${/[\d\W]$/.test(pw)}
+Contains common patterns: ${/(.)\1{2,}/.test(pw)?'character repetition':'none detected'}`;
   aiCall(prompt,sys,'aiPwOut');
 }
 
@@ -1615,10 +1720,10 @@ function runAiReport(){
     passwords:V.passwords.length,cards:V.cards.length,notes:V.notes.length,apiKeys:V.apikeys.length,licenses:V.licenses.length,
     totpEnabled:V.totp.length,
     score:sc,
-    weakPasswords:w.map(p=>({name:p.name,score:Math.round(str(p.password).s)})),
-    reusedPasswords:r.map(p=>p.name),
-    agingPasswords:o.map(p=>({name:p.name,daysSinceUpdate:Math.floor((Date.now()-p.modified)/864e5)})),
-    unresolvedBreaches:ub.map(b=>({site:b.site,severity:b.sev,date:b.date,recordsExposed:b.recs})),
+    weakPasswords:w.map((p,i)=>({item:'Item '+(i+1),score:Math.round(str(p.password).s)})),
+    reusedCount:r.length,
+    agingPasswords:o.map((p,i)=>({item:'Item '+(i+1),daysSinceUpdate:Math.floor((Date.now()-p.modified)/864e5)})),
+    unresolvedBreaches:ub.map(b=>({severity:b.sev,date:b.date})),
     categories:cats,
     sensitiveItems:V.passwords.filter(p=>p.sens).length+V.notes.filter(n=>n.sens).length,
     emergencyContacts:V.emergency.length,
@@ -1959,7 +2064,7 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredIns
 window.addEventListener('appinstalled',()=>{toast('🎉 WARDKEY installed successfully!','ok');const b=$('pwaBan');if(b)b.remove()});
 
 // Register service worker
-if('serviceWorker' in navigator){navigator.serviceWorker.register('./wardkey-sw.js').catch(()=>{})}
+if('serviceWorker' in navigator){navigator.serviceWorker.register('wardkey-sw.js').catch(()=>{})}
 
 // iOS standalone mode padding
 if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone){

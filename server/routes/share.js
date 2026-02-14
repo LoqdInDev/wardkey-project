@@ -1,6 +1,6 @@
 // WARDKEY Share Routes — One-time secure links
 const express = require('express');
-const { v4: uuid } = require('uuid');
+const crypto = require('crypto');
 const { getDB, auditLog } = require('../models/db');
 const { authenticate, optionalAuth } = require('../middleware/auth');
 
@@ -18,7 +18,7 @@ router.post('/', authenticate, (req, res) => {
 
   const db = getDB();
 
-  const id = uuid().replace(/-/g, '').substring(0, 24);
+  const id = crypto.randomBytes(12).toString('hex');
   const safeExpiresInHours = typeof expiresInHours === 'number' && expiresInHours > 0 ? expiresInHours : 24;
   const hours = Math.min(safeExpiresInHours, 30 * 24); // Max 30 days
   const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();

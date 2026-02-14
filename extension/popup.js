@@ -310,7 +310,10 @@ function getMatches() {
       if (!raw) return false;
       if (!/^https?:\/\//.test(raw)) raw = 'https://' + raw;
       const host = new URL(raw).hostname.replace('www.', '');
-      return host === domain || host.endsWith('.' + domain) || domain.endsWith('.' + host);
+      // Exact match or current site is a subdomain of vault entry's domain (safe direction only)
+      if (host === domain) return true;
+      if (host.split('.').length >= 2 && domain.endsWith('.' + host)) return true;
+      return false;
     } catch { return false; }
   });
 }
@@ -395,7 +398,8 @@ function renderList() {
 
   list.innerHTML = items.map(p => {
     const s = pwStr(p.password);
-    return `<div class="item" data-id="${p.id}">
+    const safeId = esc(p.id);
+    return `<div class="item" data-id="${safeId}">
       <div class="item-ic">${esc(p.icon || '🔑')}</div>
       <div class="item-info">
         <div class="item-name">${esc(p.name)}</div>
@@ -405,13 +409,13 @@ function renderList() {
         <div class="sb"><div class="sb-f" style="width:${s.pct}%;background:${s.color}"></div></div>
       </div>
       <div class="item-acts">
-        <button class="act act-fill" title="Autofill" data-action="fill" data-id="${p.id}">
+        <button class="act act-fill" title="Autofill" data-action="fill" data-id="${safeId}">
           <svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg>
         </button>
-        <button class="act" title="Edit" data-action="edit" data-id="${p.id}">
+        <button class="act" title="Edit" data-action="edit" data-id="${safeId}">
           <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
-        <button class="act" title="Copy password" data-action="copy" data-id="${p.id}">
+        <button class="act" title="Copy password" data-action="copy" data-id="${safeId}">
           <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
         </button>
       </div>
@@ -827,40 +831,6 @@ async function checkPendingSave() {
   $('saveBanner').classList.add('on');
 }
 
-async function autoSavePending(pending) {
-  // Check if credential exists for this domain+username
-  const existing = (vault.passwords || []).find(p =>
-    (p.url || '').toLowerCase().includes(pending.domain) &&
-    (p.username || '').toLowerCase() === (pending.username || '').toLowerCase()
-  );
-
-  if (existing) {
-    if (existing.password !== pending.password) {
-      if (!existing.history) existing.history = [];
-      existing.history.push({ pw: existing.password, changed: Date.now() });
-      existing.password = pending.password;
-      existing.modified = Date.now();
-    }
-  } else {
-    vault.passwords.push({
-      id: crypto.randomUUID(),
-      name: pending.domain,
-      username: pending.username || '',
-      password: pending.password,
-      url: 'https://' + pending.domain,
-      cat: '', tags: [], notes: '',
-      created: Date.now(), modified: Date.now(),
-      history: [], icon: '🔑', fav: false, sens: false, fields: []
-    });
-  }
-
-  await saveVault();
-  await chrome.storage.session?.remove('wardkey_pendingSave');
-  $('saveBanner').classList.remove('on');
-  renderList();
-  toast(existing ? 'Password updated' : 'Password saved');
-}
-
 $('saveBannerYes').onclick = async () => {
   const data = await chrome.storage.session?.get('wardkey_pendingSave');
   if (!data?.wardkey_pendingSave) return;
@@ -884,11 +854,17 @@ $('saveBannerYes').onclick = async () => {
     return;
   }
 
-  // Check if credential exists for this domain+username
-  const existing = (vault.passwords || []).find(p =>
-    (p.url || '').toLowerCase().includes(pending.domain) &&
-    (p.username || '').toLowerCase() === (pending.username || '').toLowerCase()
-  );
+  // Check if credential exists for this domain+username (exact domain match)
+  const existing = (vault.passwords || []).find(p => {
+    try {
+      let raw = (p.url || '').trim().toLowerCase();
+      if (!raw) return false;
+      if (!/^https?:\/\//.test(raw)) raw = 'https://' + raw;
+      const host = new URL(raw).hostname.replace('www.', '');
+      return host === pending.domain &&
+        (p.username || '').toLowerCase() === (pending.username || '').toLowerCase();
+    } catch { return false; }
+  });
 
   if (existing) {
     if (existing.password !== password) {
@@ -1262,16 +1238,30 @@ chrome.runtime.onMessage.addListener((msg) => {
     if (Array.isArray(msg.passwords)) {
       const valid = msg.passwords.filter(p =>
         p && typeof p === 'object' &&
-        typeof p.id === 'string' && p.id &&
+        typeof p.id === 'string' && p.id && /^[a-zA-Z0-9_-]+$/.test(p.id) &&
         typeof p.name === 'string' && p.name &&
         (!p.password || typeof p.password === 'string') &&
         (!p.url || typeof p.url === 'string') &&
         (!p.username || typeof p.username === 'string')
       );
       if (!valid.length) return;
-      // Merge: add only items with IDs not already in vault
+      // Merge: add only items with IDs not already in vault (whitelist properties)
       const existingIds = new Set(vault.passwords.map(p => p.id));
-      const newItems = valid.filter(p => !existingIds.has(p.id));
+      const newItems = valid.filter(p => !existingIds.has(p.id)).map(p => ({
+        id: p.id,
+        name: p.name,
+        username: typeof p.username === 'string' ? p.username : '',
+        password: typeof p.password === 'string' ? p.password : '',
+        url: typeof p.url === 'string' ? p.url : '',
+        cat: typeof p.cat === 'string' ? p.cat : '',
+        tags: Array.isArray(p.tags) ? p.tags.filter(t => typeof t === 'string') : [],
+        notes: typeof p.notes === 'string' ? p.notes : '',
+        created: typeof p.created === 'number' ? p.created : Date.now(),
+        modified: typeof p.modified === 'number' ? p.modified : Date.now(),
+        history: [],
+        icon: typeof p.icon === 'string' ? p.icon.slice(0, 8) : '🔑',
+        fav: false, sens: false, fields: []
+      }));
       vault.passwords.push(...newItems);
       saveVault();
       renderList();
@@ -1359,7 +1349,7 @@ const LOCK_OPTIONS = [
   { value: 3600000, label: '1 hour' },
   { value: 86400000, label: '1 day' },
   { value: 604800000, label: '1 week' },
-  { value: -1, label: 'Browser session (until closed)' }
+  { value: -1, label: 'Browser session (max 24h)' }
 ];
 
 async function loadLockTimeout() {

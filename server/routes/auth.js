@@ -71,7 +71,9 @@ router.post('/register', async (req, res) => {
     const { email, password, name } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
     if (!isValidEmail(email)) return res.status(400).json({ error: 'Invalid email format' });
+    if (typeof password !== 'string') return res.status(400).json({ error: 'Email and password required' });
     if (password.length < 12) return res.status(400).json({ error: 'Password must be at least 12 characters' });
+    if (password.length > 128) return res.status(400).json({ error: 'Password must be 128 characters or less' });
     if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) return res.status(400).json({ error: 'Password must contain uppercase, lowercase, and a number' });
 
     const safeName = sanitizeName(name);
@@ -106,7 +108,7 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+    if (!email || !password || typeof password !== 'string') return res.status(400).json({ error: 'Email and password required' });
     if (!isValidEmail(email)) return res.status(400).json({ error: 'Invalid email format' });
 
     const db = getDB();
@@ -293,8 +295,10 @@ router.patch('/me', authenticate, async (req, res) => {
   }
 
   if (newPassword) {
-    if (!currentPassword) return res.status(400).json({ error: 'Current password required' });
+    if (!currentPassword || typeof currentPassword !== 'string') return res.status(400).json({ error: 'Current password required' });
+    if (typeof newPassword !== 'string') return res.status(400).json({ error: 'New password must be a string' });
     if (newPassword.length < 12) return res.status(400).json({ error: 'New password must be at least 12 characters' });
+    if (newPassword.length > 128) return res.status(400).json({ error: 'New password must be 128 characters or less' });
     if (!/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) return res.status(400).json({ error: 'New password must contain uppercase, lowercase, and a number' });
     const user = db.prepare('SELECT password_hash FROM users WHERE id = ?').get(req.user.id);
     const valid = await bcrypt.compare(currentPassword, user.password_hash);
@@ -334,7 +338,7 @@ router.delete('/sessions/:id', authenticate, (req, res) => {
 // ═══════ DELETE ACCOUNT ═══════
 router.delete('/me', authenticate, async (req, res) => {
   const { password } = req.body;
-  if (!password) return res.status(400).json({ error: 'Password required for account deletion' });
+  if (!password || typeof password !== 'string') return res.status(400).json({ error: 'Password required for account deletion' });
 
   const db = getDB();
   const user = db.prepare('SELECT password_hash FROM users WHERE id = ?').get(req.user.id);
@@ -350,8 +354,8 @@ router.delete('/me', authenticate, async (req, res) => {
     db.prepare('DELETE FROM sessions WHERE user_id = ?').run(req.user.id);
     db.prepare('DELETE FROM users WHERE id = ?').run(req.user.id);
   });
-  auditLog(req.user.id, 'account_deleted', null, req);
   deleteAccount();
+  auditLog(req.user.id, 'account_deleted', null, req);
   res.json({ success: true, message: 'Account and all data permanently deleted' });
 });
 

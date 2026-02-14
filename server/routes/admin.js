@@ -8,14 +8,7 @@ const fs = require('fs');
 
 const router = express.Router();
 
-// ═══════ CORS — restricted to configured admin origin ═══════
-router.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', process.env.ADMIN_ORIGIN || 'https://wardkey.io');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  if (req.method === 'OPTIONS') return res.sendStatus(204);
-  next();
-});
+// Admin CORS handled in server.js — no duplicate needed here
 
 // ═══════ ADMIN AUTH ═══════
 function requireAdmin(req, res, next) {
@@ -60,7 +53,8 @@ router.post('/login', (req, res) => {
     return res.status(401).json({ error: 'Invalid secret' });
   }
 
-  const token = jwt.sign({ role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '15m' });
+  const { v4: adminJti } = require('uuid');
+  const token = jwt.sign({ role: 'admin', jti: adminJti() }, process.env.JWT_SECRET, { expiresIn: '15m' });
   auditLog(null, 'admin_login', null, req);
   res.json({ token });
 });
