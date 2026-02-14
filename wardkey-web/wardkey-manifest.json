@@ -1,7 +1,7 @@
 {
   "name": "WARDKEY — AI Password Manager",
   "short_name": "WARDKEY",
-  "description": "AI-powered password manager. Local-first, zero-knowledge, free forever.",
+  "description": "AI-enhanced password manager. Local-first, zero-knowledge vault encryption. Free to get started.",
   "start_url": "./app.html",
   "scope": "./",
   "display": "standalone",
@@ -40,7 +40,7 @@
       "icons": [{"src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' rx='20' fill='%230c0c14'/><text x='48' y='66' font-size='52' text-anchor='middle'>⚡</text></svg>", "sizes": "96x96"}]
     },
     {
-      "name": "Watchtower",
+      "name": "Security Monitor",
       "short_name": "Security",
       "url": "./app.html#watchtower",
       "icons": [{"src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' rx='20' fill='%230c0c14'/><text x='48' y='66' font-size='52' text-anchor='middle'>🛡️</text></svg>", "sizes": "96x96"}]

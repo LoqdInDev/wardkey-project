@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "homepage_url": "https://wardkey.io",
   "minimum_chrome_version": "116",
-  "description": "AI-powered password manager. Autofill credentials, generate passwords, and stay secure — all from your browser.",
+  "description": "AI-enhanced password manager. Autofill credentials, generate passwords, and stay secure — all from your browser.",
   "permissions": [
     "activeTab",
     "storage",

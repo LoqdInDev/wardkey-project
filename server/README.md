@@ -1,6 +1,6 @@
-# 🔐 WARDKEY — AI-Powered Password Manager
+# 🔐 WARDKEY — AI-Enhanced Password Manager
 
-> Local-first, zero-knowledge, AI-powered password security. Free forever.
+> Local-first, zero-knowledge vault encryption, AI-enhanced password security. Free to get started.
 
 ## 🚀 Quick Start
 
@@ -61,7 +61,8 @@ wardkey/
     │   ├── auth.js           # Register, login, sessions
     │   ├── vault.js          # Encrypted vault sync
     │   ├── share.js          # One-time share links
-    │   └── aliases.js        # Email alias management
+    │   ├── breach.js         # Breach scanner (HIBP proxy)
+│   └── emergency.js      # Emergency access
     ├── models/
     │   └── db.js             # SQLite schema & queries
     └── middleware/
@@ -113,13 +114,21 @@ wardkey/
 | GET | `/api/share` | List my shares |
 | DELETE | `/api/share/:id` | Revoke share |
 
-### Email Aliases
+### Breach Scanner
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/aliases` | List aliases |
-| POST | `/api/aliases` | Create alias |
-| PATCH | `/api/aliases/:id` | Toggle/update |
-| DELETE | `/api/aliases/:id` | Delete alias |
+| POST | `/api/breach/check` | Check password hashes via HIBP |
+
+### Emergency Access
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/emergency` | Add emergency contact |
+| GET | `/api/emergency` | List my contacts (grantor) |
+| GET | `/api/emergency/incoming` | List incoming (grantee) |
+| POST | `/api/emergency/:id/request` | Request access |
+| POST | `/api/emergency/:id/approve` | Approve request |
+| POST | `/api/emergency/:id/deny` | Deny request |
+| DELETE | `/api/emergency/:id` | Remove contact |
 
 ---
 
@@ -131,10 +140,10 @@ wardkey/
 - ✅ Secure notes
 - ✅ API keys with environment tagging
 - ✅ Software licenses
-- ✅ Passkeys (FIDO2/WebAuthn)
+- ✅ Passkey credential storage
 
 ### Security
-- ✅ Watchtower security dashboard
+- ✅ Security Monitor dashboard
 - ✅ Security audit (weak, reused, aging)
 - ✅ Breach scanner
 - ✅ Credential Map (network graph)
@@ -144,7 +153,7 @@ wardkey/
 - ✅ Auto-lock (5 min)
 - ✅ Password history tracking
 
-### AI-Powered (Claude)
+### AI-Enhanced (Claude)
 - ✅ Password analyzer
 - ✅ Security report generator
 - ✅ Phishing detector
@@ -153,7 +162,6 @@ wardkey/
 - ✅ Password generator (passwords + passphrases)
 - ✅ TOTP authenticator
 - ✅ One-time share links
-- ✅ Email alias generator
 - ✅ Emergency access
 - ✅ Import/Export (JSON, CSV)
 - ✅ Quick Launch (open site + copy password)
@@ -193,13 +201,6 @@ Just deploy the HTML files:
 - `wardkey-landing.html` → Marketing page
 - `wardkey-manifest.json` → PWA manifest
 - `wardkey-sw.js` → Service worker
-
-### Email Aliases Setup
-To enable real email forwarding:
-1. Register your domain (e.g., `wardkey.email`)
-2. Set up Cloudflare Email Routing or Postfix
-3. Configure catch-all to forward to `/api/aliases/incoming`
-4. Update `ALIAS_DOMAIN` in `.env`
 
 ---
 

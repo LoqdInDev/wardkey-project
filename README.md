@@ -1,6 +1,6 @@
-# 🔐 WARDKEY — AI-Powered Password Manager
+# 🔐 WARDKEY — AI-Enhanced Password Manager
 
-A local-first, zero-knowledge password manager with military-grade encryption, built as a single-file PWA with a Chrome extension and backend API.
+A local-first, zero-knowledge password manager with AES-256-GCM encryption, built as a single-file PWA with a Chrome extension and backend API.
 
 ## Project Structure
 
@@ -28,7 +28,8 @@ wardkey-project/
 │   │   ├── auth.js             # Registration, login, sessions, profile
 │   │   ├── vault.js            # Encrypted vault sync (upload/download)
 │   │   ├── share.js            # One-time share links
-│   │   └── aliases.js          # Email alias management
+│   │   ├── breach.js           # Breach scanner (HIBP proxy)
+│   │   └── emergency.js        # Emergency access
 │   ├── middleware/
 │   │   └── auth.js             # JWT authentication middleware
 │   ├── models/
@@ -70,9 +71,9 @@ wardkey-project/
 ```
 
 ### App Features
-- **Vault types:** Passwords, Credit Cards, Secure Notes, TOTP 2FA, API Keys, Software Licenses, Passkeys, Email Aliases
+- **Vault types:** Passwords, Credit Cards, Secure Notes, TOTP 2FA, API Keys, Software Licenses, Passkeys
 - **Password Generator:** Configurable length/charset, passphrase mode, strength meter
-- **Watchtower:** Breach monitoring dashboard with severity ratings
+- **Security Monitor:** Breach monitoring dashboard with severity ratings
 - **Security Audit:** Weak/reused/aging password detection with actionable recommendations
 - **Credential Map:** Interactive graph visualization of password/email reuse connections
 - **Password Decay Timeline:** GPU advancement projections showing when passwords become crackable
@@ -83,7 +84,7 @@ wardkey-project/
 - **Activity log:** Full audit trail of all vault actions
 
 ### Pricing Tiers
-- **Free ($0):** 50 passwords, 3 email aliases, 5 share links, basic breach alerts
+- **Free ($0):** 50 passwords, 5 share links, basic breach alerts
 - **Pro ($3.99/mo):** Unlimited everything, AI analysis, cloud sync, priority support
 - **Family ($6.99/mo):** 6 users, shared vaults, family dashboard
 - **Enterprise ($8.99/user/mo):** SSO/SCIM, admin console, compliance reports

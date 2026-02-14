@@ -10,6 +10,10 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 if (process.env.ADMIN_SECRET && process.env.ADMIN_SECRET.length < 16) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('\n  ❌ FATAL: ADMIN_SECRET is too short for production (minimum 16 characters).\n');
+    process.exit(1);
+  }
   console.error('\n  ⚠ WARNING: ADMIN_SECRET is too short (minimum 16 characters recommended).\n');
 }
 if (!process.env.MFA_ENC_KEY) {
@@ -37,7 +41,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Trust proxy (conditional — only behind reverse proxy or in production)
-app.set('trust proxy', process.env.BEHIND_PROXY === 'true' || process.env.NODE_ENV === 'production' ? 1 : false);
+app.set('trust proxy', process.env.BEHIND_PROXY === 'true' ? 1 : false);
 
 // ═══════ SECURITY ═══════
 app.use(helmet({

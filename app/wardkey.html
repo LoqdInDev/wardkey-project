@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0c0c14" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="description" content="AI-powered password manager. Local-first, zero-knowledge, free forever.">
+<meta name="description" content="AI-enhanced password manager. Local-first, zero-knowledge vault encryption. Free to get started.">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.wardkey.io; frame-ancestors 'none'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="no-referrer">
@@ -1008,7 +1008,7 @@ checkFirstRun();
 
 // ════════ ONBOARDING TOUR ════════
 const OB_SLIDES=[
-{icon:'🔐',title:'Welcome to WARDKEY',desc:'Your zero-knowledge, local-first vault. All encryption happens on your device — your data never leaves unprotected.',tags:['End-to-End Encrypted','Offline-First','Open Audit']},
+{icon:'🔐',title:'Welcome to WARDKEY',desc:'Your zero-knowledge, local-first vault. All encryption happens on your device — your data never leaves unprotected.',tags:['End-to-End Encrypted','Offline-First','Open Source']},
 {icon:'🔑',title:'Passwords',desc:'Store unlimited credentials with automatic strength scoring, breach detection, and smart organization.',tags:['Strength Score','Breach Alerts','Categories & Tags']},
 {icon:'💳',title:'Cards & IDs',desc:'Keep credit cards, IDs, and payment methods in your vault. Copy any field with one click.',tags:['Credit Cards','IDs','One-Click Copy']},
 {icon:'📝',title:'Secure Notes',desc:'Encrypted free-form notes for recovery codes, Wi-Fi passwords, sensitive documents, and more.',tags:['Recovery Codes','Wi-Fi Keys','Private Docs']},
@@ -1017,7 +1017,7 @@ const OB_SLIDES=[
 {icon:'🔢',title:'Authenticator (2FA)',desc:'Built-in TOTP code generator — no separate authenticator app needed. Your 2FA lives right in the vault.',tags:['TOTP Codes','Built-In','Auto-Refresh']},
 {icon:'🔗',title:'Secure Sharing',desc:'Share credentials via encrypted, self-destructing links with view limits and expiry. No account needed to receive.',tags:['Self-Destruct','View Limits','No Signup']},
 {icon:'🗝️',title:'API Keys & Licenses',desc:'Safely store tokens, license keys, and secrets. Tag by environment for easy lookup.',tags:['API Tokens','License Keys','Env Tags']},
-{icon:'🤖',title:'AI Security Tools',desc:'AI-powered password analysis, security reports, and phishing detection to keep you ahead of threats.',tags:['Password Analysis','Security Reports','Phishing Detection']},
+{icon:'🤖',title:'AI Security Tools',desc:'AI-enhanced password analysis, security reports, and phishing detection to keep you ahead of threats.',tags:['Password Analysis','Security Reports','Phishing Detection']},
 {icon:'🌐',title:'Credential Map & Decay',desc:'Visualize your digital footprint and track credential freshness so nothing goes stale.',tags:['Footprint Map','Freshness Score','Decay Alerts']},
 {icon:'☁️',title:'Cloud Sync',desc:'End-to-end encrypted sync across all your devices. The server only ever sees ciphertext.',tags:['E2E Encrypted','Multi-Device','Zero-Knowledge']},
 {icon:'🚀',title:"You're All Set!",desc:'Your vault is ready. Add your first password, import from another manager, or just explore.',tags:['Add Password','Import Data','Explore Features']}
@@ -2202,7 +2202,7 @@ function updateLockThemeBtn(){
 
 // ════════ PAGE: PASSKEYS ════════
 function rPasskeys(el){
-  el.innerHTML=`<div class="sh"><div><div class="st">Passkeys</div><div class="ss">Passwordless authentication with biometrics</div></div><button class="bt bt-p" onclick="addPasskey()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Register Passkey</button></div>
+  el.innerHTML=`<div class="sh"><div><div class="st">Passkeys</div><div class="ss">Store and organize your passkey credentials</div></div><button class="bt bt-p" onclick="addPasskey()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Register Passkey</button></div>
   <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:14px;display:flex;align-items:center;gap:10px"><div style="font-size:24px">🔑</div><div><div style="font-size:13px;font-weight:600">What are passkeys?</div><div style="font-size:11px;color:var(--tx2);line-height:1.5">Passkeys replace passwords with biometric authentication (Face ID, fingerprint, Windows Hello). They're phishing-resistant and can't be leaked in data breaches.</div></div></div>
   <div class="vl">${V.passkeys.length?V.passkeys.map((pk,i)=>`<div class="vi" style="animation-delay:${i*.03}s" onclick="showD('passkeys','${pk.id}')"><div class="vi-i" style="background:var(--gnb)">${esc(pk.icon||'🔑')}</div><div class="vi-n"><div class="vi-t">${pk.fav?'<span class="fv">★</span>':''}${esc(pk.name)}</div><div class="vi-d">${esc(pk.username)} · ${esc(pk.rpId)}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="sv" style="background:var(--gnb);color:var(--gn)">${esc(pk.alg)}</span><span style="font-size:10px;color:var(--tx3)">${timeAgo(pk.lastUsed)}</span></div></div>`).join(''):emp('No Passkeys','Register your first passkey for passwordless login')}</div>`;
 }

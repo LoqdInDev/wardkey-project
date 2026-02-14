@@ -1,13 +1,13 @@
 # WARDKEY — Chrome Web Store Listing
 
 ## Short Description (132 char max)
-AI-powered password manager. Local-first, zero-knowledge, free. Autofill, generate passwords, and secure your vault — no account needed.
+AI-enhanced password manager. Local-first, zero-knowledge vault encryption. Autofill, generate passwords, and secure your vault.
 
 ## Detailed Description
 
-WARDKEY is a local-first, AI-powered password manager that keeps your data on your device — not in someone else's cloud.
+WARDKEY is a local-first, AI-enhanced password manager that keeps your data on your device — not in someone else's cloud.
 
-No account required. No credit card. No subscription. Just install and go.
+No account required. No credit card. Just install and go.
 
 --- LAUNCH OFFER ---
 WARDKEY is completely free with all features unlocked for a limited time. No limits, no restrictions — try everything.
@@ -26,7 +26,7 @@ Automatically detect login forms and fill credentials with one click. WARDKEY pr
 PASSWORD GENERATOR
 Cryptographic random generation with real-time entropy scoring. Passwords or passphrases, 8-64 characters, fully configurable.
 
-AI-POWERED SECURITY (Powered by Claude)
+AI-ENHANCED SECURITY (Powered by Claude)
 - AI Password Analyzer: Deep pattern detection, crack-time estimates, and specific improvement suggestions
 - AI Security Report: Full vault audit written in plain English with prioritized recommendations
 - AI Phishing Detector: Paste any suspicious URL or message for instant threat analysis
@@ -34,17 +34,14 @@ AI-POWERED SECURITY (Powered by Claude)
 7 VAULT TYPES
 Passwords, credit cards, secure notes, TOTP codes, API keys, software licenses, and passkeys — all in one place.
 
-WATCHTOWER DASHBOARD
+SECURITY MONITOR DASHBOARD
 Real-time security score monitoring weak passwords, reused credentials, aging secrets, and known breaches — all checked locally.
 
 BUILT-IN TOTP AUTHENTICATOR
 Generate 2FA codes with live countdowns. No more switching between apps.
 
 BREACH SCANNER
-Check if your email appears in known data breaches without exposing your data.
-
-EMAIL ALIASES
-Generate unique masked emails per site. If one gets leaked, disable it — your real email stays private.
+Check your passwords against known data breaches via HIBP without exposing your data.
 
 ONE-TIME SHARE LINKS
 Share credentials via secure, self-destructing links with view limits and expiry. Recipients don't need an account.
@@ -62,8 +59,8 @@ Beautiful interface in both themes, matching your system preference.
 
 - AES-256-GCM authenticated encryption
 - PBKDF2 with 600,000 key derivation iterations
-- Zero-knowledge architecture
-- Local-first storage — your vault never touches a server
+- Zero-knowledge vault encryption
+- Local-first storage with optional encrypted cloud sync
 - Auto-lock after inactivity
 - Brute force protection (5 attempts, 60s cooldown)
 - No telemetry, no tracking, no analytics

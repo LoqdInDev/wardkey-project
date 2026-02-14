@@ -362,7 +362,7 @@ zip -r ../wardkey-extension-store.zip . -x ".*" -x "__MACOSX/*"
 2. Upload `wardkey-extension-store.zip`
 3. Fill in:
    - **Name:** WARDKEY Password Manager
-   - **Description:** AI-powered password manager with autofill, password generator, and breach detection. Local-first, zero-knowledge, free forever.
+   - **Description:** AI-enhanced password manager with autofill, password generator, and breach detection. Local-first, zero-knowledge vault encryption.
    - **Category:** Productivity
    - **Language:** English
 4. Upload screenshots
@@ -521,7 +521,7 @@ const ASSETS = [
 1. **Product Hunt** — https://producthunt.com
    - Prepare: tagline, description, screenshots, maker profile
    - Schedule launch for Tuesday/Wednesday (best traffic days)
-   - Tagline: "AI-powered password manager — local-first, free forever"
+   - Tagline: "AI-enhanced password manager — local-first, free during launch"
 
 2. **Hacker News** — https://news.ycombinator.com
    - Post as "Show HN: WARDKEY — Local-first password manager with AI security analysis"
