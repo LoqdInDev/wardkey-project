@@ -662,7 +662,7 @@ const NAV=[
 {s:'Security'},
 {id:'generator',ic:'zap',l:'Generator'},
 {id:'authenticator',ic:'clock',l:'Authenticator',b:'tpC'},
-{id:'watchtower',ic:'shield',l:'Watchtower',dot:1},
+{id:'watchtower',ic:'shield',l:'Security Monitor',dot:1},
 {id:'audit',ic:'check',l:'Security Audit'},
 {id:'scanner',ic:'scan',l:'Breach Scanner'},
 {id:'credmap',ic:'web',l:'Credential Map'},
@@ -883,6 +883,10 @@ function secureClear() {
   authUser=null;
   window._pendingMp=null;
   mfaPendingToken=null;
+  if(typeof _serverShares!=='undefined')_serverShares=[];
+  if(typeof _emerContacts!=='undefined')_emerContacts=[];
+  if(typeof _emerIncoming!=='undefined')_emerIncoming=[];
+  navHistory=[];sq='';
 }
 
 // ════════ 2FA ════════
@@ -1009,7 +1013,7 @@ const OB_SLIDES=[
 {icon:'💳',title:'Cards & IDs',desc:'Keep credit cards, IDs, and payment methods in your vault. Copy any field with one click.',tags:['Credit Cards','IDs','One-Click Copy']},
 {icon:'📝',title:'Secure Notes',desc:'Encrypted free-form notes for recovery codes, Wi-Fi passwords, sensitive documents, and more.',tags:['Recovery Codes','Wi-Fi Keys','Private Docs']},
 {icon:'⚡',title:'Password Generator',desc:'Create strong, unique passwords with customizable length, symbols, and complexity rules.',tags:['Custom Length','Symbols','Auto-Rotate']},
-{icon:'🛡️',title:'Watchtower',desc:'Real-time vault health monitoring. Get a security score and flags for weak, reused, or breached credentials.',tags:['Security Score','Weak Flags','Reuse Detection']},
+{icon:'🛡️',title:'Security Monitor',desc:'Real-time vault health monitoring. Get a security score and flags for weak, reused, or breached credentials.',tags:['Security Score','Weak Flags','Reuse Detection']},
 {icon:'🔢',title:'Authenticator (2FA)',desc:'Built-in TOTP code generator — no separate authenticator app needed. Your 2FA lives right in the vault.',tags:['TOTP Codes','Built-In','Auto-Refresh']},
 {icon:'🔗',title:'Secure Sharing',desc:'Share credentials via encrypted, self-destructing links with view limits and expiry. No account needed to receive.',tags:['Self-Destruct','View Limits','No Signup']},
 {icon:'🗝️',title:'API Keys & Licenses',desc:'Safely store tokens, license keys, and secrets. Tag by environment for easy lookup.',tags:['API Tokens','License Keys','Env Tags']},
@@ -1218,7 +1222,7 @@ document.addEventListener('contextmenu', e => {
 
 // ════════ NAVIGATION ════════
 function buildNav(){$('sNav').innerHTML=NAV.map(n=>{if(n.s)return`<div class="sb-sec">${n.s}</div>`;const dot=n.dot&&V.breaches.some(b=>!b.resolved);return`<div class="ni${pg===n.id?' on':''}" data-p="${n.id}" onclick="nav('${n.id}')">${ICONS[n.ic]}<span>${n.l}</span>${n.b?`<span class="c" id="${n.b}">0</span>`:''}${dot?'<div class="rd"></div>':''}</div>`}).join('')}
-function nav(p,skipHistory){if(!skipHistory&&pg!==p)navHistory.push(pg);pg=p;sq='';af='all';$('gSch').value='';document.querySelectorAll('.ni').forEach(e=>e.classList.toggle('on',e.dataset.p===p));const T={dashboard:'Dashboard',favorites:'⭐ Favorites',passwords:'Passwords',cards:'Cards & IDs',notes:'Secure Notes',apikeys:'API Keys & Tokens',licenses:'Software Licenses',passkeys:'🔑 Passkeys',generator:'Password Generator',authenticator:'Authenticator',watchtower:'Watchtower',audit:'Security Audit',scanner:'Breach Scanner',credmap:'🕸️ Credential Map',decay:'⏳ Decay Timeline',sharing:'Secure Sharing',emergency:'Emergency Access',analytics:'Analytics',activity:'Activity Log',trash:'Trash',settings:'Settings','ai-analyzer':'🧠 AI Password Analyzer','ai-report':'📋 AI Security Report','ai-phishing':'🎣 AI Phishing Detector'};$('pTit').textContent=T[p]||p;updBackBtn();render();closeD();closeSB();updBnav(p)}
+function nav(p,skipHistory){if(!skipHistory&&pg!==p)navHistory.push(pg);pg=p;sq='';af='all';$('gSch').value='';document.querySelectorAll('.ni').forEach(e=>e.classList.toggle('on',e.dataset.p===p));const T={dashboard:'Dashboard',favorites:'⭐ Favorites',passwords:'Passwords',cards:'Cards & IDs',notes:'Secure Notes',apikeys:'API Keys & Tokens',licenses:'Software Licenses',passkeys:'🔑 Passkeys',generator:'Password Generator',authenticator:'Authenticator',watchtower:'Security Monitor',audit:'Security Audit',scanner:'Breach Scanner',credmap:'🕸️ Credential Map',decay:'⏳ Decay Timeline',sharing:'Secure Sharing',emergency:'Emergency Access',analytics:'Analytics',activity:'Activity Log',trash:'Trash',settings:'Settings','ai-analyzer':'🧠 AI Password Analyzer','ai-report':'📋 AI Security Report','ai-phishing':'🎣 AI Phishing Detector'};$('pTit').textContent=T[p]||p;updBackBtn();render();closeD();closeSB();updBnav(p)}
 function goBack(){if(navHistory.length){const prev=navHistory.pop();nav(prev,true)}else{nav('dashboard',true)}}
 function updBackBtn(){const b=$('backBtn');if(b)b.style.display=navHistory.length?'flex':'none'}
 function render(){const c=$('ct');c.innerHTML='';const d=document.createElement('div');d.className='pg';c.appendChild(d);const R={dashboard:rDash,favorites:rFav,passwords:rPw,cards:rCards,notes:rNotes,apikeys:rApi,licenses:rLic,passkeys:rPasskeys,generator:rGen,authenticator:rAuth,watchtower:rWatch,audit:rAudit,scanner:rScan,credmap:rCredMap,decay:rDecay,sharing:rShare,emergency:rEmer,analytics:rAnl,activity:rAct,trash:rTrash,settings:rSet,'ai-analyzer':rAiPw,'ai-report':rAiReport,'ai-phishing':rAiPhish};(R[pg]||(()=>{}))(d)}
@@ -1342,7 +1346,7 @@ function rWatch(el){const sc=oScore(),co=sc>=80?'var(--gn)':sc>=60?'var(--yl)':s
 el.innerHTML=`
 <div class="wtH" style="background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--bd);border-radius:var(--rl);padding:24px;margin-bottom:16px;display:flex;align-items:center;gap:24px">
   <div class="ring" style="width:100px;height:100px;flex-shrink:0"><svg viewBox="0 0 100 100" width="100" height="100"><circle class="bg" cx="50" cy="50" r="42" stroke-width="6"/><circle cx="50" cy="50" r="42" stroke="${co}" stroke-width="6" stroke-dasharray="${ci}" stroke-dashoffset="${of}" style="--ring-c:${ci};--ring-off:${of};animation:ringFill 1s ease-out forwards"/></svg><div class="ring-v" style="font-size:24px;color:${co}">${sc}</div></div>
-  <div><div style="font-size:28px;font-weight:800;margin-bottom:4px">Watchtower</div><div style="font-size:16px;color:var(--tx2);line-height:1.6;max-width:420px">Your vault security score is <strong style="color:${co}">${sc>=80?'excellent':sc>=60?'good':sc>=40?'fair':'poor'}</strong>. Watchtower monitors your credentials for breaches, weak passwords, and security vulnerabilities — all checked locally on your device.</div></div>
+  <div><div style="font-size:28px;font-weight:800;margin-bottom:4px">Security Monitor</div><div style="font-size:16px;color:var(--tx2);line-height:1.6;max-width:420px">Your vault security score is <strong style="color:${co}">${sc>=80?'excellent':sc>=60?'good':sc>=40?'fair':'poor'}</strong>. Security Monitor tracks your credentials for breaches, weak passwords, and security vulnerabilities — all checked locally on your device.</div></div>
 </div>
 <div class="grid4" style="margin-bottom:16px">
   <div class="card" style="cursor:pointer" onclick="nav('audit')"><div class="card-v" style="color:var(--rd);font-size:18px">${w}</div><div class="card-l">Weak</div></div>
@@ -1699,6 +1703,7 @@ async function cpTx(t){try{await navigator.clipboard.writeText(t);toast('Copied 
 function startClip(s){clearInterval(clipI);const endTime=Date.now()+s*1000;$('cBan').classList.add('on');$('cTmr').textContent=s;clipI=setInterval(()=>{const remaining=Math.ceil((endTime-Date.now())/1000);$('cTmr').textContent=Math.max(0,remaining);if(Date.now()>=endTime){clearInterval(clipI);try{navigator.clipboard.writeText('')}catch{};$('cBan').classList.remove('on')}},1000)}
 function doSearch(q){sq=q;if(q.length>0&&!['passwords','notes','apikeys'].includes(pg))nav('passwords');else render()}
 async function doImport(input){const f=input.files[0];if(!f)return;
+  if(f.size>10*1024*1024){toast('File too large (max 10MB)','er');return}
   const pw=await askPassword('Re-enter master password to import data:');
   if(!pw){input.value='';return}
   try{const hash=await deriveVerifyHash(pw,window._vaultSalt);if(hash!==window._verifyHash){toast('Wrong password — import denied','er');input.value='';return}}catch{toast('Authentication failed','er');input.value='';return}
@@ -2022,7 +2027,7 @@ function rCredMap(el){
       <circle cx="${n.x}" cy="${n.y}" r="${r}" fill="${n.s.c.replace('var(--gn)','#22d3a8').replace('var(--yl)','#f0c246').replace('var(--og)','#ef8b3a').replace('var(--rd)','#ef4468')}" opacity=".15" class="cmnbg"/>
       <circle cx="${n.x}" cy="${n.y}" r="${r}" fill="none" stroke="${n.s.c.replace('var(--gn)','#22d3a8').replace('var(--yl)','#f0c246').replace('var(--og)','#ef8b3a').replace('var(--rd)','#ef4468')}" stroke-width="2"/>
       <text x="${n.x}" y="${n.y}" text-anchor="middle" dominant-baseline="central" font-size="12" fill="white">${n.icon||'🔑'}</text>
-      <text x="${n.x}" y="${n.y+r+14}" text-anchor="middle" font-size="10" font-weight="600" fill="var(--tx2)" class="cmlbl">${n.name.length>14?n.name.substr(0,12)+'…':n.name}</text>
+      <text x="${n.x}" y="${n.y+r+14}" text-anchor="middle" font-size="10" font-weight="600" fill="var(--tx2)" class="cmlbl">${esc(n.name.length>14?n.name.substr(0,12)+'…':n.name)}</text>
     </g>`;
   }).join('');
 
@@ -2046,10 +2051,10 @@ function rCredMap(el){
     <div style="font-size:13px;font-weight:700;margin-bottom:6px">🔍 Blast Radius Analysis</div>
     ${emailLinks.length?emailLinks.map(group=>{
       const em=group[0].username;
-      return`<div style="padding:6px 0;border-bottom:1px solid var(--bd);font-size:12px"><span style="color:var(--ac);font-weight:600">${em}</span> <span style="color:var(--tx3)">used on ${group.length} sites:</span> ${group.map(p=>`<span style="color:var(--tx2);cursor:pointer" onclick="launchSite('passwords','${p.id}')" title="Launch ${p.name}">${p.name} <span style="color:var(--ac);font-size:10px">↗</span></span>`).join(', ')}${group.length>=4?` <span style="color:var(--rd);font-weight:600">⚠ HIGH RISK</span>`:group.length>=2?` <span style="color:var(--og);font-weight:600">⚠ MEDIUM</span>`:''}</div>`;
+      return`<div style="padding:6px 0;border-bottom:1px solid var(--bd);font-size:12px"><span style="color:var(--ac);font-weight:600">${esc(em)}</span> <span style="color:var(--tx3)">used on ${group.length} sites:</span> ${group.map(p=>`<span style="color:var(--tx2);cursor:pointer" onclick="launchSite('passwords','${p.id}')" title="Launch ${esc(p.name)}">${esc(p.name)} <span style="color:var(--ac);font-size:10px">↗</span></span>`).join(', ')}${group.length>=4?` <span style="color:var(--rd);font-weight:600">⚠ HIGH RISK</span>`:group.length>=2?` <span style="color:var(--og);font-weight:600">⚠ MEDIUM</span>`:''}</div>`;
     }).join(''):'<div style="color:var(--gn);font-size:12px">✓ No email addresses shared across multiple sites</div>'}
     ${pwLinks.length?`<div style="margin-top:8px"><div style="font-size:12px;font-weight:600;color:var(--rd);margin-bottom:4px">🔴 Identical Passwords Detected</div>${pwLinks.map(group=>
-      `<div style="padding:4px 0;font-size:11px;color:var(--tx2)">${group.map(p=>'<span style="background:var(--rdb);color:var(--rd);padding:2px 6px;border-radius:3px;font-size:10px;margin-right:3px;cursor:pointer" onclick="launchSite(\'passwords\',\''+p.id+'\')" title="Launch '+p.name+'">'+p.name+' ↗</span>').join('')}</div>`
+      `<div style="padding:4px 0;font-size:11px;color:var(--tx2)">${group.map(p=>'<span style="background:var(--rdb);color:var(--rd);padding:2px 6px;border-radius:3px;font-size:10px;margin-right:3px;cursor:pointer" onclick="launchSite(\'passwords\',\''+p.id+'\')" title="Launch '+esc(p.name)+'">'+esc(p.name)+' ↗</span>').join('')}</div>`
     ).join('')}</div>`:''}
   </div>`;
 }
@@ -2144,7 +2149,7 @@ function rDecay(el){
         return`<div style="position:absolute;left:70px;right:0;top:${topPct}%;transform:translateY(-50%);display:flex;align-items:center;gap:8px;padding:4px 8px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);cursor:pointer;transition:var(--tr);font-size:12px" onclick="showD('passwords','${p.id}')" onmouseenter="this.style.borderColor='${p.decay.color}'" onmouseleave="this.style.borderColor='var(--bd)'">
           <div style="width:8px;height:8px;border-radius:50%;background:${p.decay.color};flex-shrink:0"></div>
           <span style="font-size:13px;margin-right:2px">${p.icon||'🔑'}</span>
-          <div style="flex:1;min-width:0"><div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div></div>
+          <div style="flex:1;min-width:0"><div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name)}</div></div>
           ${p.url?`<button class="bt-i" title="Launch & copy password" onclick="event.stopPropagation();launchSite('passwords','${p.id}')" style="color:var(--ac);width:22px;height:22px;padding:3px;flex-shrink:0">${IC.launch}</button>`:''}
           <div style="text-align:right;flex-shrink:0"><div style="font-family:var(--mono);font-weight:700;color:${p.decay.color};font-size:12px">${p.decay.label}</div><div style="font-size:9px;color:var(--tx3)">${p.decay.bits} bits entropy</div></div>
         </div>`;
@@ -2160,7 +2165,7 @@ function rDecay(el){
       const dateStr=p.decay.T>1e5?'Never':p.decay.crackDate.toLocaleDateString('en-US',{month:'short',year:'numeric'});
       return`<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg3);border-radius:var(--rs);cursor:pointer;transition:var(--tr)" onclick="showD('passwords','${p.id}')">
         <span style="font-size:13px">${p.icon||'🔑'}</span>
-        <div style="width:110px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div>
+        <div style="width:110px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name)}</div>
         <div style="flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden"><div style="height:100%;width:${barW}%;background:${p.decay.color};border-radius:3px;transition:width .5s"></div></div>
         <div style="width:80px;text-align:right;font-family:var(--mono);font-size:11px;font-weight:600;color:${p.decay.color}">${p.decay.label}</div>
         <div style="width:60px;text-align:right;font-size:10px;color:var(--tx3)">${dateStr}</div>
@@ -2296,7 +2301,7 @@ if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone
       ct.innerHTML=`<div style="text-align:left;margin-top:16px"><div style="font-size:18px;font-weight:700;margin-bottom:12px">${esc(item.name||'Shared Credential')}</div>
         ${item.username?`<div style="margin-bottom:10px"><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;margin-bottom:2px">Username</div><div style="display:flex;align-items:center;gap:6px"><code style="flex:1;font-size:13px;background:var(--bg3);padding:6px 10px;border-radius:6px;word-break:break-all">${esc(item.username)}</code><button class="bt bt-s" style="font-size:10px;padding:4px 10px;flex-shrink:0" onclick="navigator.clipboard.writeText('${esc(item.username).replace(/'/g,"\\'")}')">Copy</button></div></div>`:''}
         ${item.password?`<div style="margin-bottom:10px"><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;margin-bottom:2px">Password</div><div style="display:flex;align-items:center;gap:6px"><code id="svPw" style="flex:1;font-size:13px;background:var(--bg3);padding:6px 10px;border-radius:6px;word-break:break-all;filter:blur(6px);cursor:pointer" onclick="this.style.filter=this.style.filter?'':'blur(6px)'">${esc(item.password)}</code><button class="bt bt-s" style="font-size:10px;padding:4px 10px;flex-shrink:0" onclick="navigator.clipboard.writeText('${esc(item.password).replace(/'/g,"\\'")}')">Copy</button></div></div>`:''}
-        ${item.url?`<div style="margin-bottom:10px"><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;margin-bottom:2px">URL</div><a href="${esc(item.url)}" target="_blank" rel="noopener" style="font-size:12px;color:var(--ac)">${esc(item.url)}</a></div>`:''}
+        ${item.url&&/^https?:\/\//i.test(item.url)?`<div style="margin-bottom:10px"><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;margin-bottom:2px">URL</div><a href="${esc(item.url)}" target="_blank" rel="noopener" style="font-size:12px;color:var(--ac)">${esc(item.url)}</a></div>`:item.url?`<div style="margin-bottom:10px"><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;margin-bottom:2px">URL</div><span style="font-size:12px;color:var(--t3)">${esc(item.url)}</span></div>`:''}
         ${item.notes?`<div style="margin-bottom:10px"><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;margin-bottom:2px">Notes</div><div style="font-size:12px;color:var(--tx2);white-space:pre-wrap">${esc(item.notes)}</div></div>`:''}
         <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--bd);font-size:11px;color:var(--tx3)">${d.viewsRemaining!==undefined?d.viewsRemaining+' view'+(d.viewsRemaining!==1?'s':'')+' remaining · ':''} Expires ${new Date(d.expiresAt).toLocaleString()}</div>
         <div style="margin-top:12px;text-align:center"><a href="/" style="color:var(--ac);font-size:12px;text-decoration:none">Powered by WARDKEY</a></div>
@@ -2313,6 +2318,7 @@ if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone
   const hash=window.location.hash;
   if(hash.startsWith('#emergency-confirm=')){
     const token=hash.split('=')[1];
+    if(!token||!/^[a-f0-9]+$/i.test(token))return;
     if(token)fetch(API+'/api/emergency/confirm/'+token,{method:'POST',headers:authToken?{'Authorization':'Bearer '+authToken}:{}}).then(r=>r.json()).then(d=>{
       if(d.success){toast('Emergency contact confirmed!','ok');window.location.hash=''}else{toast(d.error||'Failed','er')}
     }).catch(()=>toast('Failed to confirm','er'));

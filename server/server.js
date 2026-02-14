@@ -9,6 +9,12 @@ if (!process.env.JWT_SECRET) {
   console.error('  Set it in your .env file or environment before starting the server.\n');
   process.exit(1);
 }
+if (process.env.ADMIN_SECRET && process.env.ADMIN_SECRET.length < 16) {
+  console.error('\n  ⚠ WARNING: ADMIN_SECRET is too short (minimum 16 characters recommended).\n');
+}
+if (!process.env.MFA_ENC_KEY) {
+  console.warn('  ⚠ MFA_ENC_KEY not set — falling back to JWT_SECRET. Set a separate MFA_ENC_KEY for better key isolation.');
+}
 
 const express = require('express');
 const helmet = require('helmet');
@@ -30,8 +36,8 @@ const emailService = require('./services/email');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Trust proxy (required for Railway/Render reverse proxy)
-app.set('trust proxy', 1);
+// Trust proxy (conditional — only behind reverse proxy or in production)
+app.set('trust proxy', process.env.BEHIND_PROXY === 'true' || process.env.NODE_ENV === 'production' ? 1 : false);
 
 // ═══════ SECURITY ═══════
 app.use(helmet({
@@ -82,6 +88,8 @@ const authLimiter = rateLimit({
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/2fa/verify-login', authLimiter);
+app.use('/api/auth/2fa/disable', authLimiter);
+app.use('/api/auth/2fa/confirm', authLimiter);
 
 const shareLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -112,7 +120,8 @@ const adminLoginLimiter = rateLimit({
 app.use('/api/admin/login', adminLoginLimiter);
 
 // ═══════ MIDDLEWARE ═══════
-app.use(express.json({ limit: '10mb' }));
+app.use('/api/vault', express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '1mb' }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 // CSRF protection for non-GET requests from browsers
@@ -129,7 +138,8 @@ app.use((req, res, next) => {
       // Only skip CSRF for requests that look like real API calls
       try {
         const jwt = require('jsonwebtoken');
-        jwt.verify(authHeader.slice(7), process.env.JWT_SECRET, { algorithms: ['HS256'] });
+        const decoded = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET, { algorithms: ['HS256'] });
+        if (decoded.purpose) return res.status(403).json({ error: 'Origin header required' }); // reject temp tokens
         return next();
       } catch { /* invalid token — fall through to require Origin */ }
     }

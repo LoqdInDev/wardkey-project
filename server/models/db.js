@@ -127,6 +127,7 @@ function initDB() {
     try {
       db.prepare("DELETE FROM sessions WHERE revoked = 1 OR expires_at < datetime('now', '-7 days')").run();
       db.prepare("DELETE FROM sync_log WHERE timestamp < datetime('now', '-90 days')").run();
+      db.prepare("DELETE FROM shares WHERE expires_at < datetime('now', '-30 days')").run();
     } catch (err) {
       console.error('Cleanup error:', err.message);
     }

@@ -12,7 +12,7 @@ const APP_URL = process.env.APP_ORIGIN || 'https://wardkey.io';
 // ═══════ ADD EMERGENCY CONTACT (grantor) ═══════
 router.post('/', authenticate, (req, res) => {
   const { contactEmail, contactName, waitingHours } = req.body;
-  if (!contactEmail || !contactEmail.includes('@')) {
+  if (!contactEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail) || contactEmail.length > 254) {
     return res.status(400).json({ error: 'Valid email required' });
   }
 
@@ -25,6 +25,11 @@ router.post('/', authenticate, (req, res) => {
   ).get(req.user.id, contactEmail.toLowerCase(), 'denied');
   if (existing) {
     return res.status(409).json({ error: 'This contact is already added' });
+  }
+
+  const contactCount = db.prepare('SELECT COUNT(*) as count FROM emergency_contacts WHERE grantor_id = ?').get(req.user.id);
+  if (contactCount.count >= 10) {
+    return res.status(403).json({ error: 'Maximum 10 emergency contacts allowed' });
   }
 
   const id = crypto.randomBytes(12).toString('hex');

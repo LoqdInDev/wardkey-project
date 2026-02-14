@@ -268,7 +268,7 @@
     });
 
     saveBtn.onclick = () => {
-      chrome.runtime.sendMessage({ type: 'WARDKEY_SAVE_CONFIRM', ...data }).catch(() => {});
+      chrome.runtime.sendMessage({ type: 'WARDKEY_SAVE_CONFIRM', domain: data.domain, username: data.username, url: data.url }).catch(() => {});
       closeDialog();
     };
 

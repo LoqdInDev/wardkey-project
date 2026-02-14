@@ -19,6 +19,7 @@ let syncEnabled = false;
 let syncInProgress = false;
 let failedAttempts = 0;
 let lockoutUntil = 0;
+let lockoutLevel = 0;
 let mfaTempToken = null;
 let mfaTempTokenExpiry = 0;
 let lockTimeout = 0; // 0=every time, ms value, or -1=browser session
@@ -225,8 +226,11 @@ $('unlockBtn').onclick = async () => {
     if (!ok) {
       failedAttempts++;
       if (failedAttempts >= 5) {
-        lockoutUntil = Date.now() + 60000;
-        $('lockErr').textContent = 'Too many attempts. Locked for 60s';
+        const backoffMs = Math.min(60000 * Math.pow(2, lockoutLevel), 3600000); // 60s, 120s, 240s, 480s... max 1 hour
+        lockoutUntil = Date.now() + backoffMs;
+        lockoutLevel++;
+        const lockSecs = Math.ceil(backoffMs / 1000);
+        $('lockErr').textContent = `Too many attempts. Locked for ${lockSecs}s`;
         $('lockAttempts').textContent = '';
       } else {
         $('lockErr').textContent = 'Wrong password';
@@ -308,6 +312,8 @@ async function getCurrentSite() {
   } catch { currentDomain = ''; }
 }
 
+const SHARED_HOSTS = ['github.io','herokuapp.com','netlify.app','vercel.app','pages.dev','gitlab.io','firebaseapp.com','web.app','azurewebsites.net'];
+
 function getMatches() {
   if (!currentDomain || !vault.passwords) return [];
   const domain = currentDomain.toLowerCase();
@@ -317,6 +323,10 @@ function getMatches() {
       if (!raw) return false;
       if (!/^https?:\/\//.test(raw)) raw = 'https://' + raw;
       const host = new URL(raw).hostname.replace('www.', '');
+      // Don't match subdomains on shared hosting platforms
+      if (SHARED_HOSTS.some(sh => host.endsWith(sh) || domain.endsWith(sh))) {
+        return host === domain; // exact match only for shared hosts
+      }
       // Exact match or current site is a subdomain of vault entry's domain (safe direction only)
       if (host === domain) return true;
       if (host.split('.').length >= 2 && domain.endsWith('.' + host)) return true;
@@ -909,6 +919,19 @@ $('saveBannerNo').onclick = async () => {
 async function autofill(item) {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    // Domain verification — prevent filling credentials on wrong site
+    if (item.url) {
+      try {
+        const itemHost = new URL(item.url.startsWith('http') ? item.url : 'https://' + item.url).hostname.replace('www.', '');
+        const tabHost = new URL(tab.url).hostname.replace('www.', '');
+        if (itemHost !== tabHost && !tabHost.endsWith('.' + itemHost)) {
+          const confirmed = confirm(`Warning: This credential is for ${itemHost} but you're on ${tabHost}. Fill anyway?`);
+          if (!confirmed) return;
+        }
+      } catch (e) { /* invalid URL, allow fill */ }
+    }
+
     await chrome.tabs.sendMessage(tab.id, {
       type: 'WARDKEY_FILL',
       username: item.username || '',
@@ -927,7 +950,7 @@ function copyPw(pw) {
   navigator.clipboard.writeText(pw);
   toast('Copied');
   clearTimeout(clipClearTimer);
-  clipClearTimer = setTimeout(() => { navigator.clipboard.writeText('').catch(() => {}); }, 30000);
+  clipClearTimer = setTimeout(() => { navigator.clipboard.writeText('').catch(() => {}); }, 15000);
 }
 
 function launchSite(item) {
@@ -1239,7 +1262,8 @@ $('addFormSave').onclick = async () => {
 };
 
 // ═══════ IMPORT FROM WEB APP ═══════
-chrome.runtime.onMessage.addListener((msg) => {
+chrome.runtime.onMessage.addListener((msg, sender) => {
+  if (sender.id !== chrome.runtime.id) return;
   if (msg.type === 'WARDKEY_IMPORT') {
     if (!unlocked) return;
     if (Array.isArray(msg.passwords)) {
@@ -1440,16 +1464,18 @@ async function loadLockout() {
   if (data.wardkey_lockout) {
     failedAttempts = data.wardkey_lockout.failedAttempts || 0;
     lockoutUntil = data.wardkey_lockout.lockoutUntil || 0;
+    lockoutLevel = data.wardkey_lockout.lockoutLevel || 0;
   }
 }
 
 async function saveLockout() {
-  await chrome.storage.local.set({ wardkey_lockout: { failedAttempts, lockoutUntil } });
+  await chrome.storage.local.set({ wardkey_lockout: { failedAttempts, lockoutUntil, lockoutLevel } });
 }
 
 async function clearLockout() {
   failedAttempts = 0;
   lockoutUntil = 0;
+  lockoutLevel = 0;
   await chrome.storage.local.remove('wardkey_lockout');
 }
 
@@ -1474,7 +1500,9 @@ document.addEventListener('keydown', e => {
 
 // Clear clipboard on popup close
 window.addEventListener('unload', () => {
-  try { navigator.clipboard.writeText('').catch(() => {}); } catch {}
+  if (clipClearTimer) {
+    try { navigator.clipboard.writeText(''); } catch(e) {}
+  }
 });
 
 // Create alerts badge on load

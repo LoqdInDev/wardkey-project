@@ -46,10 +46,15 @@ router.post('/login', (req, res) => {
     return res.status(400).json({ error: 'Secret is required' });
   }
 
-  // Constant-time comparison
+  // Constant-time comparison (pad to same length to prevent length-based timing leaks)
   const a = Buffer.from(secret);
   const b = Buffer.from(adminSecret);
-  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+  const maxLen = Math.max(a.length, b.length);
+  const aPadded = Buffer.alloc(maxLen);
+  const bPadded = Buffer.alloc(maxLen);
+  a.copy(aPadded);
+  b.copy(bPadded);
+  if (!crypto.timingSafeEqual(aPadded, bPadded)) {
     return res.status(401).json({ error: 'Invalid secret' });
   }
 
@@ -259,6 +264,8 @@ router.delete('/users/:id', requireAdmin, (req, res) => {
       db.prepare('DELETE FROM aliases WHERE user_id = ?').run(user.id);
       db.prepare('DELETE FROM sync_log WHERE user_id = ?').run(user.id);
       db.prepare('DELETE FROM sessions WHERE user_id = ?').run(user.id);
+      db.prepare('DELETE FROM emergency_contacts WHERE grantor_id = ? OR grantee_id = ?').run(user.id, user.id);
+      db.prepare('DELETE FROM audit_log WHERE user_id = ?').run(user.id);
       db.prepare('DELETE FROM users WHERE id = ?').run(user.id);
     });
     deleteUser();

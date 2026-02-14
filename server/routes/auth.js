@@ -352,6 +352,8 @@ router.delete('/me', authenticate, async (req, res) => {
     db.prepare('DELETE FROM aliases WHERE user_id = ?').run(req.user.id);
     db.prepare('DELETE FROM sync_log WHERE user_id = ?').run(req.user.id);
     db.prepare('DELETE FROM sessions WHERE user_id = ?').run(req.user.id);
+    db.prepare('DELETE FROM emergency_contacts WHERE grantor_id = ? OR grantee_id = ?').run(req.user.id, req.user.id);
+    db.prepare('DELETE FROM audit_log WHERE user_id = ?').run(req.user.id);
     db.prepare('DELETE FROM users WHERE id = ?').run(req.user.id);
   });
   deleteAccount();

@@ -17,11 +17,12 @@ router.get('/', authenticate, (req, res) => {
     return res.json({ vault: null, message: 'No vault found. Upload to create one.' });
   }
 
-  // Send raw encrypted data without parsing to avoid memory exhaustion on large vaults
+  // Safely parse and re-serialize to prevent JSON injection
   try {
-    res.type('json').send('{"vault":' + vault.encrypted_data + '}');
-  } catch {
-    res.json({ vault: null, message: 'Vault data corrupted.' });
+    const parsed = JSON.parse(vault.encrypted_data);
+    res.json({ vault: parsed });
+  } catch (e) {
+    res.status(500).json({ error: 'Vault data corrupted' });
   }
 });
 
