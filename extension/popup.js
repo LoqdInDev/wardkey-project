@@ -960,8 +960,15 @@ function generatePw() {
   if (genOpts.syms) chars += '!@#$%^&*()_+-=[]{}|;:,.<>?';
   if (!chars) chars = 'abcdefghijklmnopqrstuvwxyz';
 
-  const arr = crypto.getRandomValues(new Uint8Array(len));
-  genPw = Array.from(arr, b => chars[b % chars.length]).join('');
+  const limit = 256 - (256 % chars.length);
+  genPw = '';
+  while (genPw.length < len) {
+    const arr = crypto.getRandomValues(new Uint8Array(len - genPw.length + 16));
+    for (const b of arr) {
+      if (b < limit) genPw += chars[b % chars.length];
+      if (genPw.length >= len) break;
+    }
+  }
   $('genOut').textContent = genPw;
 
   const s = pwStr(genPw);
@@ -1242,10 +1249,17 @@ $('addFormSave').onclick = async () => {
 // ═══════ IMPORT FROM WEB APP ═══════
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg.type === 'WARDKEY_IMPORT') {
-    if (msg.passwords) vault.passwords = msg.passwords;
-    saveVault();
-    renderList();
-    toast(`Imported ${(msg.passwords || []).length} items`);
+    if (Array.isArray(msg.passwords)) {
+      const valid = msg.passwords.filter(p =>
+        p && typeof p === 'object' &&
+        typeof p.id === 'string' && p.id &&
+        typeof p.name === 'string' && p.name
+      );
+      vault.passwords = valid;
+      saveVault();
+      renderList();
+      toast(`Imported ${valid.length} items`);
+    }
   }
   if (msg.type === 'WARDKEY_PENDING_SAVE' && unlocked) {
     checkPendingSave().catch(() => {});

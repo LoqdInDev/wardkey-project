@@ -12,6 +12,9 @@ router.post('/', authenticate, (req, res) => {
   if (!encryptedData || !iv) {
     return res.status(400).json({ error: 'Missing encrypted data' });
   }
+  if (encryptedData.length > 1048576) {
+    return res.status(413).json({ error: 'Share data exceeds maximum size (1MB)' });
+  }
 
   const db = getDB();
 
@@ -54,16 +57,23 @@ router.post('/', authenticate, (req, res) => {
 // ═══════ VIEW SHARE (PUBLIC) ═══════
 router.get('/:id', (req, res) => {
   const db = getDB();
-  const share = db.prepare('SELECT * FROM shares WHERE id = ?').get(req.params.id);
 
-  if (!share) return res.status(404).json({ error: 'Share link not found' });
-  if (share.revoked) return res.status(410).json({ error: 'This link has been revoked' });
-  if (new Date(share.expires_at) < new Date()) return res.status(410).json({ error: 'This link has expired' });
-  if (share.current_views >= share.max_views) return res.status(410).json({ error: 'This link has reached its view limit' });
+  // Atomic view: transaction prevents race condition on concurrent requests
+  const viewShare = db.transaction(() => {
+    const share = db.prepare('SELECT * FROM shares WHERE id = ?').get(req.params.id);
+    if (!share) return { status: 404, error: 'Share link not found' };
+    if (share.revoked) return { status: 410, error: 'This link has been revoked' };
+    if (new Date(share.expires_at) < new Date()) return { status: 410, error: 'This link has expired' };
+    if (share.current_views >= share.max_views) return { status: 410, error: 'This link has reached its view limit' };
 
-  // Increment view count
-  db.prepare('UPDATE shares SET current_views = current_views + 1 WHERE id = ?').run(share.id);
+    db.prepare('UPDATE shares SET current_views = current_views + 1 WHERE id = ?').run(share.id);
+    return { share };
+  });
 
+  const result = viewShare();
+  if (result.error) return res.status(result.status).json({ error: result.error });
+
+  const share = result.share;
   res.json({
     data: share.encrypted_data,
     iv: share.iv,

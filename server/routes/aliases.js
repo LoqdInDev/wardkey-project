@@ -35,34 +35,40 @@ router.post('/', authenticate, (req, res) => {
     return res.status(400).json({ error: 'Invalid target email format' });
   }
 
-  // Check plan limits (free: 3, pro: unlimited)
-  const user = db.prepare('SELECT plan, email FROM users WHERE id = ?').get(req.user.id);
-  if (user?.plan === 'free') {
-    const count = db.prepare('SELECT COUNT(*) as count FROM aliases WHERE user_id = ?').get(req.user.id);
-    if (count.count >= 3) {
-      return res.status(403).json({ error: 'Free plan limited to 3 aliases. Upgrade to Pro for unlimited.' });
+  // Atomic plan check + insert in a transaction to prevent race conditions
+  const createAlias = db.transaction(() => {
+    const user = db.prepare('SELECT plan, email FROM users WHERE id = ?').get(req.user.id);
+    if (user?.plan === 'free') {
+      const count = db.prepare('SELECT COUNT(*) as count FROM aliases WHERE user_id = ?').get(req.user.id);
+      if (count.count >= 3) {
+        return { error: 'Free plan limited to 3 aliases. Upgrade to Pro for unlimited.' };
+      }
     }
-  }
 
-  // Generate random alias
-  const random = crypto.randomBytes(4).toString('hex');
-  const prefix = (user?.email?.split('@')[0] || 'user').substring(0, 10).replace(/[^a-z0-9]/gi, '');
-  const alias = `${prefix}.${random}@${ALIAS_DOMAIN}`;
-  const target = targetEmail || user?.email;
+    const random = crypto.randomBytes(4).toString('hex');
+    const prefix = (user?.email?.split('@')[0] || 'user').substring(0, 10).replace(/[^a-z0-9]/gi, '');
+    const alias = `${prefix}.${random}@${ALIAS_DOMAIN}`;
+    const target = targetEmail || user?.email;
 
-  if (!target) return res.status(400).json({ error: 'Target email required' });
+    if (!target) return { error: 'Target email required', status: 400 };
 
-  const id = uuid();
-  db.prepare('INSERT INTO aliases (id, user_id, alias, target_email, label) VALUES (?, ?, ?, ?, ?)')
-    .run(id, req.user.id, alias, target, safeLabel || null);
+    const id = uuid();
+    db.prepare('INSERT INTO aliases (id, user_id, alias, target_email, label) VALUES (?, ?, ?, ?, ?)')
+      .run(id, req.user.id, alias, target, safeLabel || null);
 
-  auditLog(req.user.id, 'alias_created', alias, req);
+    return { id, alias, target, safeLabel };
+  });
+
+  const result = createAlias();
+  if (result.error) return res.status(result.status || 403).json({ error: result.error });
+
+  auditLog(req.user.id, 'alias_created', result.alias, req);
 
   res.status(201).json({
-    id,
-    alias,
-    targetEmail: target,
-    label: safeLabel,
+    id: result.id,
+    alias: result.alias,
+    targetEmail: result.target,
+    label: result.safeLabel,
     active: true,
     forwardedCount: 0
   });

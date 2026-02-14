@@ -46,7 +46,7 @@
     }
   ],
   "content_security_policy": {
-    "extension_pages": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://api.wardkey.io https://*.railway.app; object-src 'none'; base-uri 'self'"
+    "extension_pages": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://api.wardkey.io https://wardkey-server-production.up.railway.app; object-src 'none'; base-uri 'self'"
   },
   "commands": {
     "_execute_action": {

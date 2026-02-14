@@ -24,7 +24,7 @@ function requireAdmin(req, res, next) {
     return res.status(401).json({ error: 'Missing admin token' });
   }
   try {
-    const decoded = jwt.verify(auth.slice(7), process.env.JWT_SECRET);
+    const decoded = jwt.verify(auth.slice(7), process.env.JWT_SECRET, { algorithms: ['HS256'] });
     if (decoded.role !== 'admin') {
       return res.status(403).json({ error: 'Not an admin token' });
     }
@@ -568,7 +568,7 @@ router.get('/health', requireAdmin, (req, res) => {
         heapTotal: mem.heapTotal
       },
       database: {
-        path: dbPath,
+        configured: true,
         sizeBytes: dbSize
       },
       sessions: { total: sessionsTotal, active: sessionsActive, revoked: sessionsRevoked },

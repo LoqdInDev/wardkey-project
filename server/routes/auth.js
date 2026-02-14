@@ -17,8 +17,13 @@ if (!process.env.JWT_SECRET) {
 const JWT_SECRET = process.env.JWT_SECRET;
 
 // ═══════ MFA SECRET ENCRYPTION ═══════
-// Encrypt MFA secrets at rest using AES-256-GCM with a key derived from JWT_SECRET
-const MFA_ENC_KEY = crypto.createHash('sha256').update(JWT_SECRET + ':mfa-encryption-key').digest();
+// Encrypt MFA secrets at rest using AES-256-GCM
+// Uses separate MFA_ENC_KEY env var when available for key isolation
+const MFA_ENC_KEY_RAW = process.env.MFA_ENC_KEY || JWT_SECRET;
+if (!process.env.MFA_ENC_KEY) {
+  console.warn('⚠ MFA_ENC_KEY not set — falling back to JWT_SECRET. Set a separate MFA_ENC_KEY for better key isolation.');
+}
+const MFA_ENC_KEY = crypto.createHash('sha256').update(MFA_ENC_KEY_RAW + ':mfa-encryption-key').digest();
 
 function encryptMfaSecret(plaintext) {
   const iv = crypto.randomBytes(12);
@@ -35,7 +40,7 @@ function decryptMfaSecret(ciphertext) {
     throw new Error('Legacy plaintext MFA secret detected - migration required');
   }
   const [ivHex, tagHex, encrypted] = ciphertext.split(':');
-  if (!ivHex || !tagHex || !encrypted) return ciphertext; // malformed, treat as plaintext
+  if (!ivHex || !tagHex || !encrypted) throw new Error('Malformed encrypted MFA secret');
   const iv = Buffer.from(ivHex, 'hex');
   const tag = Buffer.from(tagHex, 'hex');
   const decipher = crypto.createDecipheriv('aes-256-gcm', MFA_ENC_KEY, iv);

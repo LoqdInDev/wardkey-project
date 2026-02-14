@@ -182,7 +182,7 @@
           type: 'WARDKEY_STORE_CAPTURE',
           domain: location.hostname.replace('www.', ''),
           username,
-          password: pw,
+          hasPassword: true,
           url: location.href,
           timestamp: Date.now()
         }).catch(() => {});
@@ -328,6 +328,7 @@
 
   // ═══════ MESSAGE HANDLER ═══════
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (sender.id !== chrome.runtime.id) return;
     if (msg.type === 'WARDKEY_FILL') {
       const fields = findFields();
       if (fields.username && msg.username) fillField(fields.username, msg.username);

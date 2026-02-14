@@ -103,7 +103,12 @@ app.use((req, res, next) => {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
   const origin = req.headers.origin || req.headers.referer;
   const allowed = [process.env.APP_ORIGIN || 'https://wardkey.io', 'chrome-extension://'];
-  if (origin && !allowed.some(a => origin.startsWith(a))) {
+  if (!origin) {
+    // Allow API clients with Bearer token (extension, scripts)
+    if (req.headers.authorization?.startsWith('Bearer ')) return next();
+    return res.status(403).json({ error: 'Origin header required' });
+  }
+  if (!allowed.some(a => origin.startsWith(a))) {
     return res.status(403).json({ error: 'Forbidden' });
   }
   next();

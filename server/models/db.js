@@ -105,7 +105,7 @@ function initDB() {
   `);
 
   // Restrict database file permissions (owner read/write only)
-  try { require('fs').chmodSync(process.env.DB_PATH || './wardkey.db', 0o600); } catch(e) {}
+  try { require('fs').chmodSync(DB_PATH, 0o600); } catch(e) {}
 
   console.log('✓ Database initialized');
   return db;

@@ -642,7 +642,8 @@ function launchSite(type,id,e){
   // Open in new tab
   let target=url;
   if(!target.startsWith('http'))target='https://'+target;
-  window.open(target,'_blank');
+  if(!/^https?:\/\//i.test(target))return;
+  window.open(target,'_blank','noopener,noreferrer');
   logA('Launched',item.name,'edit');saveV();
   toast('🚀 Opened '+item.name+(secret?' · password copied':''),'ok');
 }
@@ -868,6 +869,7 @@ function secureClear() {
   V = {passwords:[],cards:[],notes:[],totp:[],apikeys:[],licenses:[],passkeys:[],aliases:[],breaches:[],trash:[],activity:[]};
   // Clear any displayed passwords from DOM
   document.querySelectorAll('[id^="pwV"],[id^="ph"]').forEach(el => { el.textContent = ''; });
+  document.querySelectorAll('[data-pw]').forEach(el => el.removeAttribute('data-pw'));
   window._cpw = null;
   // Clear clipboard if we wrote to it
   try { navigator.clipboard.writeText(''); } catch {}
@@ -1032,7 +1034,7 @@ function closeOb(){$('obMo').classList.remove('on');localStorage.setItem('wardke
 
 async function unlock(){
   const pw=$('mpIn').value;
-  if(pw.length<4){$('lErr').textContent='Password must be at least 4 characters';$('lErr').style.display='block';shake($('mpIn'));return}
+  if(pw.length<8){$('lErr').textContent='Password must be at least 8 characters';$('lErr').style.display='block';shake($('mpIn'));return}
   // First-time setup: require confirmation
   const hasVault=!!(localStorage.getItem('wardkey_v4')||localStorage.getItem('wardkey_v3'));
   if(!hasVault){
@@ -1547,19 +1549,21 @@ async function cpTx(t){try{await navigator.clipboard.writeText(t);toast('Copied 
 function startClip(s){clearInterval(clipI);const endTime=Date.now()+s*1000;$('cBan').classList.add('on');$('cTmr').textContent=s;clipI=setInterval(()=>{const remaining=Math.ceil((endTime-Date.now())/1000);$('cTmr').textContent=Math.max(0,remaining);if(Date.now()>=endTime){clearInterval(clipI);try{navigator.clipboard.writeText('')}catch{};$('cBan').classList.remove('on')}},1000)}
 function doSearch(q){sq=q;if(q.length>0&&!['passwords','notes','apikeys'].includes(pg))nav('passwords');else render()}
 function doImport(input){const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);let c=0;if(Array.isArray(d))d.forEach(x=>{if(x.password||x.Password){V.passwords.push({id:'i'+Math.random().toString(36).substr(2,6),name:x.name||x.Name||x.title||'Import',username:x.username||x.Username||x.login||'',password:x.password||x.Password||'',url:x.url||x.URL||'',cat:'other',tags:['imported'],notes:'',created:Date.now(),modified:Date.now(),history:[],icon:'📥',fav:false,sens:false,fields:[]});c++}});logA(`Imported ${c} items`,'','add');saveV();updC();render();$('impMo').classList.remove('on');toast(`${c} items imported`,'ok')}catch(err){toast('Import failed: '+err.message,'er')}};r.readAsText(f)}
+function askPassword(msg){return new Promise(resolve=>{const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:9999';const bx=document.createElement('div');bx.style.cssText='background:var(--card,#1a1a2e);border-radius:12px;padding:24px;max-width:360px;width:90%';bx.innerHTML='<p style="color:var(--text,#e0e0e0);margin:0 0 12px">'+esc(msg)+'</p><input type="password" id="reAuthPw" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--bd,#333);background:var(--bg,#0a0a1a);color:var(--text,#e0e0e0);margin:0 0 12px;box-sizing:border-box" placeholder="Master password"><div style="display:flex;gap:8px;justify-content:flex-end"><button id="reAuthCancel" style="padding:8px 16px;border-radius:8px;border:1px solid var(--bd,#333);background:transparent;color:var(--text,#e0e0e0);cursor:pointer">Cancel</button><button id="reAuthOk" style="padding:8px 16px;border-radius:8px;border:none;background:var(--ac,#6c5ce7);color:#fff;cursor:pointer">Confirm</button></div>';ov.appendChild(bx);document.body.appendChild(ov);const inp=$('reAuthPw');inp.focus();$('reAuthOk').onclick=()=>{document.body.removeChild(ov);resolve(inp.value)};$('reAuthCancel').onclick=()=>{document.body.removeChild(ov);resolve(null)};inp.onkeydown=e=>{if(e.key==='Enter')$('reAuthOk').click()}})}
 async function doExport(fmt){
   // Re-authenticate before exporting plaintext
-  const pw=prompt('Re-enter master password to export vault:');
+  const pw=await askPassword('Re-enter master password to export vault:');
   if(!pw)return;
   try{
     const hash=await deriveVerifyHash(pw,window._vaultSalt);
     if(hash!==window._verifyHash){toast('Wrong password — export denied','er');return}
   }catch{toast('Authentication failed','er');return}
-  if(fmt==='json'){dl(JSON.stringify(V.passwords,null,2),'wardkey-vault.json','application/json')}else{if(!confirm('WARNING: CSV export contains all passwords in plaintext. This file will NOT be encrypted. Make sure to delete it after use and never share it.\n\nContinue with CSV export?'))return;const csv='name,username,password,url,category\n'+V.passwords.map(p=>`"${p.name}","${p.username}","${p.password}","${p.url}","${p.cat}"`).join('\n');dl(csv,'wardkey-vault.csv','text/csv')}$('impMo').classList.remove('on');logA('Vault exported','','gen');toast(`Exported as ${fmt.toUpperCase()}`,'ok')}
+  function csvSafe(s){if(!s)return'';s=String(s).replace(/"/g,'""');if(/^[=+\-@\t\r]/.test(s))s="'"+s;return s}
+  if(fmt==='json'){if(!confirm('WARNING: JSON export contains all passwords in plaintext. Keep this file secure and delete it after use.\n\nContinue with JSON export?'))return;dl(JSON.stringify(V.passwords,null,2),'wardkey-vault.json','application/json')}else{if(!confirm('WARNING: CSV export contains all passwords in plaintext. This file will NOT be encrypted. Make sure to delete it after use and never share it.\n\nContinue with CSV export?'))return;const csv='name,username,password,url,category\n'+V.passwords.map(p=>`"${csvSafe(p.name)}","${csvSafe(p.username)}","${csvSafe(p.password)}","${csvSafe(p.url)}","${csvSafe(p.cat)}"`).join('\n');dl(csv,'wardkey-vault.csv','text/csv')}$('impMo').classList.remove('on');logA('Vault exported','','gen');toast(`Exported as ${fmt.toUpperCase()}`,'ok')}
 
 async function wipeVault(){
   if(!confirm('⚠️ This will PERMANENTLY erase all vault data. This cannot be undone.'))return;
-  const pw=prompt('Re-enter master password to confirm:');
+  const pw=await askPassword('Re-enter master password to confirm wipe:');
   if(!pw)return;
   try{
     const hash=await deriveVerifyHash(pw,window._vaultSalt);
@@ -1606,12 +1610,14 @@ async function aiCall(prompt, sys, outId){
   aiUsage.count++;
   el.innerHTML='<div class="ai-ld">Analyzing with AI… ('+(!IS_PRO?(AI_DAILY_LIMIT-aiUsage.count)+' remaining today':'unlimited')+')</div>';
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:[{role:'user',content:prompt}]})
+    const hdrs={'Content-Type':'application/json'};
+    if(authToken)hdrs['Authorization']='Bearer '+authToken;
+    const r=await fetch('https://api.wardkey.io/api/ai/analyze',{
+      method:'POST',headers:hdrs,
+      body:JSON.stringify({prompt,system:sys,max_tokens:1000})
     });
     const d=await r.json();
-    const txt=(d.content||[]).map(b=>b.text||'').join('\n').trim();
+    const txt=d.text||(d.content||[]).map(b=>b.text||'').join('\n').trim();
     el.innerHTML='<div class="ai-res">'+formatAI(txt)+'</div>';
   }catch(e){el.innerHTML='<div class="ai-res" style="color:var(--rd)">⚠️ AI request failed: '+escHtml(e.message)+'<br><br>This feature requires an active connection to Claude API.</div>'}
 }

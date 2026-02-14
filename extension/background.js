@@ -28,9 +28,15 @@ chrome.runtime.onInstalled.addListener((details) => {
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'wardkey-generate') {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=';
-    const arr = new Uint8Array(20);
-    crypto.getRandomValues(arr);
-    const pw = Array.from(arr, b => chars[b % chars.length]).join('');
+    const limit = 256 - (256 % chars.length);
+    let pw = '';
+    while (pw.length < 20) {
+      const arr = crypto.getRandomValues(new Uint8Array(36));
+      for (const b of arr) {
+        if (b < limit) pw += chars[b % chars.length];
+        if (pw.length >= 20) break;
+      }
+    }
     chrome.tabs.sendMessage(tab.id, { type: 'WARDKEY_FILL_PW', password: pw }).catch(() => {});
   }
   if (info.menuItemId === 'wardkey-open') {
@@ -44,9 +50,15 @@ chrome.commands.onCommand.addListener((command) => {
     chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
       if (!tab) return;
       const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=';
-      const arr = new Uint8Array(20);
-      crypto.getRandomValues(arr);
-      const pw = Array.from(arr, b => chars[b % chars.length]).join('');
+      const limit = 256 - (256 % chars.length);
+      let pw = '';
+      while (pw.length < 20) {
+        const arr = crypto.getRandomValues(new Uint8Array(36));
+        for (const b of arr) {
+          if (b < limit) pw += chars[b % chars.length];
+          if (pw.length >= 20) break;
+        }
+      }
       chrome.tabs.sendMessage(tab.id, { type: 'WARDKEY_FILL_PW', password: pw }).catch(() => {});
     });
   }
@@ -163,7 +175,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     // Validate required fields and types
     if (typeof msg.domain !== 'string' || !msg.domain) return;
     if (typeof msg.username !== 'string') return;
-    if (typeof msg.password !== 'string' || !msg.password) return;
+    if (typeof msg.hasPassword !== 'boolean' || !msg.hasPassword) return;
     if (typeof msg.url !== 'string') return;
     try { new URL(msg.url); } catch { return; }
     if (typeof msg.timestamp !== 'number') return;
@@ -201,7 +213,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         wardkey_pendingSave: {
           domain: msg.domain,
           username: msg.username,
-          password: msg.password,
+          hasPassword: true,
           url: msg.url,
           timestamp: msg.timestamp
         }
@@ -217,7 +229,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         wardkey_pendingSave: {
           domain: msg.domain,
           username: msg.username,
-          password: msg.password,
+          hasPassword: true,
           url: msg.url,
           timestamp: Date.now(),
           confirmed: true
