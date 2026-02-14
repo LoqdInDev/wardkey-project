@@ -867,6 +867,23 @@ $('saveBannerYes').onclick = async () => {
 
   const pending = data.wardkey_pendingSave;
 
+  // Request password from the active tab's content script at save time
+  let password = '';
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      const resp = await chrome.tabs.sendMessage(tab.id, { type: 'WARDKEY_GET_PASSWORD' });
+      password = resp?.password || '';
+    }
+  } catch { /* content script not available */ }
+
+  if (!password) {
+    toast('Could not retrieve password — add manually', 'er');
+    await chrome.storage.session?.remove('wardkey_pendingSave');
+    $('saveBanner').classList.remove('on');
+    return;
+  }
+
   // Check if credential exists for this domain+username
   const existing = (vault.passwords || []).find(p =>
     (p.url || '').toLowerCase().includes(pending.domain) &&
@@ -874,31 +891,22 @@ $('saveBannerYes').onclick = async () => {
   );
 
   if (existing) {
-    // Update existing
-    if (existing.password !== pending.password) {
+    if (existing.password !== password) {
       if (!existing.history) existing.history = [];
       existing.history.push({ pw: existing.password, changed: Date.now() });
-      existing.password = pending.password;
+      existing.password = password;
       existing.modified = Date.now();
     }
   } else {
-    // Create new
     vault.passwords.push({
       id: crypto.randomUUID(),
       name: pending.domain,
       username: pending.username || '',
-      password: pending.password,
+      password: password,
       url: 'https://' + pending.domain,
-      cat: '',
-      tags: [],
-      notes: '',
-      created: Date.now(),
-      modified: Date.now(),
-      history: [],
-      icon: '🔑',
-      fav: false,
-      sens: false,
-      fields: []
+      cat: '', tags: [], notes: '',
+      created: Date.now(), modified: Date.now(),
+      history: [], icon: '🔑', fav: false, sens: false, fields: []
     });
   }
 
@@ -943,6 +951,7 @@ function launchSite(item) {
   let url = item.url;
   if (!url) return;
   if (!url.startsWith('http')) url = 'https://' + url;
+  try { const u = new URL(url); if (u.protocol !== 'http:' && u.protocol !== 'https:') return; } catch { return; }
   copyPw(item.password);
   chrome.tabs.create({ url });
   toast('Launched');
@@ -1249,16 +1258,24 @@ $('addFormSave').onclick = async () => {
 // ═══════ IMPORT FROM WEB APP ═══════
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg.type === 'WARDKEY_IMPORT') {
+    if (!unlocked) return;
     if (Array.isArray(msg.passwords)) {
       const valid = msg.passwords.filter(p =>
         p && typeof p === 'object' &&
         typeof p.id === 'string' && p.id &&
-        typeof p.name === 'string' && p.name
+        typeof p.name === 'string' && p.name &&
+        (!p.password || typeof p.password === 'string') &&
+        (!p.url || typeof p.url === 'string') &&
+        (!p.username || typeof p.username === 'string')
       );
-      vault.passwords = valid;
+      if (!valid.length) return;
+      // Merge: add only items with IDs not already in vault
+      const existingIds = new Set(vault.passwords.map(p => p.id));
+      const newItems = valid.filter(p => !existingIds.has(p.id));
+      vault.passwords.push(...newItems);
       saveVault();
       renderList();
-      toast(`Imported ${valid.length} items`);
+      toast(`Imported ${newItems.length} new items (${valid.length - newItems.length} duplicates skipped)`);
     }
   }
   if (msg.type === 'WARDKEY_PENDING_SAVE' && unlocked) {

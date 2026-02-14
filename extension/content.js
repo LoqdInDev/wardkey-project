@@ -329,6 +329,14 @@
   // ═══════ MESSAGE HANDLER ═══════
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (sender.id !== chrome.runtime.id) return;
+    // Return current password field value to popup for save flow
+    if (msg.type === 'WARDKEY_GET_PASSWORD') {
+      const fields = findFields();
+      const pw = fields.password?.value || '';
+      sendResponse({ password: pw });
+      return;
+    }
+
     if (msg.type === 'WARDKEY_FILL') {
       const fields = findFields();
       if (fields.username && msg.username) fillField(fields.username, msg.username);

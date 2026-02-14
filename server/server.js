@@ -105,8 +105,17 @@ app.use((req, res, next) => {
   const extOrigin = process.env.EXTENSION_ID ? `chrome-extension://${process.env.EXTENSION_ID}` : 'chrome-extension://';
   const allowed = [process.env.APP_ORIGIN || 'https://wardkey.io', extOrigin];
   if (!origin) {
-    // Allow API clients with Bearer token (extension, scripts)
-    if (req.headers.authorization?.startsWith('Bearer ')) return next();
+    // Allow API clients with valid Bearer token (extension, scripts)
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith('Bearer ') && authHeader.length > 20) {
+      // Token will be validated by authenticate middleware downstream
+      // Only skip CSRF for requests that look like real API calls
+      try {
+        const jwt = require('jsonwebtoken');
+        jwt.verify(authHeader.slice(7), process.env.JWT_SECRET, { algorithms: ['HS256'] });
+        return next();
+      } catch { /* invalid token — fall through to require Origin */ }
+    }
     return res.status(403).json({ error: 'Origin header required' });
   }
   if (!allowed.some(a => origin.startsWith(a))) {

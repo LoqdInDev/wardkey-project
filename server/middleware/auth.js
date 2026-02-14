@@ -54,7 +54,9 @@ function optionalAuth(req, res, next) {
         const db = getDB();
         const session = db.prepare('SELECT id, revoked, expires_at FROM sessions WHERE id = ?').get(decoded.sid);
         if (session && !session.revoked && new Date(session.expires_at) >= new Date()) {
-          req.user = decoded;
+          // Verify user still exists
+          const user = db.prepare('SELECT id FROM users WHERE id = ?').get(decoded.id);
+          if (user) req.user = decoded;
         }
       }
     } catch {}

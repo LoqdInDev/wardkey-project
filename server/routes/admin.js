@@ -258,7 +258,16 @@ router.delete('/users/:id', requireAdmin, (req, res) => {
     const user = db.prepare('SELECT id, email FROM users WHERE id = ?').get(req.params.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    db.prepare('DELETE FROM users WHERE id = ?').run(user.id);
+    // Explicitly delete all user data in a transaction (don't rely solely on CASCADE)
+    const deleteUser = db.transaction(() => {
+      db.prepare('DELETE FROM vaults WHERE user_id = ?').run(user.id);
+      db.prepare('DELETE FROM shares WHERE user_id = ?').run(user.id);
+      db.prepare('DELETE FROM aliases WHERE user_id = ?').run(user.id);
+      db.prepare('DELETE FROM sync_log WHERE user_id = ?').run(user.id);
+      db.prepare('DELETE FROM sessions WHERE user_id = ?').run(user.id);
+      db.prepare('DELETE FROM users WHERE id = ?').run(user.id);
+    });
+    deleteUser();
     auditLog(null, 'admin_user_deleted', user.id, req, { email: user.email });
     res.json({ success: true });
   } catch (err) {

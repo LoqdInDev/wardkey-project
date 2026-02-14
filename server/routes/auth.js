@@ -341,10 +341,17 @@ router.delete('/me', authenticate, async (req, res) => {
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) return res.status(401).json({ error: 'Invalid password' });
 
-  // Revoke all sessions before deleting user
-  db.prepare('UPDATE sessions SET revoked = 1 WHERE user_id = ?').run(req.user.id);
+  // Explicitly delete all user data in a transaction (don't rely solely on CASCADE)
+  const deleteAccount = db.transaction(() => {
+    db.prepare('DELETE FROM vaults WHERE user_id = ?').run(req.user.id);
+    db.prepare('DELETE FROM shares WHERE user_id = ?').run(req.user.id);
+    db.prepare('DELETE FROM aliases WHERE user_id = ?').run(req.user.id);
+    db.prepare('DELETE FROM sync_log WHERE user_id = ?').run(req.user.id);
+    db.prepare('DELETE FROM sessions WHERE user_id = ?').run(req.user.id);
+    db.prepare('DELETE FROM users WHERE id = ?').run(req.user.id);
+  });
   auditLog(req.user.id, 'account_deleted', null, req);
-  db.prepare('DELETE FROM users WHERE id = ?').run(req.user.id);
+  deleteAccount();
   res.json({ success: true, message: 'Account and all data permanently deleted' });
 });
 
