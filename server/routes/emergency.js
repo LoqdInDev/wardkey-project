@@ -91,6 +91,12 @@ router.post('/confirm/:token', authenticate, (req, res) => {
     return res.status(404).json({ error: 'Invalid or already used invitation link' });
   }
 
+  // Verify the authenticated user's email matches the invitation
+  const userEmail = db.prepare('SELECT email FROM users WHERE id = ?').get(req.user.id)?.email;
+  if (!userEmail || userEmail.toLowerCase() !== contact.grantee_email.toLowerCase()) {
+    return res.status(403).json({ error: 'This invitation was sent to a different email address' });
+  }
+
   db.prepare('UPDATE emergency_contacts SET status = ?, grantee_id = ?, invite_token = NULL WHERE id = ?')
     .run('confirmed', req.user.id, contact.id);
 

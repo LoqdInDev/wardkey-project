@@ -949,7 +949,7 @@ async function autofill(item) {
           const confirmed = confirm(`Warning: This credential is for ${itemHost} but you're on ${tabHost}. Fill anyway?`);
           if (!confirmed) return;
         }
-      } catch (e) { /* invalid URL, allow fill */ }
+      } catch (e) { toast('Cannot verify domain — fill blocked'); return; }
     }
 
     // Pass target domain for content script verification
@@ -1029,7 +1029,8 @@ $('genFill').onclick = async () => {
       copyPw(genPw);
       return;
     }
-    await chrome.tabs.sendMessage(tab.id, { type: 'WARDKEY_FILL_PW', password: genPw });
+    const targetDomain = new URL(tab.url).hostname;
+    await chrome.tabs.sendMessage(tab.id, { type: 'WARDKEY_FILL_PW', password: genPw, targetDomain });
     toast('Filled');
   } catch { copyPw(genPw); }
 };

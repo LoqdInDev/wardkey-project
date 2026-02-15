@@ -39,7 +39,8 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         if (pw.length >= 20) break;
       }
     }
-    chrome.tabs.sendMessage(tab.id, { type: 'WARDKEY_FILL_PW', password: pw }).catch(() => {});
+    const targetDomain = new URL(tab.url).hostname;
+    chrome.tabs.sendMessage(tab.id, { type: 'WARDKEY_FILL_PW', password: pw, targetDomain }).catch(() => {});
   }
   if (info.menuItemId === 'wardkey-open') {
     chrome.action.openPopup();
@@ -63,7 +64,8 @@ chrome.commands.onCommand.addListener((command) => {
           if (pw.length >= 20) break;
         }
       }
-      chrome.tabs.sendMessage(tab.id, { type: 'WARDKEY_FILL_PW', password: pw }).catch(() => {});
+      const targetDomain = new URL(tab.url).hostname;
+      chrome.tabs.sendMessage(tab.id, { type: 'WARDKEY_FILL_PW', password: pw, targetDomain }).catch(() => {});
     });
   }
 });

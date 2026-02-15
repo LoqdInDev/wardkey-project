@@ -363,6 +363,15 @@
         sendResponse({ success: false, error: 'Invalid protocol' });
         return;
       }
+      // Domain verification — prevent filling generated password on wrong site
+      if (msg.targetDomain) {
+        const currentHost = location.hostname.replace(/^www\./, '').toLowerCase();
+        const expectedHost = msg.targetDomain.replace(/^www\./, '').toLowerCase();
+        if (currentHost !== expectedHost && !currentHost.endsWith('.' + expectedHost)) {
+          sendResponse({ success: false, error: 'Domain mismatch' });
+          return;
+        }
+      }
       const fields = findFields();
       const target = fields.newPassword || fields.password;
       if (target && msg.password) {
