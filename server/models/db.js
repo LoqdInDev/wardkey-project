@@ -58,18 +58,6 @@ function initDB() {
       revoked INTEGER DEFAULT 0
     );
 
-    -- Email aliases
-    CREATE TABLE IF NOT EXISTS aliases (
-      id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      alias TEXT UNIQUE NOT NULL,
-      target_email TEXT NOT NULL,
-      label TEXT,
-      active INTEGER DEFAULT 1,
-      forwarded_count INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-
     -- Emergency contacts
     CREATE TABLE IF NOT EXISTS emergency_contacts (
       id TEXT PRIMARY KEY,
@@ -109,8 +97,6 @@ function initDB() {
     -- Indexes
     CREATE INDEX IF NOT EXISTS idx_vaults_user ON vaults(user_id);
     CREATE INDEX IF NOT EXISTS idx_shares_user ON shares(user_id);
-    CREATE INDEX IF NOT EXISTS idx_aliases_user ON aliases(user_id);
-    CREATE INDEX IF NOT EXISTS idx_aliases_alias ON aliases(alias);
     CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
     CREATE INDEX IF NOT EXISTS idx_sync_user ON sync_log(user_id);
     CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_log(user_id);

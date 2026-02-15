@@ -312,7 +312,7 @@ async function getCurrentSite() {
   } catch { currentDomain = ''; }
 }
 
-const SHARED_HOSTS = ['github.io','herokuapp.com','netlify.app','vercel.app','pages.dev','gitlab.io','firebaseapp.com','web.app','azurewebsites.net','blogspot.com','wordpress.com','appspot.com','cloudfront.net','azurestaticapps.net','onrender.com','fly.dev','railway.app','repl.co','surge.sh','deno.dev','workers.dev','ngrok.io','ngrok-free.app'];
+const SHARED_HOSTS = ['github.io','herokuapp.com','netlify.app','vercel.app','pages.dev','gitlab.io','firebaseapp.com','web.app','azurewebsites.net','blogspot.com','wordpress.com','appspot.com','cloudfront.net','azurestaticapps.net','onrender.com','fly.dev','railway.app','repl.co','surge.sh','deno.dev','workers.dev','ngrok.io','ngrok-free.app','amazonaws.com','myshopify.com','wixsite.com','squarespace.com','webflow.io','ghost.io','itch.io','pantheonsite.io','tumblr.com','glitch.me','gitpod.io','github.dev','replit.dev','pythonanywhere.com','stackblitz.io','azurefd.net','000webhostapp.com','hubspotpagebuilder.com','livejournal.com'];
 
 function getMatches() {
   if (!currentDomain || !vault.passwords) return [];

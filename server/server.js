@@ -131,7 +131,7 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 // CSRF protection for non-GET requests from browsers
 app.use((req, res, next) => {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
-  const origin = req.headers.origin || req.headers.referer;
+  const origin = req.headers.origin;
   const extOrigin = process.env.EXTENSION_ID ? `chrome-extension://${process.env.EXTENSION_ID}` : null;
   const allowed = [process.env.APP_ORIGIN || 'https://wardkey.io', extOrigin].filter(Boolean);
   if (origin === 'null') {

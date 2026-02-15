@@ -5,10 +5,17 @@ const jwt = require('jsonwebtoken');
 const { v4: uuid } = require('uuid');
 const { authenticator } = require('otplib');
 const QRCode = require('qrcode');
+const rateLimit = require('express-rate-limit');
 const { getDB, auditLog } = require('../models/db');
 const { authenticate } = require('../middleware/auth');
 
 const crypto = require('crypto');
+
+const sensitiveAuthLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Too many attempts, try again later' }
+});
 
 const router = express.Router();
 if (!process.env.JWT_SECRET) {
@@ -285,7 +292,7 @@ router.get('/me', authenticate, (req, res) => {
   res.json({ user });
 });
 
-router.patch('/me', authenticate, async (req, res) => {
+router.patch('/me', authenticate, sensitiveAuthLimiter, async (req, res) => {
   const { name, currentPassword, newPassword } = req.body;
   const db = getDB();
 
@@ -336,7 +343,7 @@ router.delete('/sessions/:id', authenticate, (req, res) => {
 });
 
 // ═══════ DELETE ACCOUNT ═══════
-router.delete('/me', authenticate, async (req, res) => {
+router.delete('/me', authenticate, sensitiveAuthLimiter, async (req, res) => {
   const { password } = req.body;
   if (!password || typeof password !== 'string') return res.status(400).json({ error: 'Password required for account deletion' });
 
@@ -349,7 +356,6 @@ router.delete('/me', authenticate, async (req, res) => {
   const deleteAccount = db.transaction(() => {
     db.prepare('DELETE FROM vaults WHERE user_id = ?').run(req.user.id);
     db.prepare('DELETE FROM shares WHERE user_id = ?').run(req.user.id);
-    db.prepare('DELETE FROM aliases WHERE user_id = ?').run(req.user.id);
     db.prepare('DELETE FROM sync_log WHERE user_id = ?').run(req.user.id);
     db.prepare('DELETE FROM sessions WHERE user_id = ?').run(req.user.id);
     db.prepare('DELETE FROM emergency_contacts WHERE grantor_id = ? OR grantee_id = ?').run(req.user.id, req.user.id);

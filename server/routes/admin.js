@@ -10,6 +10,9 @@ const router = express.Router();
 
 // Admin CORS handled in server.js — no duplicate needed here
 
+// Separate signing key for admin tokens (falls back to JWT_SECRET for backwards compat)
+const ADMIN_SECRET = process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET;
+
 // ═══════ ADMIN AUTH ═══════
 function requireAdmin(req, res, next) {
   const auth = req.headers.authorization;
@@ -17,7 +20,7 @@ function requireAdmin(req, res, next) {
     return res.status(401).json({ error: 'Missing admin token' });
   }
   try {
-    const decoded = jwt.verify(auth.slice(7), process.env.JWT_SECRET, { algorithms: ['HS256'] });
+    const decoded = jwt.verify(auth.slice(7), ADMIN_SECRET, { algorithms: ['HS256'] });
     if (decoded.role !== 'admin') {
       return res.status(403).json({ error: 'Not an admin token' });
     }
@@ -54,7 +57,7 @@ router.post('/login', (req, res) => {
   }
 
   const { v4: adminJti } = require('uuid');
-  const token = jwt.sign({ role: 'admin', jti: adminJti() }, process.env.JWT_SECRET, { expiresIn: '15m' });
+  const token = jwt.sign({ role: 'admin', jti: adminJti() }, ADMIN_SECRET, { expiresIn: '15m' });
   auditLog(null, 'admin_login', null, req);
   res.json({ token });
 });
@@ -79,8 +82,6 @@ router.get('/overview', requireAdmin, (req, res) => {
     const activeShares = db.prepare(
       "SELECT COUNT(*) as c FROM shares WHERE revoked = 0 AND expires_at > datetime('now') AND current_views < max_views"
     ).get().c;
-    const totalAliases = db.prepare('SELECT COUNT(*) as c FROM aliases').get().c;
-    const activeAliases = db.prepare('SELECT COUNT(*) as c FROM aliases WHERE active = 1').get().c;
     const mfaEnabled = db.prepare('SELECT COUNT(*) as c FROM users WHERE mfa_enabled = 1').get().c;
 
     // Signups by day
@@ -105,7 +106,7 @@ router.get('/overview', requireAdmin, (req, res) => {
     res.json({
       kpis: {
         totalUsers, activeToday, proSubscribers, totalVaults, totalSyncs,
-        totalShares, activeShares, totalAliases, activeAliases, mfaEnabled
+        totalShares, activeShares, mfaEnabled
       },
       signups,
       activity
@@ -177,13 +178,12 @@ router.get('/users/:id', requireAdmin, (req, res) => {
     ).all(user.id);
 
     const sharesCount = db.prepare('SELECT COUNT(*) as c FROM shares WHERE user_id = ?').get(user.id).c;
-    const aliasesCount = db.prepare('SELECT COUNT(*) as c FROM aliases WHERE user_id = ?').get(user.id).c;
 
     const recentAudit = db.prepare(
       'SELECT id, action, target, ip_address, created_at FROM audit_log WHERE user_id = ? ORDER BY created_at DESC LIMIT 10'
     ).all(user.id);
 
-    res.json({ user, vault, sessions, sharesCount, aliasesCount, recentAudit });
+    res.json({ user, vault, sessions, sharesCount, recentAudit });
   } catch (err) {
     console.error('Admin user detail error:', err.message);
     res.status(500).json({ error: 'Failed to load user detail' });
@@ -256,7 +256,6 @@ router.delete('/users/:id', requireAdmin, (req, res) => {
     const deleteUser = db.transaction(() => {
       db.prepare('DELETE FROM vaults WHERE user_id = ?').run(user.id);
       db.prepare('DELETE FROM shares WHERE user_id = ?').run(user.id);
-      db.prepare('DELETE FROM aliases WHERE user_id = ?').run(user.id);
       db.prepare('DELETE FROM sync_log WHERE user_id = ?').run(user.id);
       db.prepare('DELETE FROM sessions WHERE user_id = ?').run(user.id);
       db.prepare('DELETE FROM emergency_contacts WHERE grantor_id = ? OR grantee_id = ?').run(user.id, user.id);
@@ -403,85 +402,6 @@ router.delete('/shares/:id', requireAdmin, (req, res) => {
   }
 });
 
-// ═══════ ALIASES ═══════
-
-// GET /api/admin/aliases
-router.get('/aliases', requireAdmin, (req, res) => {
-  try {
-    const db = getDB();
-    const page = Math.max(parseInt(req.query.page) || 1, 1);
-    const limit = Math.min(Math.max(parseInt(req.query.limit) || 25, 1), 100);
-    const offset = (page - 1) * limit;
-    const status = req.query.status || '';
-    const search = req.query.search || '';
-
-    const conditions = [];
-    const params = [];
-
-    if (status === 'active') {
-      conditions.push('a.active = 1');
-    } else if (status === 'inactive') {
-      conditions.push('a.active = 0');
-    }
-    if (search) {
-      conditions.push('(a.alias LIKE ? OR a.target_email LIKE ? OR u.email LIKE ?)');
-      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
-    }
-
-    const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
-
-    const total = db.prepare(`SELECT COUNT(*) as c FROM aliases a LEFT JOIN users u ON a.user_id = u.id ${where}`).get(...params).c;
-
-    const aliases = db.prepare(`
-      SELECT a.id, a.user_id, a.alias, a.target_email, a.label, a.active, a.forwarded_count, a.created_at,
-             u.email as owner_email
-      FROM aliases a
-      LEFT JOIN users u ON a.user_id = u.id
-      ${where}
-      ORDER BY a.created_at DESC
-      LIMIT ? OFFSET ?
-    `).all(...params, limit, offset);
-
-    res.json({ aliases, total, page, limit, pages: Math.ceil(total / limit) });
-  } catch (err) {
-    console.error('Admin aliases error:', err.message);
-    res.status(500).json({ error: 'Failed to load aliases' });
-  }
-});
-
-// PATCH /api/admin/aliases/:id — Toggle active status
-router.patch('/aliases/:id', requireAdmin, (req, res) => {
-  try {
-    const db = getDB();
-    const alias = db.prepare('SELECT id, alias, active, user_id FROM aliases WHERE id = ?').get(req.params.id);
-    if (!alias) return res.status(404).json({ error: 'Alias not found' });
-
-    const newActive = alias.active ? 0 : 1;
-    db.prepare('UPDATE aliases SET active = ? WHERE id = ?').run(newActive, alias.id);
-    auditLog(null, 'admin_alias_toggled', alias.id, req, { alias: alias.alias, active: newActive });
-    res.json({ success: true, active: newActive });
-  } catch (err) {
-    console.error('Admin toggle alias error:', err.message);
-    res.status(500).json({ error: 'Failed to toggle alias' });
-  }
-});
-
-// DELETE /api/admin/aliases/:id — Delete an alias
-router.delete('/aliases/:id', requireAdmin, (req, res) => {
-  try {
-    const db = getDB();
-    const alias = db.prepare('SELECT id, alias FROM aliases WHERE id = ?').get(req.params.id);
-    if (!alias) return res.status(404).json({ error: 'Alias not found' });
-
-    db.prepare('DELETE FROM aliases WHERE id = ?').run(alias.id);
-    auditLog(null, 'admin_alias_deleted', alias.id, req, { alias: alias.alias });
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Admin delete alias error:', err.message);
-    res.status(500).json({ error: 'Failed to delete alias' });
-  }
-});
-
 // ═══════ SYNC LOG ═══════
 
 // GET /api/admin/syncs
@@ -556,9 +476,6 @@ router.get('/health', requireAdmin, (req, res) => {
       "SELECT COUNT(*) as c FROM shares WHERE revoked = 0 AND expires_at > datetime('now') AND current_views < max_views"
     ).get().c;
 
-    const aliasesTotal = db.prepare('SELECT COUNT(*) as c FROM aliases').get().c;
-    const aliasesActive = db.prepare('SELECT COUNT(*) as c FROM aliases WHERE active = 1').get().c;
-
     const syncsToday = db.prepare(
       "SELECT COUNT(*) as c FROM sync_log WHERE date(timestamp) = date('now')"
     ).get().c;
@@ -578,7 +495,6 @@ router.get('/health', requireAdmin, (req, res) => {
       },
       sessions: { total: sessionsTotal, active: sessionsActive, revoked: sessionsRevoked },
       shares: { total: sharesTotal, active: sharesActive },
-      aliases: { total: aliasesTotal, active: aliasesActive },
       syncsToday
     });
   } catch (err) {

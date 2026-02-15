@@ -425,9 +425,6 @@ canvas#sessionDonut{width:180px!important;height:180px!important;margin:10px aut
       <div class="nav-item" data-page="shares">
         <span class="nav-icon">&#9741;</span><span class="nav-label">Shares</span>
       </div>
-      <div class="nav-item" data-page="aliases">
-        <span class="nav-icon">&#9993;</span><span class="nav-label">Aliases</span>
-      </div>
       <div class="nav-section">Logs</div>
       <div class="nav-item" data-page="activity">
         <span class="nav-icon">&#9670;</span><span class="nav-label">Activity</span>
@@ -527,30 +524,6 @@ canvas#sessionDonut{width:180px!important;height:180px!important;margin:10px aut
         <div class="pagination" id="sharesPagination"></div>
       </div>
 
-      <!-- ALIASES -->
-      <div class="page" id="page-aliases">
-        <div class="page-header"><div class="page-title">Email Aliases</div></div>
-        <div class="toolbar">
-          <input type="text" id="aliasSearch" placeholder="Search alias, target, or owner...">
-          <select id="aliasStatus">
-            <option value="">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-          <button class="btn btn-primary btn-sm" id="aliasSearchBtn">Search</button>
-          <button class="btn btn-ghost btn-sm" id="aliasClearBtn">Clear</button>
-        </div>
-        <div class="tbl-wrap">
-          <table class="tbl">
-            <thead><tr>
-              <th>Alias</th><th>Target</th><th>Owner</th><th>Label</th><th>Forwarded</th><th>Status</th><th>Created</th><th></th>
-            </tr></thead>
-            <tbody id="aliasesTable"></tbody>
-          </table>
-        </div>
-        <div class="pagination" id="aliasesPagination"></div>
-      </div>
-
       <!-- ACTIVITY -->
       <div class="page" id="page-activity">
         <div class="page-header">
@@ -631,7 +604,6 @@ let chartDays = 30;
 let usersPage = 1;
 let auditPage = 1;
 let sharesPage = 1;
-let aliasesPage = 1;
 let syncsPage = 1;
 let refreshTimer = null;
 let uptimeTimer = null;
@@ -707,7 +679,7 @@ function actionBadge(action) {
   let c = 'gray';
   if (/^(login|register)$/.test(action)) c = 'green';
   else if (/vault_sync|sync/.test(action)) c = 'cyan';
-  else if (/share|alias_created/.test(action)) c = 'purple';
+  else if (/share/.test(action)) c = 'purple';
   else if (/2fa/.test(action)) c = 'orange';
   else if (/password_changed/.test(action)) c = 'yellow';
   else if (/deleted|revoked/.test(action)) c = 'red';
@@ -838,7 +810,6 @@ function navigate(page) {
   if (page === 'overview') loadOverview();
   else if (page === 'users') loadUsers();
   else if (page === 'shares') loadShares();
-  else if (page === 'aliases') loadAliases();
   else if (page === 'activity') { loadAuditActions(); loadAudit(); }
   else if (page === 'syncs') loadSyncs();
   else if (page === 'system') loadSystem();
@@ -874,7 +845,6 @@ function renderKPIs(k) {
     { label: 'Total Vaults', value: k.totalVaults, color: 'var(--cy)' },
     { label: 'Total Syncs', value: k.totalSyncs, color: 'var(--og)' },
     { label: 'Active Shares', value: k.activeShares, color: 'var(--yl)', sub: k.totalShares + ' total' },
-    { label: 'Active Aliases', value: k.activeAliases, color: 'var(--pp)', sub: k.totalAliases + ' total' },
   ];
   $('kpiGrid').innerHTML = items.map(i => `
     <div class="kpi-card" style="--kpi-color:${i.color}">
@@ -1013,7 +983,6 @@ function renderUserModal(data) {
     <div class="detail-row"><span class="detail-label">Last Login</span><span class="detail-value">${fmtDate(u.last_login)}</span></div>
     <div class="detail-row"><span class="detail-label">Vault</span><span class="detail-value">${data.vault ? formatBytes(data.vault.size_bytes) + ' (v' + data.vault.version + ')' : 'No vault'}</span></div>
     <div class="detail-row"><span class="detail-label">Shares</span><span class="detail-value">${data.sharesCount}</span></div>
-    <div class="detail-row"><span class="detail-label">Aliases</span><span class="detail-value">${data.aliasesCount}</span></div>
   </div></div>
   <div class="modal-actions">
     <button class="btn btn-primary btn-sm" onclick="togglePlan('${u.id}','${u.plan}')">${u.plan === 'pro' ? 'Downgrade to Free' : 'Upgrade to Pro'}</button>
@@ -1096,47 +1065,6 @@ function renderSharesTable(data) {
 async function revokeShare(id) {
   if (!(await confirmDialog('Revoke Share', 'This share link will stop working immediately.'))) return;
   try { await api('/api/admin/shares/' + id, { method: 'DELETE' }); toast('Share revoked', 'success'); loadShares(); }
-  catch (err) { toast('Failed: ' + err.message, 'error'); }
-}
-
-// ═══════ ALIASES ═══════
-$('aliasSearchBtn').onclick = () => { aliasesPage = 1; loadAliases(); };
-$('aliasClearBtn').onclick = () => { $('aliasSearch').value = ''; $('aliasStatus').value = ''; aliasesPage = 1; loadAliases(); };
-
-async function loadAliases() {
-  try {
-    const p = new URLSearchParams(); p.set('page', aliasesPage); p.set('limit', 25);
-    if ($('aliasSearch').value) p.set('search', $('aliasSearch').value);
-    if ($('aliasStatus').value) p.set('status', $('aliasStatus').value);
-    const data = await api('/api/admin/aliases?' + p.toString());
-    renderAliasesTable(data);
-  } catch (err) { console.error('Aliases load failed:', err); }
-}
-
-function renderAliasesTable(data) {
-  const tb = $('aliasesTable');
-  if (!data.aliases.length) { tb.innerHTML = '<tr><td colspan="8" class="empty-state"><div class="empty-icon">&#9993;</div>No aliases found</td></tr>'; $('aliasesPagination').innerHTML = ''; return; }
-  tb.innerHTML = data.aliases.map(a => `<tr>
-    <td class="mono" style="font-size:11px">${esc(a.alias)}</td><td class="mono" style="font-size:11px">${esc(a.target_email)}</td>
-    <td class="mono">${esc(a.owner_email||'\u2014')}</td><td>${esc(a.label||'\u2014')}</td>
-    <td class="mono">${a.forwarded_count}</td>
-    <td>${a.active ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-gray">Inactive</span>'}</td>
-    <td>${timeAgo(a.created_at)}</td>
-    <td style="white-space:nowrap">
-      <button class="btn btn-ghost btn-sm" onclick="toggleAlias('${a.id}')">${a.active ? 'Disable' : 'Enable'}</button>
-      <button class="btn btn-danger btn-sm" onclick="deleteAlias('${a.id}','${esc(a.alias)}')">Delete</button>
-    </td>
-  </tr>`).join('');
-  renderPagination($('aliasesPagination'), data, p => { aliasesPage = p; loadAliases(); });
-}
-
-async function toggleAlias(id) {
-  try { await api('/api/admin/aliases/' + id, { method: 'PATCH' }); toast('Alias updated', 'success'); loadAliases(); }
-  catch (err) { toast('Failed: ' + err.message, 'error'); }
-}
-async function deleteAlias(id, alias) {
-  if (!(await confirmDialog('Delete Alias', `Permanently delete <strong>${alias}</strong>? Emails will stop forwarding.`))) return;
-  try { await api('/api/admin/aliases/' + id, { method: 'DELETE' }); toast('Alias deleted', 'success'); loadAliases(); }
   catch (err) { toast('Failed: ' + err.message, 'error'); }
 }
 
@@ -1223,8 +1151,7 @@ function renderSystemCards(h) {
     { title: 'Memory', rows: [['RSS', formatBytes(h.memory.rss)], ['Heap Used', formatBytes(h.memory.heapUsed)], ['Heap Total', formatBytes(h.memory.heapTotal)]], bar: mp },
     { title: 'Database', rows: [['Path', h.database.path], ['Size', formatBytes(h.database.sizeBytes)], ['Syncs Today', h.syncsToday]] },
     { title: 'Sessions', rows: [['Total', h.sessions.total], ['Active', h.sessions.active], ['Revoked', h.sessions.revoked]] },
-    { title: 'Shares', rows: [['Total', h.shares.total], ['Active', h.shares.active]] },
-    { title: 'Aliases', rows: [['Total', h.aliases.total], ['Active', h.aliases.active]] }
+    { title: 'Shares', rows: [['Total', h.shares.total], ['Active', h.shares.active]] }
   ];
   $('sysGrid').innerHTML = cards.map(c => `<div class="sys-card"><div class="sys-card-title">${c.title}</div>
     ${c.rows.map(r => `<div class="sys-row"><span class="sys-row-label">${r[0]}</span><span class="sys-row-value">${r[1]}</span></div>`).join('')}

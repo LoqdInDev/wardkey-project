@@ -35,7 +35,6 @@ V = {
   apikeys: [{ id, name, svc, key, env, url, notes, icon }],
   licenses: [{ id, name, product, key, email, seats, icon }],
   passkeys: [{ id, name, rpId, username, credId, alg, created, lastUsed, icon }],
-  aliases: [{ id, alias, target, label, active }],
   breaches: [{ id, site, date, data, resolved, severity }],
   trash: [{ ...item, deletedAt, origType }],
   activity: [{ action, item, type, time }]
