@@ -4,9 +4,9 @@
 require('dotenv').config();
 
 // ═══════ STARTUP CHECKS ═══════
-if (!process.env.JWT_SECRET) {
-  console.error('\n  ❌ FATAL: JWT_SECRET environment variable is required.');
-  console.error('  Set it in your .env file or environment before starting the server.\n');
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  console.error('\n  ❌ FATAL: JWT_SECRET must be at least 32 characters.');
+  console.error('  Set a strong random value in your .env file or environment.\n');
   process.exit(1);
 }
 if (process.env.ADMIN_SECRET && process.env.ADMIN_SECRET.length < 16) {
@@ -187,8 +187,6 @@ app.use('/api/emergency', emergencyRoutes);
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    version: '1.0.0',
-    uptime: process.uptime(),
     timestamp: new Date().toISOString()
   });
 });

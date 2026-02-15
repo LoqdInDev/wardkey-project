@@ -61,10 +61,10 @@ router.get('/:id', (req, res) => {
   // Atomic view: transaction prevents race condition on concurrent requests
   const viewShare = db.transaction(() => {
     const share = db.prepare('SELECT * FROM shares WHERE id = ?').get(req.params.id);
-    if (!share) return { status: 404, error: 'Share link not found' };
-    if (share.revoked) return { status: 410, error: 'This link has been revoked' };
-    if (new Date(share.expires_at) < new Date()) return { status: 410, error: 'This link has expired' };
-    if (share.current_views >= share.max_views) return { status: 410, error: 'This link has reached its view limit' };
+    if (!share) return { status: 404, error: 'Share link not found or no longer available' };
+    if (share.revoked || new Date(share.expires_at) < new Date() || share.current_views >= share.max_views) {
+      return { status: 404, error: 'Share link not found or no longer available' };
+    }
 
     db.prepare('UPDATE shares SET current_views = current_views + 1 WHERE id = ?').run(share.id);
     return { share };

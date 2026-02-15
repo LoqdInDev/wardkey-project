@@ -1369,7 +1369,7 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
         if (raw && !/^https?:\/\//.test(raw)) raw = 'https://' + raw;
         if (raw) itemDomain = new URL(raw).hostname.replace(/^www\./, '');
       } catch {}
-      if (itemDomain === msg.domain || !itemDomain) {
+      if (itemDomain && itemDomain === msg.domain) {
         chrome.tabs.sendMessage(msg.tabId, {
           type: 'WARDKEY_FILL',
           username: item.username || '',

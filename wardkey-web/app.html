@@ -1138,7 +1138,7 @@ async function doLogin(){
   if(mp.length<8){showAuthErr('Master password must be at least 8 characters');return}
   if(Date.now()<lockoutUntil){const sec=Math.ceil((lockoutUntil-Date.now())/1000);showAuthErr('Too many attempts. Try again in '+sec+'s');return}
   showAuthErr('');
-  _pendingMp=mp;clearTimeout(_pendingMpTimer);_pendingMpTimer=setTimeout(()=>{_pendingMp=null;cancel2faLogin()},120000);
+  _pendingMp=mp;clearTimeout(_pendingMpTimer);_pendingMpTimer=setTimeout(()=>{_pendingMp=null;cancel2faLogin()},30000);
   try{
     const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
     const data=await res.json();
@@ -1538,7 +1538,7 @@ async function emerAction(id,action){
     const pw=await askPassword('Enter your master password to '+action+' emergency access:');
     if(!pw)return;
     try{const hash=await deriveVerifyHash(pw,_vaultSalt);if(hash!==_verifyHash){toast('Wrong password','er');return}}catch{toast('Verification failed','er');return}
-    body.password=pw;
+    // Password verified locally — never send to server (zero-knowledge)
   }
   try{const r=await fetch(API+'/api/emergency/'+id+'/'+action,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},body:JSON.stringify(body)});if(!r.ok){const d=await r.json();toast(d.error||'Failed','er');return}toast('Request '+action+'d','ok');loadEmerContacts().then(()=>render())}catch(err){toast('Failed: '+err.message,'er')}
 }

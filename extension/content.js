@@ -595,6 +595,9 @@
 
     if (msg.type === 'WARDKEY_SHOW_SAVE') {
       if (typeof msg.domain !== 'string' || typeof msg.username !== 'string') return;
+      // Verify domain matches current page
+      const curHost = location.hostname.replace(/^www\./, '');
+      if (msg.domain !== curHost) return;
       if (!saveDialogShown) {
         saveDialogShown = true;
         showSaveBar(msg);
