@@ -89,6 +89,100 @@
   }
 
   // ═══════ WARDKEY ICON INJECTION ═══════
+  let activeDropdown = null;
+
+  function closeDropdown() {
+    if (activeDropdown) {
+      activeDropdown.remove();
+      activeDropdown = null;
+    }
+  }
+
+  // Close dropdown when clicking elsewhere
+  document.addEventListener('click', (e) => {
+    if (activeDropdown && !activeDropdown.contains(e.target) && !e.target.closest('.wardkey-field-icon')) {
+      closeDropdown();
+    }
+  }, true);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDropdown();
+  });
+
+  function showCredentialDropdown(anchorField) {
+    closeDropdown();
+    const domain = location.hostname.replace(/^www\./, '');
+
+    chrome.runtime.sendMessage({ type: 'WARDKEY_GET_SITE_CREDENTIALS', domain }, (response) => {
+      if (chrome.runtime.lastError || !response) {
+        // Extension not available or vault locked — fall back to opening popup
+        chrome.runtime.sendMessage({ type: 'WARDKEY_OPEN_POPUP' });
+        return;
+      }
+
+      const creds = response.credentials || [];
+      const dropdown = document.createElement('div');
+      dropdown.className = 'wardkey-dropdown';
+
+      // Header
+      const header = document.createElement('div');
+      header.className = 'wardkey-dropdown-header';
+      header.innerHTML = '<span class="wardkey-dropdown-brand">🔐 WARDKEY</span>';
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'wardkey-dropdown-close';
+      closeBtn.textContent = '✕';
+      closeBtn.onclick = (e) => { e.stopPropagation(); closeDropdown(); };
+      header.appendChild(closeBtn);
+      dropdown.appendChild(header);
+
+      if (creds.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'wardkey-dropdown-empty';
+        empty.innerHTML = 'No saved passwords for this site<br><a class="wardkey-dropdown-open">Open WARDKEY</a>';
+        const openLink = empty.querySelector('.wardkey-dropdown-open');
+        if (openLink) openLink.onclick = () => { closeDropdown(); chrome.runtime.sendMessage({ type: 'WARDKEY_OPEN_POPUP' }); };
+        dropdown.appendChild(empty);
+      } else {
+        creds.forEach(cred => {
+          const item = document.createElement('button');
+          item.className = 'wardkey-dropdown-item';
+          item.innerHTML = `
+            <div class="wardkey-dropdown-icon">🔑</div>
+            <div class="wardkey-dropdown-info">
+              <div class="wardkey-dropdown-name">${escapeHtml(cred.name || cred.url || domain)}</div>
+              <div class="wardkey-dropdown-user">${escapeHtml(cred.username || 'No username')}</div>
+            </div>
+          `;
+          item.onclick = (e) => {
+            e.stopPropagation();
+            const fields = findFields();
+            if (fields.username && cred.username) fillField(fields.username, cred.username);
+            if (fields.password && cred.password) fillField(fields.password, cred.password);
+            if (fields.newPassword && cred.password) fillField(fields.newPassword, cred.password);
+            closeDropdown();
+          };
+          dropdown.appendChild(item);
+        });
+      }
+
+      document.body.appendChild(dropdown);
+      activeDropdown = dropdown;
+
+      // Position below the anchor field
+      const rect = anchorField.getBoundingClientRect();
+      const dropRect = dropdown.getBoundingClientRect();
+      let top = rect.bottom + 4;
+      let left = rect.left;
+
+      // Keep within viewport
+      if (top + dropRect.height > window.innerHeight) top = rect.top - dropRect.height - 4;
+      if (left + dropRect.width > window.innerWidth) left = window.innerWidth - dropRect.width - 8;
+      if (left < 4) left = 4;
+
+      dropdown.style.top = top + 'px';
+      dropdown.style.left = left + 'px';
+    });
+  }
+
   function injectIcons() {
     const fields = findFields();
     const targets = [fields.username, fields.password, fields.newPassword].filter(Boolean);
@@ -130,7 +224,7 @@
       btn.onclick = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        chrome.runtime.sendMessage({ type: 'WARDKEY_OPEN_POPUP' });
+        showCredentialDropdown(field);
       };
 
       wrapper.appendChild(btn);
@@ -165,6 +259,34 @@
   function trackCredentialFields() {
     const fields = findFields();
     const pwField = fields.password || fields.newPassword;
+
+    // Track username-only pages (multi-step login: email on page 1, password on page 2)
+    if (!pwField && fields.username) {
+      if (!trackedFields.has(fields.username)) {
+        trackedFields.add(fields.username);
+        const storeUsername = () => {
+          const username = (fields.username?.value || '').trim();
+          if (!username) return;
+          chrome.runtime.sendMessage({
+            type: 'WARDKEY_STORE_USERNAME',
+            domain: location.hostname.replace(/^www\./, ''),
+            username,
+            url: location.href,
+            timestamp: Date.now()
+          }).catch(() => {});
+        };
+        fields.username.addEventListener('change', storeUsername);
+        fields.username.addEventListener('blur', storeUsername);
+        // Also capture on form submit for the username step
+        const form = fields.username.closest('form');
+        if (form && !form.dataset.wardkeySubmit) {
+          form.dataset.wardkeySubmit = 'true';
+          form.addEventListener('submit', storeUsername, { capture: true });
+        }
+      }
+      return;
+    }
+
     if (!pwField) return;
 
     const allFields = [fields.username, fields.password, fields.newPassword].filter(Boolean);

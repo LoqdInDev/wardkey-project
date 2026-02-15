@@ -108,6 +108,18 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
             chrome.storage.session?.remove('wardkey_capture');
             return;
           }
+          // Preserve username from existing pending or stored username capture (multi-step login)
+          if (!capture.username) {
+            const prev = await chrome.storage.session?.get('wardkey_pendingSave');
+            if (prev?.wardkey_pendingSave?.username && prev.wardkey_pendingSave.domain === capture.domain) {
+              capture.username = prev.wardkey_pendingSave.username;
+            } else {
+              const udata = await chrome.storage.session?.get('wardkey_username');
+              if (udata?.wardkey_username?.domain === capture.domain && Date.now() - udata.wardkey_username.timestamp < 300000) {
+                capture.username = udata.wardkey_username.username;
+              }
+            }
+          }
           // Promote to pending save
           await chrome.storage.session?.set({ wardkey_pendingSave: capture });
           // Notify popup if open
@@ -188,6 +200,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     });
   }
 
+  // Username-only capture for multi-step logins (email on page 1, password on page 2)
+  if (msg.type === 'WARDKEY_STORE_USERNAME') {
+    if (typeof msg.domain !== 'string' || !msg.domain) return;
+    if (typeof msg.username !== 'string' || !msg.username) return;
+    if (typeof msg.url !== 'string') return;
+    try { new URL(msg.url); } catch { return; }
+    const senderHost = new URL(sender.tab.url).hostname.replace(/^www\./, '');
+    if (msg.domain !== senderHost) return;
+    chrome.storage.session?.set({ wardkey_username: { domain: msg.domain, username: msg.username, timestamp: msg.timestamp } });
+  }
+
   // Content script credential capture (via message passing, not direct session storage)
   if (msg.type === 'WARDKEY_STORE_CAPTURE') {
     // Validate required fields and types
@@ -202,19 +225,49 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     const senderHost = new URL(sender.tab.url).hostname.replace(/^www\./, '');
     if (msg.domain && msg.domain !== senderHost) return;
 
-    // Store credential detection — include password only when captured at form submit
-    const captureData = {
-      domain: msg.domain,
-      username: msg.username,
-      hasPassword: true,
-      url: msg.url,
-      timestamp: msg.timestamp
-    };
-    if (typeof msg.password === 'string' && msg.password) {
-      captureData.password = msg.password;
-      chrome.alarms.create('wardkey-clear-pending-pw', { delayInMinutes: 5 });
+    (async () => {
+      // Merge username from earlier username-only capture (multi-step login)
+      let username = msg.username;
+      if (!username) {
+        const stored = await chrome.storage.session?.get('wardkey_username');
+        if (stored?.wardkey_username?.domain === msg.domain && Date.now() - stored.wardkey_username.timestamp < 300000) {
+          username = stored.wardkey_username.username;
+        }
+      }
+
+      // Store credential detection — include password only when captured at form submit
+      const captureData = {
+        domain: msg.domain,
+        username,
+        hasPassword: true,
+        url: msg.url,
+        timestamp: msg.timestamp
+      };
+      if (typeof msg.password === 'string' && msg.password) {
+        captureData.password = msg.password;
+        chrome.alarms.create('wardkey-clear-pending-pw', { delayInMinutes: 5 });
+      }
+      chrome.storage.session?.set({ wardkey_capture: captureData });
+    })();
+  }
+
+  // Content script requests credentials for current site (inline dropdown)
+  if (msg.type === 'WARDKEY_GET_SITE_CREDENTIALS') {
+    if (typeof msg.domain !== 'string' || !msg.domain) return;
+    // Verify domain matches sender tab
+    if (sender.tab?.url) {
+      const senderHost = new URL(sender.tab.url).hostname.replace(/^www\./, '');
+      if (msg.domain !== senderHost) return;
     }
-    chrome.storage.session?.set({ wardkey_capture: captureData });
+    chrome.storage.session?.get('wardkey_credentials', (data) => {
+      const creds = data?.wardkey_credentials || [];
+      const matches = creds.filter(c => {
+        if (!c.domain) return false;
+        return c.domain === msg.domain || msg.domain.endsWith('.' + c.domain) || c.domain.endsWith('.' + msg.domain);
+      }).map(c => ({ id: c.id, name: c.name, username: c.username, password: c.password, url: c.url }));
+      sendResponse({ credentials: matches });
+    });
+    return true; // async sendResponse
   }
 
   // Content script checks for pending save dialog
@@ -271,9 +324,24 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         if (!existing?.wardkey_pendingSave || existing.wardkey_pendingSave.domain !== msg.domain) return;
       }
 
+      const existing = await chrome.storage.session.get('wardkey_pendingSave');
+      const prev = existing?.wardkey_pendingSave;
+
+      // Resolve username: current msg > previous pending > stored username capture
+      let resolvedUsername = msg.username;
+      if (!resolvedUsername && prev?.username && prev.domain === msg.domain) {
+        resolvedUsername = prev.username;
+      }
+      if (!resolvedUsername) {
+        const udata = await chrome.storage.session.get('wardkey_username');
+        if (udata?.wardkey_username?.domain === msg.domain && Date.now() - udata.wardkey_username.timestamp < 300000) {
+          resolvedUsername = udata.wardkey_username.username;
+        }
+      }
+
       const saveData = {
         domain: msg.domain,
-        username: msg.username,
+        username: resolvedUsername || '',
         hasPassword: true,
         url: msg.url,
         timestamp: Date.now(),
@@ -283,12 +351,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       if (typeof msg.password === 'string' && msg.password) {
         saveData.password = msg.password;
         chrome.alarms.create('wardkey-clear-pending-pw', { delayInMinutes: 5 });
-      } else {
+      } else if (prev?.password) {
         // Preserve password from earlier capture phase (form submit)
-        const existing = await chrome.storage.session.get('wardkey_pendingSave');
-        if (existing?.wardkey_pendingSave?.password) {
-          saveData.password = existing.wardkey_pendingSave.password;
-        }
+        saveData.password = prev.password;
       }
       await chrome.storage.session.set({ wardkey_pendingSave: saveData });
       chrome.runtime.sendMessage({ type: 'WARDKEY_PENDING_SAVE' }).catch(() => {});

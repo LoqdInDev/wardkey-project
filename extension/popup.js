@@ -94,6 +94,22 @@ async function saveVault() {
   const blob = { v: CRYPTO_VERSION, salt: Array.from(_salt), verify: _verify, data: e };
   await chrome.storage.local.set({ wardkey_v4: blob });
   if (syncEnabled && authToken) syncUp(blob);
+  syncCredentialIndex();
+}
+
+// Store lightweight credential index in session storage for inline autofill dropdown
+function syncCredentialIndex() {
+  if (!vault?.passwords) return;
+  const creds = vault.passwords.map(p => {
+    let domain = '';
+    try {
+      let raw = (p.url || '').trim();
+      if (raw && !/^https?:\/\//.test(raw)) raw = 'https://' + raw;
+      if (raw) domain = new URL(raw).hostname.replace(/^www\./, '');
+    } catch {}
+    return { id: p.id, name: p.name || '', username: p.username || '', password: p.password || '', url: p.url || '', domain };
+  });
+  chrome.storage.session?.set({ wardkey_credentials: creds });
 }
 
 async function initVault(pw) {
@@ -269,6 +285,7 @@ $('unlockBtn').onclick = async () => {
 
   getCurrentSite();
   renderList();
+  syncCredentialIndex();
   updateSyncDot();
   await checkPendingSave();
 
@@ -291,6 +308,7 @@ $('lockBtn').onclick = () => {
   mfaTempToken = null;
   mfaTempTokenExpiry = 0;
   chrome.storage.session?.remove('wardkey_session'); // clear auto-unlock session
+  chrome.storage.session?.remove('wardkey_credentials'); // clear credential index
   // Clear all input fields to remove any sensitive data from DOM
   document.querySelectorAll('input').forEach(el => { el.value = ''; });
   $('appView').classList.remove('on');
@@ -1489,6 +1507,7 @@ async function tryAutoUnlock() {
 
     getCurrentSite();
     renderList();
+    syncCredentialIndex();
     updateSyncDot();
     await checkPendingSave();
     if (syncEnabled && authToken) syncDown();

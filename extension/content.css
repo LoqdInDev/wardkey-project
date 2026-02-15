@@ -194,3 +194,126 @@
   outline: 2px solid #3d7cf5 !important;
   outline-offset: 2px !important;
 }
+
+/* Credential Dropdown */
+.wardkey-dropdown {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  background: #fff !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.06) !important;
+  min-width: 260px !important;
+  max-width: 360px !important;
+  max-height: 280px !important;
+  overflow-y: auto !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  animation: wardkey-dropdown-in .15s ease-out !important;
+  padding: 4px 0 !important;
+}
+
+.wardkey-dropdown-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 10px 14px 8px !important;
+  border-bottom: 1px solid #eee !important;
+}
+
+.wardkey-dropdown-brand {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #3d7cf5 !important;
+  letter-spacing: .3px !important;
+}
+
+.wardkey-dropdown-close {
+  width: 22px !important;
+  height: 22px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  border: none !important;
+  color: #999 !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  border-radius: 4px !important;
+  padding: 0 !important;
+}
+
+.wardkey-dropdown-close:hover {
+  background: #f0f0f5 !important;
+  color: #333 !important;
+}
+
+.wardkey-dropdown-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 9px 14px !important;
+  cursor: pointer !important;
+  transition: background .1s !important;
+  border: none !important;
+  background: transparent !important;
+  width: 100% !important;
+  text-align: left !important;
+  font-family: inherit !important;
+}
+
+.wardkey-dropdown-item:hover {
+  background: #f0f4ff !important;
+}
+
+.wardkey-dropdown-icon {
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #e8ecf4 !important;
+  border-radius: 8px !important;
+  font-size: 15px !important;
+  flex-shrink: 0 !important;
+}
+
+.wardkey-dropdown-info {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.wardkey-dropdown-name {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #1a1a2e !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.wardkey-dropdown-user {
+  font-size: 11px !important;
+  color: #888 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  margin-top: 1px !important;
+}
+
+.wardkey-dropdown-empty {
+  padding: 16px 14px !important;
+  text-align: center !important;
+  color: #999 !important;
+  font-size: 12px !important;
+}
+
+.wardkey-dropdown-empty a {
+  color: #3d7cf5 !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+}
+
+@keyframes wardkey-dropdown-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
