@@ -94,6 +94,7 @@ app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/2fa/verify-login', authLimiter);
 app.use('/api/auth/2fa/disable', authLimiter);
 app.use('/api/auth/2fa/confirm', authLimiter);
+app.use('/api/auth/2fa/setup', authLimiter);
 
 const shareLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -149,8 +150,9 @@ app.use((req, res, next) => {
         try {
           decoded = jwtMod.verify(authHeader.slice(7), process.env.JWT_SECRET, { algorithms: ['HS256'] });
         } catch {
-          if (req.path.startsWith('/api/admin') && process.env.ADMIN_JWT_SECRET) {
-            decoded = jwtMod.verify(authHeader.slice(7), process.env.ADMIN_JWT_SECRET, { algorithms: ['HS256'] });
+          if (req.path.startsWith('/api/admin')) {
+            const adminKey = process.env.ADMIN_JWT_SECRET || require('crypto').createHmac('sha256', process.env.JWT_SECRET).update('wardkey-admin-token-signing').digest('hex');
+            decoded = jwtMod.verify(authHeader.slice(7), adminKey, { algorithms: ['HS256'] });
           } else throw new Error('invalid');
         }
         if (decoded.purpose) return res.status(403).json({ error: 'Origin header required' });

@@ -166,9 +166,13 @@ router.post('/login', async (req, res) => {
 // ═══════ 2FA: SETUP ═══════
 router.post('/2fa/setup', authenticate, async (req, res) => {
   try {
+    const { currentPassword } = req.body;
+    if (!currentPassword || typeof currentPassword !== 'string') return res.status(400).json({ error: 'Current password required' });
     const db = getDB();
-    const user = db.prepare('SELECT email, mfa_enabled FROM users WHERE id = ?').get(req.user.id);
+    const user = db.prepare('SELECT email, password_hash, mfa_enabled FROM users WHERE id = ?').get(req.user.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
+    const valid = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!valid) return res.status(401).json({ error: 'Wrong password' });
 
     const secret = authenticator.generateSecret();
     const otpauthUri = authenticator.keyuri(user.email, 'WARDKEY', secret);

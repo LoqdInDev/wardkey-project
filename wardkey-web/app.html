@@ -943,10 +943,12 @@ function show2faSetupOffer(){
 }
 
 async function start2faSetup(){
+  const pw=await askPassword('Re-enter your account password to set up 2FA:');
+  if(!pw)return;
   $('mfaMo').classList.add('on');
   $('mfaMoBody').innerHTML='<div style="text-align:center;padding:20px 0"><div style="animation:spin 1s linear infinite;width:24px;height:24px;border:3px solid var(--bd);border-top-color:var(--ac);border-radius:50%;margin:0 auto"></div><div style="font-size:13px;color:var(--tx3);margin-top:10px">Generating secret...</div></div>';
   try{
-    const res=await fetch(API+'/api/auth/2fa/setup',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken}});
+    const res=await fetch(API+'/api/auth/2fa/setup',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},body:JSON.stringify({currentPassword:pw})});
     const data=await res.json();
     if(!res.ok)throw new Error(data.error||'Setup failed');
     const safeQr=(data.qrDataUri&&data.qrDataUri.startsWith('data:image/'))?data.qrDataUri:'';
@@ -1841,7 +1843,7 @@ function aiLimitHTML(){
 
 function showUpgrade(){
   const h='<div style="text-align:center;padding:10px"><div style="font-size:32px;margin-bottom:10px">⚡</div><div style="font-size:18px;font-weight:700;margin-bottom:6px">Upgrade to WARDKEY Pro</div><div style="font-size:12px;color:var(--tx2);line-height:1.6;margin-bottom:16px;max-width:300px;margin-left:auto;margin-right:auto">Unlimited AI analyses, cloud sync across all devices, browser extensions, and mobile apps.</div><div style="display:flex;align-items:baseline;justify-content:center;gap:4px;margin-bottom:4px"><span style="font-size:32px;font-weight:800">$1.49</span><span style="font-size:12px;color:var(--tx3)">/month</span></div><div style="font-size:11px;color:var(--tx3);margin-bottom:16px">$14.99/year — less than a coffee</div><div style="display:flex;flex-direction:column;gap:4px;text-align:left;max-width:260px;margin:0 auto 16px">'
-  +['Unlimited AI analyses','End-to-end encrypted sync','Unlimited devices','Browser extensions','iOS & Android apps','Advanced breach monitoring','Priority support'].map(f=>'<div style="font-size:11px;color:var(--tx2);display:flex;align-items:center;gap:6px"><span style="color:var(--gn);font-weight:700">✓</span>'+f+'</div>').join('')
+  +['Unlimited AI analyses','End-to-end encrypted sync','Unlimited devices','Browser extensions','iOS & Android apps (coming soon)','Advanced breach monitoring','Priority support'].map(f=>'<div style="font-size:11px;color:var(--tx2);display:flex;align-items:center;gap:6px"><span style="color:var(--gn);font-weight:700">✓</span>'+f+'</div>').join('')
   +'</div><button class="bt bt-p" style="width:100%;justify-content:center;padding:10px" onclick="toast(\'Coming soon! Join waitlist at wardkey.io\',\'ok\');$(\'upMo\').classList.remove(\'on\')">Start 14-Day Free Trial</button><div style="font-size:9px;color:var(--tx3);margin-top:8px">No credit card required for trial</div></div>';
   $('upBod').innerHTML=h;$('upMo').classList.add('on');
 }

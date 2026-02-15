@@ -10,8 +10,9 @@ const router = express.Router();
 
 // Admin CORS handled in server.js — no duplicate needed here
 
-// Separate signing key for admin tokens (falls back to JWT_SECRET for backwards compat)
-const ADMIN_SECRET = process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET;
+// Separate signing key for admin tokens (derives from JWT_SECRET if not set)
+const ADMIN_SECRET = process.env.ADMIN_JWT_SECRET || crypto.createHmac('sha256', process.env.JWT_SECRET).update('wardkey-admin-token-signing').digest('hex');
+if (!process.env.ADMIN_JWT_SECRET) console.warn('[WARN] ADMIN_JWT_SECRET not set — using derived key from JWT_SECRET. Set ADMIN_JWT_SECRET in .env for production.');
 
 // ═══════ ADMIN AUTH ═══════
 function requireAdmin(req, res, next) {

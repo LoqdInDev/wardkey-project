@@ -312,7 +312,7 @@ async function getCurrentSite() {
   } catch { currentDomain = ''; }
 }
 
-const SHARED_HOSTS = ['github.io','herokuapp.com','netlify.app','vercel.app','pages.dev','gitlab.io','firebaseapp.com','web.app','azurewebsites.net','blogspot.com','wordpress.com','appspot.com','cloudfront.net','azurestaticapps.net','onrender.com','fly.dev','railway.app','repl.co','surge.sh','deno.dev','workers.dev','ngrok.io','ngrok-free.app','amazonaws.com','myshopify.com','wixsite.com','squarespace.com','webflow.io','ghost.io','itch.io','pantheonsite.io','tumblr.com','glitch.me','gitpod.io','github.dev','replit.dev','pythonanywhere.com','stackblitz.io','azurefd.net','000webhostapp.com','hubspotpagebuilder.com','livejournal.com'];
+const SHARED_HOSTS = ['000webhostapp.com','amazonaws.com','appspot.com','azurefd.net','azurestaticapps.net','azurewebsites.net','bitbucket.io','blogspot.com','bubbleapps.io','cargo.site','carrd.co','cloudfront.net','cloudfunctions.net','codeberg.page','deno.dev','firebaseapp.com','fleek.co','fly.dev','framer.app','framer.website','github.dev','github.io','gitpod.io','gitlab.io','glide.page','glitch.me','ghost.io','herokuapp.com','hubspotpagebuilder.com','itch.io','livejournal.com','myshopify.com','netlify.app','ngrok-free.app','ngrok.io','onrender.com','pages.dev','pantheonsite.io','pythonanywhere.com','r2.dev','railway.app','readthedocs.io','repl.co','replit.dev','run.app','softr.app','squarespace.com','stackblitz.io','strikingly.com','surge.sh','tiiny.site','trycloudflare.com','tumblr.com','vercel.app','web.app','webflow.io','wixsite.com','workers.dev','wordpress.com'];
 
 function getMatches() {
   if (!currentDomain || !vault.passwords) return [];
@@ -333,6 +333,17 @@ function getMatches() {
       return false;
     } catch { return false; }
   });
+}
+
+function isSubdomainMatch(p) {
+  try {
+    let raw = (p.url || '').trim().toLowerCase();
+    if (!raw) return false;
+    if (!/^https?:\/\//.test(raw)) raw = 'https://' + raw;
+    const host = new URL(raw).hostname.replace(/^www\./, '');
+    const domain = currentDomain.toLowerCase();
+    return host !== domain && domain.endsWith('.' + host);
+  } catch { return false; }
 }
 
 // ═══════ RENDER ═══════
@@ -416,10 +427,11 @@ function renderList() {
   list.innerHTML = items.map(p => {
     const s = pwStr(p.password);
     const safeId = esc(p.id);
+    const subMatch = activeTab === 'matches' && isSubdomainMatch(p);
     return `<div class="item" data-id="${safeId}">
       <div class="item-ic">${esc(p.icon || '🔑')}</div>
       <div class="item-info">
-        <div class="item-name">${esc(p.name)}</div>
+        <div class="item-name">${esc(p.name)}${subMatch ? '<span style="font-size:9px;color:#f39c12;margin-left:4px" title="Matched via parent domain — verify this is the correct site">(subdomain)</span>' : ''}</div>
         <div class="item-user">${esc(p.username || '')}</div>
       </div>
       <div style="display:flex;align-items:center;gap:4px;margin-right:2px">

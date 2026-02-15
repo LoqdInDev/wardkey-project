@@ -463,7 +463,8 @@ const ASSETS = [
    - Best times: 8-10 AM EST weekdays
 
 3. **Reddit**
-   - r/selfhosted — emphasize local-first, self-hostable architecture
+   - r/privacy — emphasize local-first, zero-knowledge vault encryption
+   - r/PasswordManagers — share unique features (Credential Map, Decay Timeline)
    - r/privacy — zero-knowledge vault encryption
    - r/cybersecurity — AI security analysis features
    - r/webdev — tech stack discussion
