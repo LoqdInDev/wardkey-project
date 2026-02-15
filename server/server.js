@@ -133,7 +133,7 @@ app.use((req, res, next) => {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
   const origin = req.headers.origin;
   const extOrigin = process.env.EXTENSION_ID ? `chrome-extension://${process.env.EXTENSION_ID}` : null;
-  const allowed = [process.env.APP_ORIGIN || 'https://wardkey.io', extOrigin].filter(Boolean);
+  const allowed = [...new Set([process.env.APP_ORIGIN || 'https://wardkey.io', extOrigin, process.env.ADMIN_ORIGIN || 'https://wardkey.io'].filter(Boolean))];
   if (origin === 'null') {
     return res.status(403).json({ error: 'Origin header required' });
   }
@@ -144,11 +144,18 @@ app.use((req, res, next) => {
       // Token will be validated by authenticate middleware downstream
       // Only skip CSRF for requests that look like real API calls
       try {
-        const jwt = require('jsonwebtoken');
-        const decoded = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET, { algorithms: ['HS256'] });
-        if (decoded.purpose) return res.status(403).json({ error: 'Origin header required' }); // reject temp tokens
+        const jwtMod = require('jsonwebtoken');
+        let decoded;
+        try {
+          decoded = jwtMod.verify(authHeader.slice(7), process.env.JWT_SECRET, { algorithms: ['HS256'] });
+        } catch {
+          if (req.path.startsWith('/api/admin') && process.env.ADMIN_JWT_SECRET) {
+            decoded = jwtMod.verify(authHeader.slice(7), process.env.ADMIN_JWT_SECRET, { algorithms: ['HS256'] });
+          } else throw new Error('invalid');
+        }
+        if (decoded.purpose) return res.status(403).json({ error: 'Origin header required' });
         return next();
-      } catch { /* invalid token — fall through to require Origin */ }
+      } catch { /* fall through */ }
     }
     return res.status(403).json({ error: 'Origin header required' });
   }

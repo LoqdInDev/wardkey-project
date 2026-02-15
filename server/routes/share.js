@@ -9,7 +9,7 @@ const router = express.Router();
 // ═══════ CREATE SHARE LINK ═══════
 router.post('/', authenticate, (req, res) => {
   const { encryptedData, iv, maxViews, expiresInHours } = req.body;
-  if (!encryptedData || !iv) {
+  if (!encryptedData || !iv || typeof encryptedData !== 'string' || typeof iv !== 'string') {
     return res.status(400).json({ error: 'Missing encrypted data' });
   }
   if (encryptedData.length > 1048576) {

@@ -597,7 +597,7 @@ const API_KEY = 'wardkey_admin_api';
 const TOKEN_KEY = 'wardkey_admin_token';
 const THEME_KEY = 'wardkey_admin_theme';
 let API = localStorage.getItem(API_KEY) || 'https://api.wardkey.io';
-let token = localStorage.getItem(TOKEN_KEY) || '';
+let token = sessionStorage.getItem(TOKEN_KEY) || '';
 let currentPage = 'overview';
 let overviewData = null;
 let chartDays = 30;
@@ -781,13 +781,13 @@ $('loginForm').addEventListener('submit', async (e) => {
     const res = await fetch(API + '/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ secret }) });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || 'Login failed');
-    token = json.token; localStorage.setItem(TOKEN_KEY, token); $('secretInput').value = ''; showApp();
+    token = json.token; sessionStorage.setItem(TOKEN_KEY, token); $('secretInput').value = ''; showApp();
   } catch (ex) { err.textContent = ex.message; }
   finally { btn.disabled = false; btn.textContent = 'Authenticate'; }
 });
 
 function logout() {
-  token = ''; localStorage.removeItem(TOKEN_KEY);
+  token = ''; sessionStorage.removeItem(TOKEN_KEY);
   clearInterval(refreshTimer); clearInterval(uptimeTimer);
   $('app').classList.remove('active'); $('login-screen').style.display = ''; $('secretInput').focus();
 }
@@ -798,7 +798,7 @@ function showApp() {
   navigate('overview'); startAutoRefresh();
 }
 
-if (token) { api('/api/admin/health').then(() => showApp()).catch(() => { token = ''; localStorage.removeItem(TOKEN_KEY); }); }
+if (token) { api('/api/admin/health').then(() => showApp()).catch(() => { token = ''; sessionStorage.removeItem(TOKEN_KEY); }); }
 
 // ═══════ NAVIGATION ═══════
 qsa('.nav-item').forEach(item => { item.onclick = () => navigate(item.dataset.page); });
@@ -1025,7 +1025,7 @@ async function revokeAllSessions(uid) {
   catch (err) { toast('Failed: ' + err.message, 'error'); }
 }
 async function deleteUser(uid, email) {
-  if (!(await confirmDialog('Delete User', `Permanently delete <strong>${email}</strong> and all their data? This cannot be undone.`))) return;
+  if (!(await confirmDialog('Delete User', `Permanently delete <strong>${esc(email)}</strong> and all their data? This cannot be undone.`))) return;
   try { await api('/api/admin/users/' + uid, { method: 'DELETE' }); toast('User deleted', 'success'); $('userModal').classList.remove('active'); loadUsers(); if(currentPage==='overview') loadOverview(); }
   catch (err) { toast('Failed: ' + err.message, 'error'); }
 }

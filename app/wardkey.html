@@ -2218,8 +2218,8 @@ function rPasskeys(el){
 function addPasskey(){
   const id='pk'+Math.random().toString(36).substr(2,6);
   const domains=['example.com','login.service.com','app.company.io'];
-  V.passkeys.push({id,name:'New Service',rpId:'service.com',username:'david@gmail.com',created:Date.now(),lastUsed:Date.now(),credId:'cred_'+Math.random().toString(36).substr(2,12),alg:'ES256',icon:'🆕',fav:false});
-  logA('Passkey registered','New Service','add');saveV();updC();render();toast('Passkey registered','ok');
+  V.passkeys.push({id,name:'Example Service',rpId:'example.com',username:'user@example.com',created:Date.now(),lastUsed:Date.now(),credId:'cred_'+Math.random().toString(36).substr(2,12),alg:'ES256',icon:'🆕',fav:false});
+  logA('Passkey registered','Example Service','add');saveV();updC();render();toast('Passkey registered','ok');
 }
 
 
@@ -2329,7 +2329,7 @@ if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone
   const hash=window.location.hash;
   if(hash.startsWith('#emergency-confirm=')){
     const token=hash.split('=')[1];
-    if(!token||!/^[a-f0-9]+$/i.test(token))return;
+    if(!token||token.length!==48||!/^[a-f0-9]+$/i.test(token))return;
     if(token)fetch(API+'/api/emergency/confirm/'+token,{method:'POST',headers:authToken?{'Authorization':'Bearer '+authToken}:{}}).then(r=>r.json()).then(d=>{
       if(d.success){toast('Emergency contact confirmed!','ok');window.location.hash=''}else{toast(d.error||'Failed','er')}
     }).catch(()=>toast('Failed to confirm','er'));

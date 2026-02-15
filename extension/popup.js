@@ -859,6 +859,14 @@ $('saveBannerYes').onclick = async () => {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tab?.id) {
+      try {
+        const tabHost = new URL(tab.url).hostname.replace(/^www\./, '');
+        if (pending?.domain && tabHost !== pending.domain) {
+          toast('Tab changed — save cancelled');
+          $('saveBanner').classList.remove('on');
+          return;
+        }
+      } catch {}
       const resp = await chrome.tabs.sendMessage(tab.id, { type: 'WARDKEY_GET_PASSWORD' });
       password = resp?.password || '';
     }
@@ -1279,7 +1287,7 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
     if (Array.isArray(msg.passwords)) {
       const valid = msg.passwords.filter(p =>
         p && typeof p === 'object' &&
-        typeof p.id === 'string' && p.id && /^[a-zA-Z0-9_-]+$/.test(p.id) &&
+        typeof p.id === 'string' && p.id && p.id.length <= 64 && /^[a-zA-Z0-9_-]+$/.test(p.id) &&
         typeof p.name === 'string' && p.name &&
         (!p.password || typeof p.password === 'string') &&
         (!p.url || typeof p.url === 'string') &&

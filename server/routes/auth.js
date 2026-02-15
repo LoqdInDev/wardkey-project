@@ -121,13 +121,13 @@ router.post('/login', async (req, res) => {
     const db = getDB();
     const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase());
     if (!user) {
-      console.log(`[AUTH] Failed login attempt for ${email} at ${new Date().toISOString()} from ${req.ip}`);
+      console.log(`[AUTH] Failed login attempt for ${email.replace(/(.{2}).*(@.*)/, '$1***$2')} at ${new Date().toISOString()} from ${req.ip}`);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) {
-      console.log(`[AUTH] Failed login attempt for ${email} at ${new Date().toISOString()} from ${req.ip}`);
+      console.log(`[AUTH] Failed login attempt for ${email.replace(/(.{2}).*(@.*)/, '$1***$2')} at ${new Date().toISOString()} from ${req.ip}`);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -188,7 +188,7 @@ router.post('/2fa/setup', authenticate, async (req, res) => {
 router.post('/2fa/confirm', authenticate, async (req, res) => {
   try {
     const { totpCode } = req.body;
-    if (!totpCode) return res.status(400).json({ error: 'TOTP code required' });
+    if (!totpCode || typeof totpCode !== 'string' || !/^\d{6}$/.test(totpCode)) return res.status(400).json({ error: 'TOTP code must be 6 digits' });
 
     const db = getDB();
     const user = db.prepare('SELECT mfa_secret FROM users WHERE id = ?').get(req.user.id);
@@ -210,7 +210,7 @@ router.post('/2fa/confirm', authenticate, async (req, res) => {
 router.post('/2fa/verify-login', async (req, res) => {
   try {
     const { tempToken, totpCode } = req.body;
-    if (!tempToken || !totpCode) return res.status(400).json({ error: 'Token and TOTP code required' });
+    if (!tempToken || !totpCode || typeof totpCode !== 'string' || !/^\d{6}$/.test(totpCode)) return res.status(400).json({ error: 'TOTP code must be 6 digits' });
 
     let decoded;
     try {
@@ -230,7 +230,7 @@ router.post('/2fa/verify-login', async (req, res) => {
     const decryptedSecret = decryptMfaSecret(user.mfa_secret);
     const isValid = authenticator.check(totpCode, decryptedSecret);
     if (!isValid) {
-      console.log(`[AUTH] Failed 2FA attempt for ${user.email} at ${new Date().toISOString()} from ${req.ip}`);
+      console.log(`[AUTH] Failed 2FA attempt for ${user.email.replace(/(.{2}).*(@.*)/, '$1***$2')} at ${new Date().toISOString()} from ${req.ip}`);
       return res.status(401).json({ error: 'Invalid 2FA code' });
     }
 
@@ -257,7 +257,7 @@ router.post('/2fa/verify-login', async (req, res) => {
 router.post('/2fa/disable', authenticate, async (req, res) => {
   try {
     const { totpCode } = req.body;
-    if (!totpCode) return res.status(400).json({ error: 'TOTP code required to disable 2FA' });
+    if (!totpCode || typeof totpCode !== 'string' || !/^\d{6}$/.test(totpCode)) return res.status(400).json({ error: 'TOTP code must be 6 digits' });
 
     const db = getDB();
     const user = db.prepare('SELECT mfa_secret, mfa_enabled FROM users WHERE id = ?').get(req.user.id);

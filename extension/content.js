@@ -383,6 +383,7 @@
     }
 
     if (msg.type === 'WARDKEY_SHOW_SAVE') {
+      if (typeof msg.domain !== 'string' || typeof msg.username !== 'string') return;
       if (!saveDialogShown) {
         saveDialogShown = true;
         showSaveBar(msg);

@@ -10,8 +10,7 @@ services:
       - PORT=3000
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set}
       - DB_PATH=/app/data/wardkey.db
-      - ALLOWED_ORIGINS=https://wardkey.io,http://localhost:5173
-      - ALIAS_DOMAIN=wardkey.email
+      - ALLOWED_ORIGINS=https://wardkey.io
     volumes:
       - wardkey-data:/app/data
     restart: unless-stopped
