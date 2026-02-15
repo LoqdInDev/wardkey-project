@@ -779,7 +779,7 @@ async function syncUp(stored){
     if(res.status===409){toast('Vault conflict — server has a newer version. Use Sync Now in Settings.','er');updateSyncIcon('');return}
     if(!res.ok)throw new Error('Sync failed');
     lastSyncTime=Date.now();updateSyncIcon('done');
-  }catch(e){updateSyncIcon('');console.error('Sync up error:',e.message)}
+  }catch(e){updateSyncIcon('');toast('Sync failed','er')}
   finally{syncInProgress=false}
 }
 async function syncDown(){
@@ -873,7 +873,8 @@ function secureClear() {
   // Clear any displayed passwords from DOM
   document.querySelectorAll('[id^="pwV"],[id^="ph"]').forEach(el => { el.textContent = ''; });
   document.querySelectorAll('[data-pw]').forEach(el => el.removeAttribute('data-pw'));
-  const aiIn=document.getElementById('aiPwIn');if(aiIn)aiIn.value='';
+  const aiIn=document.getElementById('aiPwIn');if(aiIn){aiIn.value='';aiIn.readOnly=false}
+  _aiPwId=null;
   _cpw = null;
   _pwHistory = null;
   // Clear clipboard if we wrote to it
@@ -881,7 +882,7 @@ function secureClear() {
   // Clear auth tokens from memory (remain in localStorage for restore on re-unlock)
   authToken=null;
   authUser=null;
-  _pendingMp=null;
+  _pendingMp=null;clearTimeout(_pendingMpTimer);
   mfaPendingToken=null;
   if(typeof _serverShares!=='undefined')_serverShares=[];
   if(typeof _emerContacts!=='undefined')_emerContacts=[];
@@ -892,6 +893,7 @@ function secureClear() {
 // ════════ 2FA ════════
 let mfaPendingToken=null;
 let _pendingMp=null; // closure-scoped — not on window
+let _pendingMpTimer=null;
 let _vaultSalt=null, _verifyHash=null; // closure-scoped — not on window
 
 function show2faLogin(){
@@ -921,14 +923,14 @@ async function verify2faLogin(){
     }catch{}
     restore2faLoginPanel();
     $('mpIn').value=mp;$('mpConf').value=mp;
-    _pendingMp=null;
+    _pendingMp=null;clearTimeout(_pendingMpTimer);
     await unlock();
     toast('Logged in — vault synced','ok');
   }catch(e){showAuthErr(e.message)}
 }
 
 function cancel2faLogin(){
-  mfaPendingToken=null;_pendingMp=null;
+  mfaPendingToken=null;_pendingMp=null;clearTimeout(_pendingMpTimer);
   restore2faLoginPanel();
 }
 
@@ -1136,7 +1138,7 @@ async function doLogin(){
   if(mp.length<8){showAuthErr('Master password must be at least 8 characters');return}
   if(Date.now()<lockoutUntil){const sec=Math.ceil((lockoutUntil-Date.now())/1000);showAuthErr('Too many attempts. Try again in '+sec+'s');return}
   showAuthErr('');
-  _pendingMp=mp;
+  _pendingMp=mp;clearTimeout(_pendingMpTimer);_pendingMpTimer=setTimeout(()=>{_pendingMp=null;cancel2faLogin()},120000);
   try{
     const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
     const data=await res.json();
@@ -1162,13 +1164,13 @@ async function doLogin(){
       }
     }catch{}
     $('mpIn').value=mp;$('mpConf').value=mp;
-    _pendingMp=null;
+    _pendingMp=null;clearTimeout(_pendingMpTimer);
     await unlock();
     toast('Logged in — vault synced','ok');
   }catch(e){
     failedAttempts++;
     if(failedAttempts>=MAX_ATTEMPTS){const lockMs=LOCKOUT_TIMES[Math.min(lockoutLevel,LOCKOUT_TIMES.length-1)];lockoutUntil=Date.now()+lockMs;lockoutLevel++;{const _ld=JSON.stringify({f:failedAttempts,u:lockoutUntil,l:lockoutLevel});localStorage.setItem('wardkey_lockout',_ld);sessionStorage.setItem('wardkey_lockout',_ld)}}
-    _pendingMp=null;
+    _pendingMp=null;clearTimeout(_pendingMpTimer);
     showAuthErr(e.message);
   }
 }
@@ -1228,7 +1230,7 @@ document.addEventListener('contextmenu', e => {
 });
 
 // ════════ NAVIGATION ════════
-function buildNav(){$('sNav').innerHTML=NAV.map(n=>{if(n.s)return`<div class="sb-sec">${n.s}</div>`;const dot=n.dot&&V.breaches.some(b=>!b.resolved);return`<div class="ni${pg===n.id?' on':''}" data-p="${n.id}" onclick="nav('${n.id}')">${ICONS[n.ic]}<span>${n.l}</span>${n.b?`<span class="c" id="${n.b}">0</span>`:''}${dot?'<div class="rd"></div>':''}</div>`}).join('')}
+function buildNav(){$('sNav').innerHTML=NAV.map(n=>{if(n.s)return`<div class="sb-sec">${esc(n.s)}</div>`;const dot=n.dot&&V.breaches.some(b=>!b.resolved);return`<div class="ni${pg===n.id?' on':''}" data-p="${n.id}" onclick="nav('${n.id}')">${ICONS[n.ic]}<span>${esc(n.l)}</span>${n.b?`<span class="c" id="${n.b}">0</span>`:''}${dot?'<div class="rd"></div>':''}</div>`}).join('')}
 function nav(p,skipHistory){if(!skipHistory&&pg!==p)navHistory.push(pg);pg=p;sq='';af='all';$('gSch').value='';document.querySelectorAll('.ni').forEach(e=>e.classList.toggle('on',e.dataset.p===p));const T={dashboard:'Dashboard',favorites:'⭐ Favorites',passwords:'Passwords',cards:'Cards & IDs',notes:'Secure Notes',apikeys:'API Keys & Tokens',licenses:'Software Licenses',passkeys:'🔑 Passkeys',generator:'Password Generator',authenticator:'Authenticator',watchtower:'Security Monitor',audit:'Security Audit',scanner:'Breach Scanner',credmap:'🕸️ Credential Map',decay:'⏳ Decay Timeline',sharing:'Secure Sharing',emergency:'Emergency Access',analytics:'Analytics',activity:'Activity Log',trash:'Trash',settings:'Settings','ai-analyzer':'🧠 AI Password Analyzer','ai-report':'📋 AI Security Report','ai-phishing':'🎣 AI Phishing Detector'};$('pTit').textContent=T[p]||p;updBackBtn();render();closeD();closeSB();updBnav(p)}
 function goBack(){if(navHistory.length){const prev=navHistory.pop();nav(prev,true)}else{nav('dashboard',true)}}
 function updBackBtn(){const b=$('backBtn');if(b)b.style.display=navHistory.length?'flex':'none'}
@@ -1807,7 +1809,7 @@ async function doExport(fmt){
     if(hash!==_verifyHash){toast('Wrong password — export denied','er');return}
   }catch{toast('Authentication failed','er');return}
   function csvSafe(s){if(!s)return'';s=String(s).replace(/"/g,'""');if(/^[=+\-@\t\r|]/.test(s))s="'"+s;return s}
-  if(fmt==='json'){if(!confirm('WARNING: JSON export contains all passwords in plaintext. Keep this file secure and delete it after use.\n\nContinue with JSON export?'))return;dl(JSON.stringify(V.passwords,null,2),'wardkey-vault.json','application/json')}else{if(!confirm('WARNING: CSV export contains all passwords in plaintext. This file will NOT be encrypted. Make sure to delete it after use and never share it.\n\nContinue with CSV export?'))return;const csv='name,username,password,url,category\n'+V.passwords.map(p=>`"${csvSafe(p.name)}","${csvSafe(p.username)}","${csvSafe(p.password)}","${csvSafe(p.url)}","${csvSafe(p.cat)}"`).join('\n');dl(csv,'wardkey-vault.csv','text/csv')}$('impMo').classList.remove('on');logA('Vault exported','','gen');toast(`Exported as ${fmt.toUpperCase()}`,'ok')}
+  if(fmt==='json'){if(!confirm('WARNING: JSON export contains all passwords (including password history) in plaintext. Keep this file secure and delete it after use.\n\nContinue with JSON export?'))return;const exportData=V.passwords.map(p=>{const{history,...rest}=p;return rest});dl(JSON.stringify(exportData,null,2),'wardkey-vault.json','application/json')}else{if(!confirm('WARNING: CSV export contains all passwords in plaintext. This file will NOT be encrypted. Make sure to delete it after use and never share it.\n\nContinue with CSV export?'))return;const csv='name,username,password,url,category\n'+V.passwords.map(p=>`"${csvSafe(p.name)}","${csvSafe(p.username)}","${csvSafe(p.password)}","${csvSafe(p.url)}","${csvSafe(p.cat)}"`).join('\n');dl(csv,'wardkey-vault.csv','text/csv')}$('impMo').classList.remove('on');logA('Vault exported','','gen');toast(`Exported as ${fmt.toUpperCase()}`,'ok')}
 
 async function wipeVault(){
   if(!confirm('⚠️ This will PERMANENTLY erase all vault data. This cannot be undone.'))return;
@@ -1890,12 +1892,15 @@ function rAiPw(el){
   <div style="margin-bottom:8px;font-size:10px;color:var(--tx3)">Quick select from vault:</div>
   <div class="ai-pw-list">${pwList}</div>
   <div id="aiPwName" style="font-size:10px;color:var(--pp);margin-bottom:4px;min-height:14px"></div>
-  <div class="ai-in"><input type="password" id="aiPwIn" placeholder="Enter or select a password to analyze…" style="font-family:var(--mono)"><button class="ai-go" onclick="runAiPw()" id="aiPwGo"><svg viewBox="0 0 24 24" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Analyze</button></div>
+  <div class="ai-in"><input type="password" id="aiPwIn" placeholder="Enter or select a password to analyze…" style="font-family:var(--mono)" onfocus="if(_aiPwId){_aiPwId=null;this.value='';this.readOnly=false;document.getElementById('aiPwName').textContent=''}"><button class="ai-go" onclick="runAiPw()" id="aiPwGo"><svg viewBox="0 0 24 24" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Analyze</button></div>
   <div id="aiPwOut"></div></div></div>`}
-function pickAiPw(id){const p=V.passwords.find(x=>x.id===id);if(p){document.getElementById('aiPwIn').value=p.password;document.getElementById('aiPwName').textContent='Analyzing: '+p.name}}
+let _aiPwId=null;
+function pickAiPw(id){const p=V.passwords.find(x=>x.id===id);if(p){_aiPwId=id;document.getElementById('aiPwIn').value='••••••••';document.getElementById('aiPwIn').readOnly=true;document.getElementById('aiPwName').textContent='Analyzing: '+p.name}}
 
 function runAiPw(){
-  const pw=document.getElementById('aiPwIn').value.trim();
+  let pw;
+  if(_aiPwId){const p=V.passwords.find(x=>x.id===_aiPwId);pw=p?.password;if(!pw){toast('Password not found in vault','er');return}}
+  else{pw=document.getElementById('aiPwIn').value.trim()}
   if(!pw){toast('Enter a password to analyze','er');return}
   const s=str(pw);
   // Analyze password characteristics locally — NEVER send the actual password
