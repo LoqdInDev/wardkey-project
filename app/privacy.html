@@ -69,15 +69,15 @@ footer a:hover{color:var(--tx1)}
 
 <div class="legal">
 <h1>Privacy Policy</h1>
-<p class="updated">Last updated: February 11, 2026</p>
+<p class="updated">Last updated: February 15, 2026</p>
 
 <div class="highlight">
-<p><strong>The short version:</strong> WARDKEY uses zero-knowledge vault encryption. We cannot read, access, or decrypt your vault data. Your master password never leaves your device. We collect the minimum data needed to provide our service.</p>
+<p><strong>The short version:</strong> WARDKEY uses zero-knowledge vault encryption. We cannot read, access, or decrypt your vault data. Your master password never leaves your device. We collect the minimum data needed to provide our service. Optional AI features, when activated, send anonymized metadata (never passwords) to our servers for analysis.</p>
 </div>
 
 <h2>1. Who We Are</h2>
-<p>WARDKEY ("we," "us," "our") operates the WARDKEY password manager application, browser extension, and related services (collectively, the "Service"). This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.</p>
-<p>For any privacy-related questions, contact us at: <strong>privacy@wardkey.io</strong></p>
+<p>WARDKEY ("we," "us," "our") operates the WARDKEY password manager application, browser extension, and related services (collectively, the "Service"). We are located at 444 Alaska Avenue, Suite #AHA780, Torrance, CA 90503, USA. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.</p>
+<p>For any privacy-related questions, contact us at: <strong>wardkey047@gmail.com</strong></p>
 
 <h2>2. Zero-Knowledge Vault Encryption</h2>
 <p>WARDKEY is built on a <strong>zero-knowledge vault encryption model</strong>. This means:</p>
@@ -88,6 +88,7 @@ footer a:hover{color:var(--tx1)}
 <li>We store only the <strong>encrypted blob</strong> — we have no ability to decrypt it</li>
 <li>If you lose your master password, we <strong>cannot recover your data</strong></li>
 </ul>
+<p><strong>Note:</strong> Zero-knowledge vault encryption applies to your vault data. If you choose to use optional AI-enhanced features (Password Analyzer, Security Report, Phishing Detector), anonymized metadata about your vault is sent to our servers for analysis. See Section 12 for details.</p>
 
 <h2>3. Information We Collect</h2>
 
@@ -117,12 +118,21 @@ footer a:hover{color:var(--tx1)}
 <tr><td>Error logs</td><td>Debugging and service reliability</td><td>30 days</td></tr>
 </table>
 
-<h3>3.4 Information We Do NOT Collect</h3>
+<h3>3.4 Breach Scanner</h3>
+<p>When you use the breach scanner, partial SHA-1 hashes of your passwords (the first 5 characters only) are sent to our server, which queries the <strong>Have I Been Pwned</strong> Pwned Passwords API using a k-anonymity model. Your full passwords or full hashes are never transmitted. The k-anonymity approach means neither our server nor HIBP can determine your actual passwords from the prefixes sent.</p>
+
+<h3>3.5 Emergency Access</h3>
+<p>When you add an emergency contact, we send email notifications to the contact's email address on your behalf (invitation, access request notifications, approvals, and denials). The email addresses of your emergency contacts are stored on our servers to facilitate this feature.</p>
+
+<h3>3.6 Share Links</h3>
+<p>When you create a share link, the encrypted credential data is stored on our server. The decryption key is embedded in the URL fragment (the part after the # symbol) and is <strong>never sent to our server</strong>. Only the recipient with the full URL can decrypt the shared data.</p>
+
+<h3>3.7 Information We Do NOT Collect</h3>
 <ul>
 <li>Your master password (never transmitted)</li>
 <li>Decrypted vault contents</li>
 <li>Browsing history or website visits</li>
-<li>Keystrokes or form data (the extension only interacts with login fields when explicitly activated)</li>
+<li>Keystrokes or form data (the extension only interacts with login fields when it detects them)</li>
 <li>Analytics or tracking data from the extension</li>
 <li>Data from other extensions or tabs</li>
 </ul>
@@ -165,7 +175,7 @@ footer a:hover{color:var(--tx1)}
 <tr><td>Server logs (IP, errors)</td><td>30 days</td></tr>
 <tr><td>Payment records</td><td>As required by tax/financial regulations (typically 7 years)</td></tr>
 </table>
-<p>When you delete your account, we permanently delete your account data and encrypted vault within 30 days. Some information may be retained in encrypted backups for up to 90 days before being purged.</p>
+<p>When you delete your account, your encrypted vault is permanently deleted immediately. Account metadata and related data are deleted within 30 days. Some information may be retained in encrypted backups for up to 90 days before being purged.</p>
 
 <h2>8. Your Rights</h2>
 <p>Depending on your jurisdiction, you have the following rights:</p>
@@ -195,17 +205,19 @@ footer a:hover{color:var(--tx1)}
 <li><strong>Know</strong> what personal information we collect and how it is used</li>
 <li><strong>Delete</strong> personal information we have collected</li>
 <li><strong>Opt-out</strong> of the sale or sharing of personal information — <strong>we do not sell or share personal information</strong></li>
+<li><strong>Correct</strong> inaccurate personal information we hold about you</li>
 <li><strong>Non-discrimination:</strong> We will not discriminate against you for exercising your privacy rights</li>
 </ul>
+<p>To submit a verifiable consumer request, email <strong>wardkey047@gmail.com</strong> with the subject line "CCPA Request." We will verify your identity and respond within 45 days (extendable by an additional 45 days if needed). You may also designate an authorized agent to submit a request on your behalf — the agent must provide written authorization signed by you.</p>
 <p>In the preceding 12 months, we have <strong>not sold</strong> any personal information. We do <strong>not</strong> use or disclose sensitive personal information for purposes other than providing the Service.</p>
 
 <h3>8.4 Other Jurisdictions</h3>
-<p>We respect privacy rights under all applicable laws, including but not limited to: LGPD (Brazil), PIPEDA (Canada), POPIA (South Africa), and the Australian Privacy Act. If you have jurisdiction-specific questions, contact us at <strong>privacy@wardkey.io</strong>.</p>
+<p>We respect privacy rights under all applicable laws, including but not limited to: LGPD (Brazil), PIPEDA (Canada), POPIA (South Africa), and the Australian Privacy Act. If you have jurisdiction-specific questions, contact us at <strong>wardkey047@gmail.com</strong>.</p>
 
 <h2>9. Browser Extension Privacy</h2>
 <p>The WARDKEY browser extension:</p>
 <ul>
-<li>Only activates on web pages when you interact with it or when it detects login forms</li>
+<li>A content script runs on web pages to detect login forms; it only interacts with form fields when credentials are available or when you initiate autofill</li>
 <li>Does <strong>not</strong> collect browsing history, page content, or analytics</li>
 <li>Does <strong>not</strong> communicate with any third-party servers — only with api.wardkey.io for vault sync</li>
 <li>Stores vault data locally in <code>chrome.storage.local</code> (encrypted)</li>
@@ -215,14 +227,14 @@ footer a:hover{color:var(--tx1)}
 </ul>
 
 <h2>10. Children's Privacy</h2>
-<p>WARDKEY is not intended for children under 16 years of age. We do not knowingly collect personal information from children under 16. If we learn that we have collected personal information from a child under 16, we will delete that information promptly. If you believe a child under 16 has provided us with personal information, please contact us at <strong>privacy@wardkey.io</strong>.</p>
+<p>WARDKEY is not intended for children under 16 years of age. We do not knowingly collect personal information from children under 16. If we learn that we have collected personal information from a child under 16, we will delete that information promptly. If you believe a child under 16 has provided us with personal information, please contact us at <strong>wardkey047@gmail.com</strong>.</p>
 
 <h2>11. International Data Transfers</h2>
 <p>Your encrypted vault data may be stored on servers located outside your country of residence. Where we transfer data internationally, we ensure appropriate safeguards are in place, including:</p>
 <ul>
 <li>Standard Contractual Clauses (SCCs) approved by the European Commission</li>
 <li>Encryption of all data at rest and in transit</li>
-<li>The zero-knowledge vault encryption ensures transferred data cannot be read by anyone — including us</li>
+<li>The zero-knowledge vault encryption ensures transferred vault data cannot be read by anyone — including us</li>
 </ul>
 
 <h2>12. Third-Party Services</h2>
@@ -231,9 +243,24 @@ footer a:hover{color:var(--tx1)}
 <tr><th>Service</th><th>Purpose</th><th>Data Shared</th></tr>
 <tr><td>Hosting provider</td><td>Server infrastructure</td><td>Encrypted vault blobs, account data</td></tr>
 <tr><td>Payment processor</td><td>Pro plan billing</td><td>Payment information (never vault data)</td></tr>
-<tr><td>Email service</td><td>Transactional emails</td><td>Email address</td></tr>
+<tr><td>Email service</td><td>Transactional emails (account verification, emergency access notifications)</td><td>Email address</td></tr>
+<tr><td>Kit.com (ConvertKit)</td><td>Marketing email collection (landing page signup forms)</td><td>Email address, signup source</td></tr>
+<tr><td>Anthropic (Claude AI)</td><td>AI-enhanced vault analysis (optional)</td><td>Anonymized vault metadata; raw text for Phishing Detector (see AI Analysis section)</td></tr>
 </table>
 <p>All third-party providers are bound by data processing agreements and are prohibited from using your data for any purpose other than providing their service to us.</p>
+
+<h3>AI Analysis Services</h3>
+<p>When you use WARDKEY's AI-enhanced features, data is sent to our servers and processed using Anthropic's Claude AI. You can use WARDKEY without ever activating AI features — they are entirely optional.</p>
+<ul>
+<li><strong>Password Analyzer &amp; Security Report:</strong> Anonymized vault metadata (password strength scores, character class distributions, item counts, reuse counts, age metrics) is sent. <strong>Your actual passwords are never sent.</strong></li>
+<li><strong>Phishing Detector:</strong> The text or URL you paste into the analyzer is sent to our servers for AI analysis. <strong>Do not paste content containing passwords or sensitive credentials.</strong> Only paste suspicious emails, messages, or URLs you want checked for phishing indicators.</li>
+</ul>
+<table>
+<tr><th>Data Sent to AI</th><th>Data Never Sent</th></tr>
+<tr><td>Password length, character class distribution, strength score</td><td>Actual passwords, usernames, URLs</td></tr>
+<tr><td>Number of vault items per category</td><td>Vault item names or contents</td></tr>
+<tr><td>Reuse counts, age metrics</td><td>Any personally identifiable information</td></tr>
+</table>
 
 <h2>13. Changes to This Policy</h2>
 <p>We may update this Privacy Policy from time to time. We will notify you of material changes by:</p>
@@ -242,13 +269,13 @@ footer a:hover{color:var(--tx1)}
 <li>Sending an email notification for significant changes</li>
 <li>Displaying a notice in the application</li>
 </ul>
-<p>Your continued use of the Service after changes take effect constitutes acceptance of the updated policy.</p>
+<p>Your continued use of the Service after changes take effect constitutes acceptance of the updated policy. For material changes that affect how we process your data based on consent, we will seek your explicit agreement before the changes take effect.</p>
 
 <h2>14. Contact Us</h2>
 <p>If you have questions about this Privacy Policy or wish to exercise your rights:</p>
 <ul>
-<li><strong>Email:</strong> privacy@wardkey.io</li>
-<li><strong>General support:</strong> support@wardkey.io</li>
+<li><strong>Email:</strong> wardkey047@gmail.com</li>
+<li><strong>Address:</strong> 444 Alaska Avenue, Suite #AHA780, Torrance, CA 90503, USA</li>
 </ul>
 <p>For GDPR-related inquiries, you may also contact your local data protection authority.</p>
 </div>

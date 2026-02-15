@@ -65,14 +65,14 @@ footer a:hover{color:var(--tx1)}
 
 <div class="legal">
 <h1>Terms of Service</h1>
-<p class="updated">Last updated: February 11, 2026</p>
+<p class="updated">Last updated: February 15, 2026</p>
 
 <div class="highlight">
 <p><strong>The short version:</strong> By using WARDKEY, you agree to these terms. You own your data. We provide a tool to help you manage it securely. Use it responsibly.</p>
 </div>
 
 <h2>1. Agreement to Terms</h2>
-<p>These Terms of Service ("Terms") govern your access to and use of the WARDKEY password manager application, browser extension, website, and related services (collectively, the "Service") provided by WARDKEY ("we," "us," "our").</p>
+<p>These Terms of Service ("Terms") govern your access to and use of the WARDKEY password manager application, browser extension, website, and related services (collectively, the "Service") provided by WARDKEY ("we," "us," "our"), located at 444 Alaska Avenue, Suite #AHA780, Torrance, CA 90503, USA.</p>
 <p>By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, do not use the Service. If you are using the Service on behalf of an organization, you represent that you have authority to bind that organization to these Terms.</p>
 
 <h2>2. Eligibility</h2>
@@ -84,13 +84,19 @@ footer a:hover{color:var(--tx1)}
 </ul>
 
 <h2>3. Description of Service</h2>
-<p>WARDKEY is a password manager with zero-knowledge vault encryption that helps you securely store and manage passwords, payment cards, secure notes, TOTP keys, and other sensitive data. Key features include:</p>
+<p>WARDKEY is a password manager with zero-knowledge vault encryption that helps you securely store and manage passwords, payment cards, secure notes, TOTP keys, API keys, software licenses, passkeys, and other sensitive data. Key features include:</p>
 <ul>
 <li><strong>Local-first storage:</strong> Your vault is encrypted and stored on your device by default</li>
 <li><strong>Optional cloud sync:</strong> Encrypted vault data can be synced across devices via our servers</li>
 <li><strong>Browser extension:</strong> Autofill and save credentials on websites</li>
 <li><strong>Password generator:</strong> Create strong, unique passwords</li>
-<li><strong>Security alerts:</strong> Identify weak, reused, or old passwords</li>
+<li><strong>TOTP authenticator:</strong> Store and generate time-based one-time password codes</li>
+<li><strong>Security Monitor:</strong> Identify weak, reused, or old passwords</li>
+<li><strong>Breach scanner:</strong> Check your passwords against the Have I Been Pwned database using k-anonymity (only partial password hashes are sent)</li>
+<li><strong>Secure sharing:</strong> Share credentials via time-limited, view-limited encrypted links. Encryption keys are embedded in the URL fragment and never sent to our servers</li>
+<li><strong>Emergency access:</strong> Designate trusted contacts who can request access to your vault with a configurable waiting period</li>
+<li><strong>Import/Export:</strong> Import from other password managers (LastPass, 1Password, Bitwarden, Chrome) and export your vault data</li>
+<li><strong>AI-enhanced analysis (optional):</strong> Password Analyzer and Security Report powered by Anthropic's Claude AI send anonymized vault metadata (never passwords) to our servers. The Phishing Detector sends user-provided content (text or URLs you paste) for analysis</li>
 </ul>
 
 <h2>4. Your Responsibilities</h2>
@@ -129,16 +135,21 @@ footer a:hover{color:var(--tx1)}
 
 <h2>5. Plans and Pricing</h2>
 
-<h3>5.1 Free Plan</h3>
-<p>The free plan includes core password management features with the following limits:</p>
+<h3>5.1 Launch Period</h3>
+<p>During our launch period, all features — including those normally reserved for the Pro plan — are available to all users at no cost. The launch period will end when we publicly announce the transition to standard pricing. We will provide at least 30 days' notice before the launch period ends. After the launch period, accounts will transition to the Free or Pro plan based on the terms below.</p>
+
+<h3>5.2 Free Plan</h3>
+<p>After the launch period, the free plan includes core password management features with the following limits:</p>
 <ul>
 <li>Vault storage limit of 10 MB (encrypted)</li>
 <li>Single device cloud sync</li>
+<li>3 AI analyses per day</li>
+<li>5 active share links</li>
 <li>Standard features as described on our website</li>
 </ul>
 
-<h3>5.2 Pro Plan</h3>
-<p>The Pro plan is a paid subscription that includes:</p>
+<h3>5.3 Pro Plan</h3>
+<p>The Pro plan is priced at $1.49/month or $14.99/year (subject to change with 30 days' notice). It includes:</p>
 <ul>
 <li>Vault storage limit of 1 GB (encrypted)</li>
 <li>Multi-device cloud sync</li>
@@ -146,7 +157,7 @@ footer a:hover{color:var(--tx1)}
 <li>Additional features as described on our pricing page</li>
 </ul>
 
-<h3>5.3 Payment Terms</h3>
+<h3>5.4 Payment Terms</h3>
 <ul>
 <li>Pro plan subscriptions are billed on a recurring basis (monthly or annually)</li>
 <li>All prices are in USD unless otherwise stated</li>
@@ -154,15 +165,15 @@ footer a:hover{color:var(--tx1)}
 <li>We may change pricing with 30 days' notice; existing subscriptions continue at their current rate until renewal</li>
 </ul>
 
-<h3>5.4 Refund Policy</h3>
+<h3>5.5 Refund Policy</h3>
 <ul>
 <li>We offer a <strong>30-day money-back guarantee</strong> on all new Pro plan subscriptions</li>
-<li>If you are not satisfied within 30 days of your initial purchase, contact us at <strong>support@wardkey.io</strong> for a full refund</li>
+<li>If you are not satisfied within 30 days of your initial purchase, contact us at <strong>wardkey047@gmail.com</strong> for a full refund</li>
 <li>Refund requests after 30 days will be reviewed on a case-by-case basis</li>
 <li>Refunds are issued to the original payment method within 5–10 business days</li>
 </ul>
 
-<h3>5.5 Cancellation</h3>
+<h3>5.6 Cancellation</h3>
 <ul>
 <li>You may cancel your Pro subscription at any time</li>
 <li>Cancellation takes effect at the end of the current billing period</li>
@@ -224,7 +235,7 @@ footer a:hover{color:var(--tx1)}
 <h3>12.1 By You</h3>
 <p>You may stop using the Service and delete your account at any time. Upon account deletion:</p>
 <ul>
-<li>Your cloud-stored encrypted vault will be permanently deleted within 30 days</li>
+<li>Your cloud-stored encrypted vault will be permanently deleted</li>
 <li>Your local vault on your device(s) will remain unless you manually remove it</li>
 <li>Any active Pro subscription will be canceled (no refund for partial periods unless within the 30-day guarantee)</li>
 </ul>
@@ -242,7 +253,7 @@ footer a:hover{color:var(--tx1)}
 <h2>13. Dispute Resolution</h2>
 
 <h3>13.1 Informal Resolution</h3>
-<p>Before filing any formal dispute, you agree to contact us at <strong>support@wardkey.io</strong> and attempt to resolve the dispute informally for at least 30 days.</p>
+<p>Before filing any formal dispute, you agree to contact us at <strong>wardkey047@gmail.com</strong> and attempt to resolve the dispute informally for at least 30 days.</p>
 
 <h3>13.2 Governing Law</h3>
 <p>These Terms are governed by and construed in accordance with the laws of the State of Delaware, United States, without regard to its conflict of law provisions.</p>
@@ -277,8 +288,8 @@ footer a:hover{color:var(--tx1)}
 <h2>16. Contact</h2>
 <p>For questions about these Terms:</p>
 <ul>
-<li><strong>Email:</strong> legal@wardkey.io</li>
-<li><strong>Support:</strong> support@wardkey.io</li>
+<li><strong>Email:</strong> wardkey047@gmail.com</li>
+<li><strong>Address:</strong> 444 Alaska Avenue, Suite #AHA780, Torrance, CA 90503, USA</li>
 </ul>
 </div>
 

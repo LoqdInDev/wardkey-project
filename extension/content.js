@@ -192,6 +192,26 @@
       field.addEventListener('change', storeCapture);
       field.addEventListener('blur', storeCapture);
     });
+
+    // Detect form submission to capture password before page navigates away
+    const form = pwField.closest('form');
+    if (form && !form.dataset.wardkeySubmit) {
+      form.dataset.wardkeySubmit = 'true';
+      form.addEventListener('submit', () => {
+        const pw = (fields.password?.value || fields.newPassword?.value || '').trim();
+        if (!pw) return;
+        const username = (fields.username?.value || '').trim();
+        chrome.runtime.sendMessage({
+          type: 'WARDKEY_STORE_CAPTURE',
+          domain: location.hostname.replace(/^www\./, ''),
+          username,
+          hasPassword: true,
+          password: pw,
+          url: location.href,
+          timestamp: Date.now()
+        }).catch(() => {});
+      }, { capture: true });
+    }
   }
 
   // ═══════ SAVE PASSWORD DIALOG (LastPass-style) ═══════

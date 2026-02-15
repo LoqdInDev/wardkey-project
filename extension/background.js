@@ -202,16 +202,19 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     const senderHost = new URL(sender.tab.url).hostname.replace(/^www\./, '');
     if (msg.domain && msg.domain !== senderHost) return;
 
-    // Store only a flag that credentials were detected — NOT the plaintext password
-    chrome.storage.session?.set({
-      wardkey_capture: {
-        domain: msg.domain,
-        username: msg.username,
-        hasPassword: true,
-        url: msg.url,
-        timestamp: msg.timestamp
-      }
-    });
+    // Store credential detection — include password only when captured at form submit
+    const captureData = {
+      domain: msg.domain,
+      username: msg.username,
+      hasPassword: true,
+      url: msg.url,
+      timestamp: msg.timestamp
+    };
+    if (typeof msg.password === 'string' && msg.password) {
+      captureData.password = msg.password;
+      chrome.alarms.create('wardkey-clear-pending-pw', { delayInMinutes: 5 });
+    }
+    chrome.storage.session?.set({ wardkey_capture: captureData });
   }
 
   // Content script checks for pending save dialog
@@ -260,11 +263,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (typeof msg.url !== 'string') return;
     try { new URL(msg.url); } catch { return; }
 
-    // Verify msg.domain matches the actual sender tab's hostname
-    const senderHost = new URL(sender.tab.url).hostname.replace(/^www\./, '');
-    if (msg.domain && msg.domain !== senderHost) return;
-
     (async () => {
+      // Allow if domain matches sender OR matches existing pending save (post-redirect)
+      const senderHost = new URL(sender.tab.url).hostname.replace(/^www\./, '');
+      if (msg.domain !== senderHost) {
+        const existing = await chrome.storage.session.get('wardkey_pendingSave');
+        if (!existing?.wardkey_pendingSave || existing.wardkey_pendingSave.domain !== msg.domain) return;
+      }
+
       const saveData = {
         domain: msg.domain,
         username: msg.username,
@@ -276,8 +282,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       // Store password if captured at click time (before page navigates)
       if (typeof msg.password === 'string' && msg.password) {
         saveData.password = msg.password;
-        // Auto-clear password after 5 minutes if popup never opens
         chrome.alarms.create('wardkey-clear-pending-pw', { delayInMinutes: 5 });
+      } else {
+        // Preserve password from earlier capture phase (form submit)
+        const existing = await chrome.storage.session.get('wardkey_pendingSave');
+        if (existing?.wardkey_pendingSave?.password) {
+          saveData.password = existing.wardkey_pendingSave.password;
+        }
       }
       await chrome.storage.session.set({ wardkey_pendingSave: saveData });
       chrome.runtime.sendMessage({ type: 'WARDKEY_PENDING_SAVE' }).catch(() => {});

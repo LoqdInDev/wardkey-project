@@ -1533,7 +1533,14 @@ async function addEmerContact(){
 }
 async function emerAction(id,action){
   if(!/^[a-zA-Z0-9_-]+$/.test(id)||!/^(approve|deny)$/.test(action))return;
-  try{const r=await fetch(API+'/api/emergency/'+id+'/'+action,{method:'POST',headers:{'Authorization':'Bearer '+authToken}});if(!r.ok){const d=await r.json();toast(d.error||'Failed','er');return}toast('Request '+action+'d','ok');loadEmerContacts().then(()=>render())}catch(err){toast('Failed: '+err.message,'er')}
+  let body={};
+  if(action==='approve'){
+    const pw=prompt('Enter your master password to approve emergency access:');
+    if(!pw)return;
+    try{const hash=await deriveVerifyHash(pw,_vaultSalt);if(hash!==_verifyHash){toast('Wrong password','er');return}}catch{toast('Verification failed','er');return}
+    body.password=pw;
+  }
+  try{const r=await fetch(API+'/api/emergency/'+id+'/'+action,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},body:JSON.stringify(body)});if(!r.ok){const d=await r.json();toast(d.error||'Failed','er');return}toast('Request '+action+'d','ok');loadEmerContacts().then(()=>render())}catch(err){toast('Failed: '+err.message,'er')}
 }
 async function removeEmerContact(id){
   if(!/^[a-zA-Z0-9_-]+$/.test(id))return;
@@ -2298,6 +2305,8 @@ if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone
   const shareId=path.split('/s/')[1]?.split('/')[0]?.split('?')[0];
   const keyB64url=window.location.hash.substring(1);
   if(!shareId||!keyB64url)return;
+  // Clear hash from URL to prevent Referer leakage
+  window.history.replaceState(null,'',window.location.pathname+window.location.search);
   if(!/^[a-zA-Z0-9_-]+$/.test(shareId)){document.body.innerHTML='<div style="padding:40px;text-align:center;color:var(--rd)">Invalid share link</div>';return}
   // Show share viewer instead of normal app
   document.getElementById('LS').style.display='none';
@@ -2329,7 +2338,7 @@ if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone
         <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--bd);font-size:11px;color:var(--tx3)">${d.viewsRemaining!==undefined?d.viewsRemaining+' view'+(d.viewsRemaining!==1?'s':'')+' remaining · ':''} Expires ${new Date(d.expiresAt).toLocaleString()}</div>
         <div style="margin-top:12px;text-align:center"><a href="/" style="color:var(--ac);font-size:12px;text-decoration:none">Powered by WARDKEY</a></div>
       </div>`;
-      ct.querySelectorAll('.sv-copy').forEach(btn=>{btn.addEventListener('click',()=>{const f=btn.dataset.copy;navigator.clipboard.writeText(f==='username'?item.username:item.password).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000)})})});
+      ct.querySelectorAll('.sv-copy').forEach(btn=>{btn.addEventListener('click',()=>{const f=btn.dataset.copy;navigator.clipboard.writeText(f==='username'?item.username:item.password).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);setTimeout(()=>{try{navigator.clipboard.writeText('')}catch{}},30000)})})});
     }catch(err){
       document.getElementById('svSpin').style.display='none';
       document.getElementById('svContent').innerHTML='<div style="color:var(--rd);margin-top:12px;font-size:13px">'+esc(err.message)+'</div><div style="margin-top:12px"><a href="/" style="color:var(--ac);font-size:12px">Go to WARDKEY</a></div>';
@@ -2342,9 +2351,11 @@ if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone
   const hash=window.location.hash;
   if(hash.startsWith('#emergency-confirm=')){
     const token=hash.split('=')[1];
+    window.history.replaceState(null,'',window.location.pathname+window.location.search);
     if(!token||token.length!==48||!/^[a-f0-9]+$/i.test(token))return;
-    if(token)fetch(API+'/api/emergency/confirm/'+token,{method:'POST',headers:authToken?{'Authorization':'Bearer '+authToken}:{}}).then(r=>r.json()).then(d=>{
-      if(d.success){toast('Emergency contact confirmed!','ok');window.location.hash=''}else{toast(d.error||'Failed','er')}
+    if(!authToken){toast('Please log in to confirm emergency access','er');return}
+    fetch(API+'/api/emergency/confirm/'+token,{method:'POST',headers:{'Authorization':'Bearer '+authToken}}).then(r=>r.json()).then(d=>{
+      if(d.success){toast('Emergency contact confirmed!','ok')}else{toast(d.error||'Failed','er')}
     }).catch(()=>toast('Failed to confirm','er'));
   }
 })();

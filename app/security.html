@@ -91,23 +91,23 @@ footer a:hover{color:var(--tx1)}
 
 <div class="legal">
 <h1>Security Architecture</h1>
-<p class="subtitle">WARDKEY is built on a zero-knowledge vault encryption, local-first security model. Your data is encrypted before it ever leaves your device. We never have access to your passwords — period.</p>
+<p class="subtitle">WARDKEY is built on zero-knowledge vault encryption with a local-first security model. Your vault data is encrypted before it ever leaves your device. We never have access to your passwords. Optional AI features send only anonymized metadata — never passwords — to our servers for analysis.</p>
 
 <div class="sec-grid">
   <div class="sec-card">
     <div class="sec-card-ic">🔒</div>
     <h4>AES-256-GCM</h4>
-    <p>Industry-standard authenticated encryption. Widely trusted for protecting sensitive data.</p>
+    <p>Authenticated encryption using proven cryptographic standards. The same algorithm used by governments and financial institutions worldwide.</p>
   </div>
   <div class="sec-card">
     <div class="sec-card-ic">🔑</div>
     <h4>PBKDF2 (600K Iterations)</h4>
-    <p>Your master password is strengthened with 600,000 rounds of PBKDF2-SHA256, making brute-force attacks computationally infeasible.</p>
+    <p>Your master password is strengthened with 600,000 rounds of PBKDF2-SHA256. Meets current OWASP recommendations for PBKDF2-SHA256 (600,000 iterations).</p>
   </div>
   <div class="sec-card">
     <div class="sec-card-ic">🛡️</div>
     <h4>Zero-Knowledge Vault Encryption</h4>
-    <p>We never see your master password or decrypted data. Even if our servers were compromised, your vault remains encrypted.</p>
+    <p>We never see your master password or decrypted vault data. Even if our servers were compromised, your vault remains encrypted.</p>
   </div>
   <div class="sec-card">
     <div class="sec-card-ic">📱</div>
@@ -244,14 +244,16 @@ footer a:hover{color:var(--tx1)}
 
 <h3>Brute-Force Protection</h3>
 <ul>
-<li><strong>5 failed unlock attempts</strong> trigger a 60-second lockout</li>
+<li><strong>5 failed unlock attempts</strong> trigger a progressive lockout: 1 minute → 5 minutes → 15 minutes → 1 hour</li>
+<li>Lockout state is persisted across page reloads and browser sessions</li>
 <li>Server-side rate limiting on authentication endpoints</li>
-<li>Progressively increasing delays on repeated failures</li>
+<li>In-memory exponential backoff provides additional delay within a session</li>
 </ul>
 
 <h3>Auto-Lock</h3>
 <ul>
-<li>Vault automatically locks after a configurable period of inactivity</li>
+<li>Vault automatically locks after 5 minutes of inactivity</li>
+<li>Optional tab-switch lock: vault locks 30 seconds after you switch away from the tab</li>
 <li>On lock, the master key, vault data, and all sensitive material are <strong>wiped from memory</strong></li>
 <li>Clipboard is cleared of any copied passwords</li>
 </ul>
@@ -294,10 +296,51 @@ footer a:hover{color:var(--tx1)}
   </div>
 </div>
 
+<h2>Share Link Security</h2>
+<p>WARDKEY's secure sharing uses <strong>URL fragment encryption</strong> — the same approach used by services like Firefox Send:</p>
+<ol>
+<li>A random 256-bit AES key is generated on your device</li>
+<li>The credential is encrypted with AES-256-GCM using this random key</li>
+<li>Only the encrypted data is uploaded to our server</li>
+<li>The decryption key is placed in the URL fragment (after the <code>#</code>) — this part is <strong>never sent to the server</strong> by browsers</li>
+<li>The recipient's browser decrypts the data locally using the key from the URL fragment</li>
+</ol>
+<p>Share links can be configured with a maximum view count and expiration time. Once exhausted or expired, the encrypted data is deleted from the server.</p>
+
+<h2>Breach Scanner Security</h2>
+<p>WARDKEY checks your passwords against the <strong>Have I Been Pwned</strong> Pwned Passwords database using a <strong>k-anonymity</strong> model:</p>
+<ol>
+<li>Your password is hashed locally using SHA-1 via the Web Crypto API</li>
+<li>Only the first 5 characters of the hash (the prefix) are sent to the server</li>
+<li>The server queries the HIBP API with this prefix and returns all matching suffixes</li>
+<li>Your browser checks locally whether the full hash appears in the returned results</li>
+</ol>
+<p>This means neither our server nor HIBP ever receives enough information to determine your actual password. The k-anonymity model is the industry standard approach used by 1Password, Firefox Monitor, and others.</p>
+
+<h2>Emergency Access Security</h2>
+<p>WARDKEY's emergency access feature allows you to designate trusted contacts who can request access to your vault:</p>
+<ul>
+<li><strong>Invitation:</strong> Emergency contacts receive an email invitation with a unique, cryptographically random token (24 bytes)</li>
+<li><strong>Email verification:</strong> The contact must log in with the same email address the invitation was sent to</li>
+<li><strong>Waiting period:</strong> When access is requested, you are notified and have a configurable waiting period (24 hours, 48 hours, or 7 days) to deny the request</li>
+<li><strong>Grantor control:</strong> You can approve access early, deny the request, or remove the contact at any time</li>
+<li><strong>No automatic vault transfer:</strong> Approval grants permission to request a vault export — your encrypted vault is not automatically shared</li>
+</ul>
+
+<h2>AI Feature Data Handling</h2>
+<p>WARDKEY offers optional AI-enhanced features (Password Analyzer, Security Report, Phishing Detector) that use Anthropic's Claude AI for analysis. When you activate these features:</p>
+<ul>
+<li><strong>Password Analyzer &amp; Security Report:</strong> Anonymized vault metadata is sent — password strength scores, character class distributions, item counts, reuse counts, and age metrics. <strong>Your actual passwords, usernames, URLs, and vault item names are never sent.</strong></li>
+<li><strong>Phishing Detector:</strong> The text or URL you paste is sent for analysis. Do not paste content containing passwords or sensitive credentials</li>
+<li>AI features are <strong>entirely optional</strong> — you can use WARDKEY without ever activating them</li>
+<li>Data sent for AI analysis is processed by Anthropic's Claude and is not stored by Anthropic after processing</li>
+<li>Free plan users receive 3 AI analyses per day; Pro users receive expanded limits</li>
+</ul>
+
 <h2>Vulnerability Disclosure</h2>
 <p>We take security seriously. If you discover a security vulnerability in WARDKEY, please report it responsibly:</p>
 <ul>
-<li><strong>Email:</strong> security@wardkey.io</li>
+<li><strong>Email:</strong> wardkey047@gmail.com</li>
 <li>Include a detailed description of the vulnerability and steps to reproduce</li>
 <li>Allow reasonable time for us to investigate and fix the issue before public disclosure</li>
 <li>Do not access, modify, or delete other users' data</li>
@@ -307,17 +350,17 @@ footer a:hover{color:var(--tx1)}
 <h2>Compliance</h2>
 <table>
 <tr><th>Regulation</th><th>Status</th></tr>
-<tr><td>GDPR (EU)</td><td>Compliant — zero-knowledge vault encryption, data minimization, user rights honored</td></tr>
+<tr><td>GDPR (EU)</td><td>Designed for compliance — zero-knowledge vault encryption, data minimization, user rights honored</td></tr>
 <tr><td>CCPA/CPRA (California)</td><td>Compliant — no data sales, user deletion rights, transparent practices</td></tr>
-<tr><td>SOC 2</td><td>In progress</td></tr>
+<tr><td>SOC 2</td><td>Planned</td></tr>
 <tr><td>HIPAA</td><td>Not currently HIPAA-certified; do not store protected health information</td></tr>
 </table>
 
 <h2>Open Questions?</h2>
 <p>Security is a conversation, not a checkbox. If you have questions about our security practices or want more technical details:</p>
 <ul>
-<li><strong>Security inquiries:</strong> security@wardkey.io</li>
-<li><strong>General support:</strong> support@wardkey.io</li>
+<li><strong>Email:</strong> wardkey047@gmail.com</li>
+<li><strong>Address:</strong> 444 Alaska Avenue, Suite #AHA780, Torrance, CA 90503, USA</li>
 </ul>
 </div>
 
