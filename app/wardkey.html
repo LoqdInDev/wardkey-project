@@ -1008,7 +1008,7 @@ checkFirstRun();
 
 // ════════ ONBOARDING TOUR ════════
 const OB_SLIDES=[
-{icon:'🔐',title:'Welcome to WARDKEY',desc:'Your local-first vault with zero-knowledge vault encryption. All encryption happens on your device — your data never leaves unprotected.',tags:['End-to-End Encrypted','Offline-First','Auditable Code']},
+{icon:'🔐',title:'Welcome to WARDKEY',desc:'Your local-first vault with zero-knowledge vault encryption. All encryption happens on your device — your data never leaves unprotected.',tags:['End-to-End Encrypted','Offline-First','Single-File Architecture']},
 {icon:'🔑',title:'Passwords',desc:'Store unlimited credentials with automatic strength scoring, breach detection, and smart organization.',tags:['Strength Score','Breach Alerts','Categories & Tags']},
 {icon:'💳',title:'Cards & IDs',desc:'Keep credit cards, IDs, and payment methods in your vault. Copy any field with one click.',tags:['Credit Cards','IDs','One-Click Copy']},
 {icon:'📝',title:'Secure Notes',desc:'Encrypted free-form notes for recovery codes, Wi-Fi passwords, sensitive documents, and more.',tags:['Recovery Codes','Wi-Fi Keys','Private Docs']},
@@ -1355,7 +1355,7 @@ el.innerHTML=`
   <div class="card"><div class="card-v" style="color:var(--pp);font-size:18px">${V.totp.length}</div><div class="card-l">2FA Enabled</div></div>
 </div>
 <div class="sh"><div class="st">Breach Monitor</div>${authToken?`<button class="bt bt-s" style="font-size:10px" onclick="nav('scanner')">Scan Now</button>`:''}</div>
-${ub.length?ub.map(b=>{const sc2={high:{b:'var(--rdb)',f:'var(--rd)'},medium:{b:'var(--ogb)',f:'var(--og)'},low:{b:'var(--ylb)',f:'var(--yl)'}};const c=sc2[b.sev]||sc2.low;return`<div class="bc"><div class="bc-i" style="background:${c.b}"><svg viewBox="0 0 24 24" fill="none" stroke="${c.f}" stroke-width="2" style="width:14px;height:14px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="bc-n"><div class="bc-t">${esc(b.site)}</div><div class="bc-d">${esc(b.date)} · ${b.recs||0} records${b.source==='hibp'?' · HIBP':''}</div></div><span class="sv" style="background:${c.b};color:${c.f}">${(b.sev||'low').toUpperCase()}</span><button class="bt bt-ok" style="font-size:9px" onclick="event.stopPropagation();resolveBreach('${b.id}')">Resolve</button></div>`}).join(''):`<div style="padding:16px;text-align:center;background:var(--gnb);border-radius:var(--r);color:var(--gn);font-weight:600;font-size:12px">✓ No unresolved breaches${authToken?'':' — sign in to scan with HIBP'}</div>`}
+${ub.length?ub.map(b=>{const sc2={high:{b:'var(--rdb)',f:'var(--rd)'},medium:{b:'var(--ogb)',f:'var(--og)'},low:{b:'var(--ylb)',f:'var(--yl)'}};const c=sc2[b.sev]||sc2.low;return`<div class="bc"><div class="bc-i" style="background:${c.b}"><svg viewBox="0 0 24 24" fill="none" stroke="${c.f}" stroke-width="2" style="width:14px;height:14px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="bc-n"><div class="bc-t">${esc(b.site)}</div><div class="bc-d">${esc(b.date)} · ${b.recs||0} records${b.source==='hibp'?' · HIBP':''}</div></div><span class="sv" style="background:${c.b};color:${c.f}">${esc((b.sev||'low').toUpperCase())}</span><button class="bt bt-ok" style="font-size:9px" onclick="event.stopPropagation();resolveBreach('${b.id}')">Resolve</button></div>`}).join(''):`<div style="padding:16px;text-align:center;background:var(--gnb);border-radius:var(--r);color:var(--gn);font-weight:600;font-size:12px">✓ No unresolved breaches${authToken?'':' — sign in to scan with HIBP'}</div>`}
 <div style="margin-top:10px">${V.breaches.filter(b=>b.resolved).map(b=>`<div class="bc" style="opacity:.4"><div class="bc-i" style="background:var(--bg3)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" style="width:14px;height:14px"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="bc-n"><div class="bc-t">${esc(b.site)} <span style="color:var(--gn);font-size:9px">✓ Resolved</span></div><div class="bc-d">${esc(b.date)} · ${b.recs||0} records</div></div></div>`).join('')}</div>`;
 }
 
@@ -1481,6 +1481,7 @@ async function createShare(){
   finally{if(btn){btn.disabled=false;btn.textContent='🔗 Generate Secure Link'}}
 }
 async function revokeShare(id){
+  if(!/^[a-zA-Z0-9_-]+$/.test(id))return;
   if(!authToken)return;
   try{await fetch(API+'/api/share/'+id,{method:'DELETE',headers:{'Authorization':'Bearer '+authToken}});toast('Share revoked','ok');loadServerShares().then(()=>render())}catch{toast('Failed to revoke','er')}
 }
@@ -1522,6 +1523,7 @@ async function addEmerContact(){
   try{const r=await fetch(API+'/api/emergency',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},body:JSON.stringify({contactEmail:email,waitingHours:wait})});const d=await r.json();if(!r.ok){toast(d.error||'Failed','er');return}toast('Emergency invite sent to '+email,'ok');loadEmerContacts().then(()=>render())}catch(err){toast('Failed: '+err.message,'er')}
 }
 async function emerAction(id,action){
+  if(!/^[a-zA-Z0-9_-]+$/.test(id)||!/^(approve|deny)$/.test(action))return;
   try{const r=await fetch(API+'/api/emergency/'+id+'/'+action,{method:'POST',headers:{'Authorization':'Bearer '+authToken}});if(!r.ok){const d=await r.json();toast(d.error||'Failed','er');return}toast('Request '+action+'d','ok');loadEmerContacts().then(()=>render())}catch(err){toast('Failed: '+err.message,'er')}
 }
 async function removeEmerContact(id){
@@ -2281,6 +2283,7 @@ if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone
   const shareId=path.split('/s/')[1]?.split('/')[0]?.split('?')[0];
   const keyB64url=window.location.hash.substring(1);
   if(!shareId||!keyB64url)return;
+  if(!/^[a-zA-Z0-9_-]+$/.test(shareId)){document.body.innerHTML='<div style="padding:40px;text-align:center;color:var(--rd)">Invalid share link</div>';return}
   // Show share viewer instead of normal app
   document.getElementById('LS').style.display='none';
   document.getElementById('app').style.display='none';

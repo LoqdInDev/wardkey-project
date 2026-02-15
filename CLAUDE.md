@@ -1,7 +1,7 @@
 # CLAUDE.md — Instructions for Claude Code
 
 ## Project Overview
-WARDKEY is a local-first, zero-knowledge password manager. The main app is a single HTML file (`app/wardkey.html`) containing all CSS and JS inline (~170KB, 1600+ lines). There is also a Chrome extension and a Node.js backend API.
+WARDKEY is a local-first password manager with zero-knowledge vault encryption. The main app is a single HTML file (`app/wardkey.html`) containing all CSS and JS inline (~170KB, 1600+ lines). There is also a Chrome extension and a Node.js backend API.
 
 ## Critical Rules
 
@@ -49,7 +49,7 @@ Passwords can have: `rotate: { enabled: boolean, days: number, lastRotated: time
 - `getRotateStatus(p)` returns `{ daysLeft, overdue, soon, label, color }`
 
 ### Navigation Pages
-`dashboard`, `passwords`, `cards`, `notes`, `totp`, `apikeys`, `licenses`, `passkeys`, `aliases`, `watchtower`, `audit`, `generator`, `share`, `credmap`, `decay`, `activity`, `trash`, `pricing`, `settings`
+`dashboard`, `passwords`, `cards`, `notes`, `totp`, `apikeys`, `licenses`, `passkeys`, `watchtower`, `audit`, `generator`, `share`, `credmap`, `decay`, `activity`, `trash`, `pricing`, `settings`
 
 ### Crypto Format (v4)
 ```
@@ -82,7 +82,6 @@ localStorage key: 'wardkey_v4'
 | `server/routes/auth.js` | Auth endpoints | ~5KB |
 | `server/routes/vault.js` | Vault sync endpoints | ~3KB |
 | `server/routes/share.js` | Share link endpoints | ~4KB |
-| `server/routes/aliases.js` | Email alias endpoints | ~3KB |
 | `server/models/db.js` | SQLite schema | ~3KB |
 
 ## Common Tasks

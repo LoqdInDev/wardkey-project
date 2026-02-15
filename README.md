@@ -84,10 +84,8 @@ wardkey-project/
 - **Activity log:** Full audit trail of all vault actions
 
 ### Pricing Tiers
-- **Free ($0):** 50 passwords, 5 share links, basic breach alerts
-- **Pro ($3.99/mo):** Unlimited everything, AI analysis, cloud sync, priority support
-- **Family ($6.99/mo):** 6 users, shared vaults, family dashboard
-- **Enterprise ($8.99/user/mo):** SSO/SCIM, admin console, compliance reports
+- **Free:** 50 passwords, 5 share links, basic breach alerts (all Pro features included during launch)
+- **Pro ($1.49/mo or $14.99/yr):** Unlimited passwords, AI analysis, cloud sync, priority support
 
 ### Tech Stack
 - **Frontend:** Vanilla JS, CSS custom properties, no framework dependencies

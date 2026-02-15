@@ -33,6 +33,12 @@ router.put('/', authenticate, (req, res) => {
   if (!body.data || !body.salt) {
     return res.status(400).json({ error: 'Missing encrypted data or salt' });
   }
+  if (typeof body.data !== 'object' || !Array.isArray(body.data.iv) || !Array.isArray(body.data.ct)) {
+    return res.status(400).json({ error: 'Invalid vault data structure' });
+  }
+  if (!Array.isArray(body.salt)) {
+    return res.status(400).json({ error: 'Invalid salt format' });
+  }
 
   const blob = JSON.stringify(body);
   const deviceId = body.deviceId;
@@ -48,6 +54,10 @@ router.put('/', authenticate, (req, res) => {
   // Atomic: conflict detection + plan check + upsert in a transaction
   const syncVault = db.transaction(() => {
     const existing = db.prepare('SELECT id, version FROM vaults WHERE user_id = ?').get(req.user.id);
+
+    if (existing && !clientVersion) {
+      return { status: 400, error: 'Version required for vault updates' };
+    }
 
     if (existing && clientVersion && existing.version > clientVersion) {
       return { status: 409, error: 'Conflict: server has newer version', serverVersion: existing.version, clientVersion };

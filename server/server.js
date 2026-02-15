@@ -134,6 +134,9 @@ app.use((req, res, next) => {
   const origin = req.headers.origin || req.headers.referer;
   const extOrigin = process.env.EXTENSION_ID ? `chrome-extension://${process.env.EXTENSION_ID}` : null;
   const allowed = [process.env.APP_ORIGIN || 'https://wardkey.io', extOrigin].filter(Boolean);
+  if (origin === 'null') {
+    return res.status(403).json({ error: 'Origin header required' });
+  }
   if (!origin) {
     // Allow API clients with valid Bearer token (extension, scripts)
     const authHeader = req.headers.authorization;
@@ -219,7 +222,7 @@ setInterval(() => {
       emailService.send(contact.grantee_email, tpl.subject, tpl.html).catch(err => {
         console.error('Failed to send auto-approval email:', err.message);
       });
-      console.log(`Emergency access auto-approved for ${contact.grantee_email}`);
+      console.log(`Emergency access auto-approved for contact ID ${contact.id}`);
     }
   } catch (err) {
     console.error('Emergency checker error:', err.message);

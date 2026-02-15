@@ -312,7 +312,7 @@ async function getCurrentSite() {
   } catch { currentDomain = ''; }
 }
 
-const SHARED_HOSTS = ['github.io','herokuapp.com','netlify.app','vercel.app','pages.dev','gitlab.io','firebaseapp.com','web.app','azurewebsites.net','blogspot.com','wordpress.com','appspot.com','cloudfront.net'];
+const SHARED_HOSTS = ['github.io','herokuapp.com','netlify.app','vercel.app','pages.dev','gitlab.io','firebaseapp.com','web.app','azurewebsites.net','blogspot.com','wordpress.com','appspot.com','cloudfront.net','azurestaticapps.net','onrender.com','fly.dev','railway.app','repl.co','surge.sh','deno.dev','workers.dev','ngrok.io','ngrok-free.app'];
 
 function getMatches() {
   if (!currentDomain || !vault.passwords) return [];
@@ -322,7 +322,7 @@ function getMatches() {
       let raw = (p.url || '').trim().toLowerCase();
       if (!raw) return false;
       if (!/^https?:\/\//.test(raw)) raw = 'https://' + raw;
-      const host = new URL(raw).hostname.replace('www.', '');
+      const host = new URL(raw).hostname.replace(/^www\./, '');
       // Don't match subdomains on shared hosting platforms
       if (SHARED_HOSTS.some(sh => host.endsWith(sh) || domain.endsWith(sh))) {
         return host === domain; // exact match only for shared hosts
@@ -877,7 +877,7 @@ $('saveBannerYes').onclick = async () => {
       let raw = (p.url || '').trim().toLowerCase();
       if (!raw) return false;
       if (!/^https?:\/\//.test(raw)) raw = 'https://' + raw;
-      const host = new URL(raw).hostname.replace('www.', '');
+      const host = new URL(raw).hostname.replace(/^www\./, '');
       return host === pending.domain &&
         (p.username || '').toLowerCase() === (pending.username || '').toLowerCase();
     } catch { return false; }
@@ -923,8 +923,8 @@ async function autofill(item) {
     // Domain verification — prevent filling credentials on wrong site
     if (item.url) {
       try {
-        const itemHost = new URL(item.url.startsWith('http') ? item.url : 'https://' + item.url).hostname.replace('www.', '');
-        const tabHost = new URL(tab.url).hostname.replace('www.', '');
+        const itemHost = new URL(item.url.startsWith('http') ? item.url : 'https://' + item.url).hostname.replace(/^www\./, '');
+        const tabHost = new URL(tab.url).hostname.replace(/^www\./, '');
         if (itemHost !== tabHost && !tabHost.endsWith('.' + itemHost)) {
           const confirmed = confirm(`Warning: This credential is for ${itemHost} but you're on ${tabHost}. Fill anyway?`);
           if (!confirmed) return;

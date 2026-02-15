@@ -13,7 +13,6 @@
 | **Backend API** | Express.js server | Railway / Render / VPS |
 | **Chrome Extension** | wardkey-extension.zip | Chrome Web Store |
 | **Domain** | wardkey.io (or similar) | Namecheap / Cloudflare |
-| **Email Aliases** | @wardkey.email forwarding | Cloudflare Email Routing |
 
 **Estimated time:** 2-3 hours for everything.
 
@@ -29,9 +28,8 @@ Go to one of these registrars and search for your preferred domain:
 - **Namecheap**: https://namecheap.com
 - **Porkbun**: https://porkbun.com
 
-Buy two domains:
+Buy a domain:
 1. **wardkey.io** (or wardkeyapp.com, getwardkey.io — whatever is available) — for the app
-2. **wardkey.email** (or wardkey.dev) — for email aliases
 
 > 💡 If you use Cloudflare for registration, DNS is already configured. Otherwise, point your domain's nameservers to Cloudflare (free plan works fine).
 
@@ -42,7 +40,6 @@ Buy two domains:
 3. Cloudflare will scan existing DNS records
 4. If your registrar isn't Cloudflare, update nameservers at your registrar to the ones Cloudflare provides
 5. Wait for propagation (usually 5-30 minutes)
-6. Repeat for your email domain
 
 ---
 
@@ -195,7 +192,6 @@ NODE_ENV=production
 JWT_SECRET=<generate a 64-char random string — use: openssl rand -hex 32>
 DB_PATH=/app/data/wardkey.db
 ALLOWED_ORIGINS=https://wardkey.io
-ALIAS_DOMAIN=wardkey.email
 BCRYPT_ROUNDS=12
 SHARE_BASE_URL=https://wardkey.io/s
 ```
@@ -376,69 +372,9 @@ zip -r ../wardkey-extension-store.zip . -x ".*" -x "__MACOSX/*"
 
 ---
 
-## PHASE 6: Email Aliases with Cloudflare (20 min)
+## PHASE 6: PWA Configuration (10 min)
 
-### Step 6.1 — Enable Cloudflare Email Routing
-
-1. Go to Cloudflare Dashboard → select your `wardkey.email` domain
-2. Go to **Email** → **Email Routing**
-3. Click **Enable Email Routing**
-4. Cloudflare will add the required MX and TXT DNS records automatically
-
-### Step 6.2 — Set up a catch-all rule
-
-1. In Email Routing → **Routing Rules**
-2. Create a **Catch-all** rule:
-   - Action: **Forward to** → your personal email (as fallback)
-3. This means ANY address @wardkey.email will forward to you
-
-### Step 6.3 — Set up the forwarding webhook (for dynamic aliases)
-
-For proper alias management through the API, you have two options:
-
-**Option A — Simple (Cloudflare Workers):**
-
-1. Go to Cloudflare → **Workers & Pages** → **Create Worker**
-2. Name it `wardkey-email-handler`
-3. Paste this code:
-
-```javascript
-export default {
-  async email(message, env) {
-    const to = message.to;
-    // Forward to your API to check if alias is active
-    const res = await fetch('https://api.wardkey.io/api/aliases/incoming', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to: to,
-        from: message.from,
-        subject: message.headers.get('subject')
-      })
-    });
-    const data = await res.json();
-    if (data.forward) {
-      await message.forward(data.target);
-    }
-  }
-};
-```
-
-4. Go back to **Email Routing** → **Email Workers**
-5. Set up: All emails → Route to Worker → `wardkey-email-handler`
-
-**Option B — Simple forwarding only (no API needed):**
-
-If you just want basic aliasing without the API:
-- Use Cloudflare's built-in "Create Address" feature
-- Manually create aliases in the Cloudflare dashboard
-- Each one forwards to your target email
-
----
-
-## PHASE 7: PWA Configuration (10 min)
-
-### Step 7.1 — Update the manifest
+### Step 6.1 — Update the manifest
 
 Open `wardkey-manifest.json` and update:
 
@@ -449,7 +385,7 @@ Open `wardkey-manifest.json` and update:
 }
 ```
 
-### Step 7.2 — Update the service worker scope
+### Step 6.2 — Update the service worker scope
 
 Open `wardkey-sw.js` and update the ASSETS array to match your URL structure:
 
@@ -461,7 +397,7 @@ const ASSETS = [
 ];
 ```
 
-### Step 7.3 — Test the PWA
+### Step 6.3 — Test the PWA
 
 1. Open your site in Chrome
 2. Look for the install icon in the address bar (➕ icon)
@@ -470,7 +406,7 @@ const ASSETS = [
 5. On mobile: Open in Chrome/Safari → "Add to Home Screen"
 6. The app should launch fullscreen without browser chrome
 
-### Step 7.4 — Test offline
+### Step 6.4 — Test offline
 
 1. Install the PWA
 2. Turn off WiFi
@@ -479,7 +415,7 @@ const ASSETS = [
 
 ---
 
-## PHASE 8: Final Checklist
+## PHASE 7: Final Checklist
 
 ### Technical Verification
 
@@ -497,7 +433,6 @@ const ASSETS = [
 - [ ] TOTP authenticator shows codes
 - [ ] Launch buttons open sites and copy passwords
 - [ ] Share links can be created
-- [ ] Email aliases can be generated (if set up)
 
 ### SEO & Analytics
 
@@ -514,7 +449,7 @@ const ASSETS = [
 
 ---
 
-## PHASE 9: Marketing Launch
+## PHASE 8: Marketing Launch
 
 ### Day 1 — Soft Launch
 
@@ -555,8 +490,8 @@ const ASSETS = [
    - Respond to all reviews
 
 8. **GitHub**
-   - If open-sourcing: create a polished README with screenshots
-   - Add to Awesome lists (awesome-security, awesome-selfhosted)
+   - Create a polished README with screenshots for GitHub
+   - Add to Awesome lists (awesome-security)
 
 ---
 
@@ -594,9 +529,6 @@ const ASSETS = [
 
 **Railway deployment failing?**
 → Check logs in Railway dashboard. Common issue: missing `package.json` dependencies.
-
-**Email aliases not forwarding?**
-→ Check Cloudflare Email Routing is enabled, MX records are set, and the Worker is routing correctly.
 
 ---
 

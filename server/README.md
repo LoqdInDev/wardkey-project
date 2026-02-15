@@ -206,7 +206,7 @@ Just deploy the HTML files:
 
 ## 📄 License
 
-MIT — Free to use, modify, and distribute.
+Proprietary. All rights reserved. See LICENSE file for details.
 
 ---
 

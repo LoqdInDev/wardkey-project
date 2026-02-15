@@ -46,15 +46,10 @@ router.post('/login', (req, res) => {
     return res.status(400).json({ error: 'Secret is required' });
   }
 
-  // Constant-time comparison (pad to same length to prevent length-based timing leaks)
-  const a = Buffer.from(secret);
-  const b = Buffer.from(adminSecret);
-  const maxLen = Math.max(a.length, b.length);
-  const aPadded = Buffer.alloc(maxLen);
-  const bPadded = Buffer.alloc(maxLen);
-  a.copy(aPadded);
-  b.copy(bPadded);
-  if (!crypto.timingSafeEqual(aPadded, bPadded)) {
+  // Constant-time comparison via SHA-256 (fixed-length hashes prevent length leaks)
+  const aHash = crypto.createHash('sha256').update(secret).digest();
+  const bHash = crypto.createHash('sha256').update(adminSecret).digest();
+  if (!crypto.timingSafeEqual(aHash, bHash)) {
     return res.status(401).json({ error: 'Invalid secret' });
   }
 

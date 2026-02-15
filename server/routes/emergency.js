@@ -81,6 +81,7 @@ router.get('/incoming', authenticate, (req, res) => {
 
 // ═══════ CONFIRM INVITATION (public, token-based) ═══════
 router.post('/confirm/:token', (req, res) => {
+  if (!/^[0-9a-f]{48}$/.test(req.params.token)) return res.status(400).json({ error: 'Invalid token format' });
   const db = getDB();
   const contact = db.prepare(
     'SELECT * FROM emergency_contacts WHERE invite_token = ? AND status = ?'

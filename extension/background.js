@@ -186,6 +186,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     try { new URL(msg.url); } catch { return; }
     if (typeof msg.timestamp !== 'number') return;
 
+    // Verify msg.domain matches the actual sender tab's hostname
+    const senderHost = new URL(sender.tab.url).hostname.replace(/^www\./, '');
+    if (msg.domain && msg.domain !== senderHost) return;
+
     // Store only a flag that credentials were detected — NOT the plaintext password
     chrome.storage.session?.set({
       wardkey_capture: {
@@ -217,6 +221,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (typeof msg.username !== 'string') return;
     if (typeof msg.url !== 'string') return;
     try { new URL(msg.url); } catch { return; }
+
+    // Verify msg.domain matches the actual sender tab's hostname
+    const senderHost = new URL(sender.tab.url).hostname.replace(/^www\./, '');
+    if (msg.domain && msg.domain !== senderHost) return;
+
     (async () => {
       if (await isNeverSave(msg.domain)) return;
       await chrome.storage.session?.set({
@@ -238,6 +247,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (typeof msg.username !== 'string') return;
     if (typeof msg.url !== 'string') return;
     try { new URL(msg.url); } catch { return; }
+
+    // Verify msg.domain matches the actual sender tab's hostname
+    const senderHost = new URL(sender.tab.url).hostname.replace(/^www\./, '');
+    if (msg.domain && msg.domain !== senderHost) return;
+
     (async () => {
       await chrome.storage.session.set({
         wardkey_pendingSave: {
