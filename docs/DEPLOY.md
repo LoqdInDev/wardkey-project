@@ -471,7 +471,7 @@ const ASSETS = [
 ### Day 2-7 — Content Marketing
 
 4. **Twitter/X thread**
-   - "I built a password manager that's better than 1Password and it's free. Here's how:"
+   - "I built a local-first password manager with zero-knowledge encryption. Here's how:"
    - Show screenshots of unique features (Credential Map, Decay Timeline)
 
 5. **Blog post / Dev.to article**

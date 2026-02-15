@@ -734,8 +734,8 @@ let failedAttempts = 0;
 let lockoutUntil = 0;
 let lockoutLevel = 0;
 let _memDelay = 0; // in-memory backoff, survives localStorage clear
-// Restore lockout state from localStorage
-try{const ls=JSON.parse(localStorage.getItem('wardkey_lockout')||'{}');failedAttempts=ls.f||0;lockoutUntil=ls.u||0;lockoutLevel=ls.l||0}catch{}
+// Restore lockout state from localStorage + sessionStorage (defense-in-depth)
+try{const ls=JSON.parse(localStorage.getItem('wardkey_lockout')||'{}');const ss=JSON.parse(sessionStorage.getItem('wardkey_lockout')||'{}');failedAttempts=Math.max(ls.f||0,ss.f||0);lockoutUntil=Math.max(ls.u||0,ss.u||0);lockoutLevel=Math.max(ls.l||0,ss.l||0)}catch{}
 
 async function deriveKey(pw, salt) {
   const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
@@ -874,14 +874,14 @@ function secureClear() {
   document.querySelectorAll('[id^="pwV"],[id^="ph"]').forEach(el => { el.textContent = ''; });
   document.querySelectorAll('[data-pw]').forEach(el => el.removeAttribute('data-pw'));
   const aiIn=document.getElementById('aiPwIn');if(aiIn)aiIn.value='';
-  window._cpw = null;
-  window._pwHistory = null;
+  _cpw = null;
+  _pwHistory = null;
   // Clear clipboard if we wrote to it
   try { navigator.clipboard.writeText(''); } catch {}
   // Clear auth tokens from memory (remain in localStorage for restore on re-unlock)
   authToken=null;
   authUser=null;
-  window._pendingMp=null;
+  _pendingMp=null;
   mfaPendingToken=null;
   if(typeof _serverShares!=='undefined')_serverShares=[];
   if(typeof _emerContacts!=='undefined')_emerContacts=[];
@@ -891,6 +891,7 @@ function secureClear() {
 
 // ════════ 2FA ════════
 let mfaPendingToken=null;
+let _pendingMp=null; // closure-scoped — not on window
 
 function show2faLogin(){
   const panel=$('lpLogin');
@@ -902,7 +903,7 @@ function show2faLogin(){
 async function verify2faLogin(){
   const code=$('mfa2faCode')?.value.trim();
   if(!code||code.length!==6){showAuthErr('Enter a 6-digit code');return}
-  const mp=window._pendingMp;
+  const mp=_pendingMp;
   if(!mp){showAuthErr('Session expired — please log in again');cancel2faLogin();return}
   showAuthErr('');
   try{
@@ -919,14 +920,14 @@ async function verify2faLogin(){
     }catch{}
     restore2faLoginPanel();
     $('mpIn').value=mp;$('mpConf').value=mp;
-    window._pendingMp=null;
+    _pendingMp=null;
     await unlock();
     toast('Logged in — vault synced','ok');
   }catch(e){showAuthErr(e.message)}
 }
 
 function cancel2faLogin(){
-  mfaPendingToken=null;window._pendingMp=null;
+  mfaPendingToken=null;_pendingMp=null;
   restore2faLoginPanel();
 }
 
@@ -1060,7 +1061,7 @@ async function unlock(){
   try{
     await loadV(pw);
     goBtn.disabled=false;goBtn.innerHTML='<svg viewBox="0 0 24 24" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
-    failedAttempts=0;lockoutLevel=0;_memDelay=0;localStorage.removeItem('wardkey_lockout');
+    failedAttempts=0;lockoutLevel=0;_memDelay=0;localStorage.removeItem('wardkey_lockout');sessionStorage.removeItem('wardkey_lockout');
     $('LS').classList.add('out');$('app').classList.add('on');$('mpConfWrap').style.display='none';$('mpConf').value='';buildNav();render();updC();updateSidebar();resetAL();setTimeout(checkRotations,500);if(!localStorage.getItem('wardkey_onboarded'))setTimeout(showOnboarding,600);
   const isLight=document.documentElement.getAttribute('data-theme')==='light';
   const btn=$('thBtn');if(btn)btn.innerHTML=isLight?'<svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>':'<svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
@@ -1069,7 +1070,7 @@ async function unlock(){
     failedAttempts++;
     _memDelay=Math.min((_memDelay||500)*2,30000);
     const hasVault = !!(localStorage.getItem('wardkey_v4')||localStorage.getItem('wardkey_v3'));
-    if(failedAttempts>=MAX_ATTEMPTS){const lockMs=LOCKOUT_TIMES[Math.min(lockoutLevel,LOCKOUT_TIMES.length-1)];lockoutUntil=Date.now()+lockMs;lockoutLevel++;localStorage.setItem('wardkey_lockout',JSON.stringify({f:failedAttempts,u:lockoutUntil,l:lockoutLevel}));const lockSec=Math.round(lockMs/1000);$('lErr').innerHTML=`Too many failed attempts. Locked for ${lockSec>=60?Math.round(lockSec/60)+'m':lockSec+'s'}.`+
+    if(failedAttempts>=MAX_ATTEMPTS){const lockMs=LOCKOUT_TIMES[Math.min(lockoutLevel,LOCKOUT_TIMES.length-1)];lockoutUntil=Date.now()+lockMs;lockoutLevel++;{const _ld=JSON.stringify({f:failedAttempts,u:lockoutUntil,l:lockoutLevel});localStorage.setItem('wardkey_lockout',_ld);sessionStorage.setItem('wardkey_lockout',_ld)};const lockSec=Math.round(lockMs/1000);$('lErr').innerHTML=`Too many failed attempts. Locked for ${lockSec>=60?Math.round(lockSec/60)+'m':lockSec+'s'}.`+
       (hasVault?`<br><a href="#" onclick="resetVault(event)" style="color:var(--ac);font-size:11px;text-decoration:underline;margin-top:4px;display:inline-block">Forgot password? Reset vault</a>`:'')}
     else{$('lErr').innerHTML=`Wrong password (${MAX_ATTEMPTS-failedAttempts} attempt${MAX_ATTEMPTS-failedAttempts>1?'s':''} remaining)`+
       (hasVault?`<br><a href="#" onclick="resetVault(event)" style="color:var(--ac);font-size:11px;text-decoration:underline;margin-top:4px;display:inline-block">Forgot password? Reset vault</a>`:'')}
@@ -1082,7 +1083,7 @@ function resetVault(e){
   if(!confirm('This will permanently erase your vault. You will start fresh. Continue?'))return;
   localStorage.removeItem('wardkey_v4');localStorage.removeItem('wardkey_v3');sessionStorage.removeItem('wardkey_auth');
   authToken=null;authUser=null;syncEnabled=false;
-  failedAttempts=0;lockoutUntil=0;lockoutLevel=0;localStorage.removeItem('wardkey_lockout');
+  failedAttempts=0;lockoutUntil=0;lockoutLevel=0;localStorage.removeItem('wardkey_lockout');sessionStorage.removeItem('wardkey_lockout');
   $('lErr').style.display='none';$('mpIn').value='';$('mpIn').focus();
   toast('Vault reset — enter a new master password','ok');
   checkFirstRun();
@@ -1132,7 +1133,7 @@ async function doLogin(){
   if(mp.length<8){showAuthErr('Master password must be at least 8 characters');return}
   if(Date.now()<lockoutUntil){const sec=Math.ceil((lockoutUntil-Date.now())/1000);showAuthErr('Too many attempts. Try again in '+sec+'s');return}
   showAuthErr('');
-  window._pendingMp=mp;
+  _pendingMp=mp;
   try{
     const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
     const data=await res.json();
@@ -1158,13 +1159,13 @@ async function doLogin(){
       }
     }catch{}
     $('mpIn').value=mp;$('mpConf').value=mp;
-    window._pendingMp=null;
+    _pendingMp=null;
     await unlock();
     toast('Logged in — vault synced','ok');
   }catch(e){
     failedAttempts++;
-    if(failedAttempts>=MAX_ATTEMPTS){const lockMs=LOCKOUT_TIMES[Math.min(lockoutLevel,LOCKOUT_TIMES.length-1)];lockoutUntil=Date.now()+lockMs;lockoutLevel++;localStorage.setItem('wardkey_lockout',JSON.stringify({f:failedAttempts,u:lockoutUntil,l:lockoutLevel}))}
-    window._pendingMp=null;
+    if(failedAttempts>=MAX_ATTEMPTS){const lockMs=LOCKOUT_TIMES[Math.min(lockoutLevel,LOCKOUT_TIMES.length-1)];lockoutUntil=Date.now()+lockMs;lockoutLevel++;{const _ld=JSON.stringify({f:failedAttempts,u:lockoutUntil,l:lockoutLevel});localStorage.setItem('wardkey_lockout',_ld);sessionStorage.setItem('wardkey_lockout',_ld)}}
+    _pendingMp=null;
     showAuthErr(e.message);
   }
 }
@@ -1177,6 +1178,9 @@ function doLogout(){
 }
 async function doDeleteAccount(){
   if(!confirm('Delete your account? This will remove your cloud data. Your local vault will be kept.'))return;
+  const pw=await askPassword('Re-enter master password to delete account:');
+  if(!pw)return;
+  try{const hash=await deriveVerifyHash(pw,window._vaultSalt);if(hash!==window._verifyHash){toast('Wrong password — deletion denied','er');return}}catch{toast('Authentication failed','er');return}
   if(!confirm('Are you absolutely sure? This cannot be undone.'))return;
   try{
     const res=await fetch(API+'/api/auth/account',{method:'DELETE',headers:{'Authorization':'Bearer '+authToken}});
@@ -1588,10 +1592,11 @@ el.innerHTML='<div style="max-width:720px"><div class="st" style="margin-bottom:
 +'<div class="st" style="margin-bottom:12px;font-size:18px">Data</div><div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:18px"><div style="display:flex;gap:6px;margin-bottom:10px"><button class="bt bt-s" style="flex:1" onclick="$(\'impMo\').classList.add(\'on\')">Import</button><button class="bt bt-s" style="flex:1" onclick="doExport(\'json\')">Export JSON</button><button class="bt bt-s" style="flex:1" onclick="doExport(\'csv\')">Export CSV</button></div><button class="bt bt-d" style="width:100%;justify-content:center" onclick="wipeVault()">🗑️ Wipe Vault</button></div></div>'}
 
 // ════════ DETAIL PANEL ════════
+let _cpw=null,_pwHistory=[]; // closure-scoped — not on window
 function showD(type,id){const item=V[type]?.find(i=>i.id===id);if(!item)return;curD={type,id,item};$('dTit').textContent=item.name;const fv=item.fav||item.favorite;$('fBtn').textContent=fv?'★':'☆';$('fBtn').style.color=fv?'var(--yl)':'var(--tx2)';let h='';
-if(type==='passwords'){const s=str(item.password);window._cpw=item.password;window._pwHistory=item.history?item.history.map(h=>h.pw):[];h=`<div style="text-align:center;font-size:28px;margin-bottom:14px">${esc(item.icon)||'🔑'}</div>
+if(type==='passwords'){const s=str(item.password);_cpw=item.password;_pwHistory=item.history?item.history.map(h=>h.pw):[];h=`<div style="text-align:center;font-size:28px;margin-bottom:14px">${esc(item.icon)||'🔑'}</div>
 ${F('Username',item.username,true)}
-<div class="df"><div class="df-l">Password</div><div class="df-v"><span id="pwV">••••••••••••••</span><button class="cb" onclick="let e=$('pwV');if(e.textContent.includes('•')){e.textContent=window._cpw;e.style.color='var(--tx1)'}else{e.textContent='••••••••••••••';e.style.color=''}">${IC.eye}</button><button class="cb" onclick="cpTx(window._cpw)">${IC.cp}</button></div>
+<div class="df"><div class="df-l">Password</div><div class="df-v"><span id="pwV">••••••••••••••</span><button class="cb" onclick="let e=$('pwV');if(e.textContent.includes('•')){e.textContent=_cpw;e.style.color='var(--tx1)'}else{e.textContent='••••••••••••••';e.style.color=''}">${IC.eye}</button><button class="cb" onclick="cpTx(_cpw)">${IC.cp}</button></div>
 <div style="margin-top:4px"><div class="sb2"><div class="sb2-f" style="width:${s.s}%;background:${s.c}"></div></div><div class="sb2-l" style="color:${s.c}">${s.l} · ${Math.round(s.s)}%</div></div></div>
 <div class="df" style="margin-top:6px">
 <div style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs)">
@@ -1618,7 +1623,7 @@ ${item.url?F('URL',item.url,true):''}
 ${item.url?`<button class="bt bt-p" style="width:100%;justify-content:center;padding:10px;margin-bottom:8px;gap:6px;font-size:13px" onclick="launchSite('passwords','${item.id}')">${IC.launch} Launch & Autofill</button>`:''}
 ${(item.fields||[]).map(f=>F(f.l,f.v,true)).join('')}
 ${item.notes?`<div class="df"><div class="df-l">Notes</div><div style="padding:7px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);font-size:11px;color:var(--tx2);line-height:1.5;white-space:pre-wrap">${esc(item.notes)}</div></div>`:''}
-${item.history?.length?`<div class="df"><div class="df-l">Password History (${item.history.length})</div>${item.history.map((h,hi)=>{const hid='ph'+hi+Math.random().toString(36).substr(2,4);return`<div style="padding:6px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);margin-bottom:3px;display:flex;align-items:center;gap:6px"><div style="flex:1"><div style="font-size:9px;color:var(--tx3);margin-bottom:2px">Changed ${new Date(h.at).toLocaleDateString()}</div><div style="font-family:var(--mono);font-size:11px" id="${hid}">••••••••••</div></div><button class="cb" onclick="const pw=window._pwHistory[${hi}];const e=document.getElementById('${hid}');e.textContent=e.textContent.includes('•')?pw:'••••••••••'">${IC.eye}</button><button class="cb" onclick="cpTx(window._pwHistory[${hi}])">${IC.cp}</button></div>`}).join('')}</div>`:''}
+${item.history?.length?`<div class="df"><div class="df-l">Password History (${item.history.length})</div>${item.history.map((h,hi)=>{const hid='ph'+hi+Math.random().toString(36).substr(2,4);return`<div style="padding:6px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);margin-bottom:3px;display:flex;align-items:center;gap:6px"><div style="flex:1"><div style="font-size:9px;color:var(--tx3);margin-bottom:2px">Changed ${new Date(h.at).toLocaleDateString()}</div><div style="font-family:var(--mono);font-size:11px" id="${hid}">••••••••••</div></div><button class="cb" onclick="const pw=_pwHistory[${hi}];const e=document.getElementById('${hid}');e.textContent=e.textContent.includes('•')?pw:'••••••••••'">${IC.eye}</button><button class="cb" onclick="cpTx(_pwHistory[${hi}])">${IC.cp}</button></div>`}).join('')}</div>`:''}
 <div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:8px">${(item.tags||[]).map(t=>`<span class="tg">${esc(t)}</span>`).join('')}</div>
 <div style="margin-top:8px;font-size:9px;color:var(--tx3)">Created ${new Date(item.created).toLocaleDateString()} · Modified ${new Date(item.modified).toLocaleDateString()}</div>`}
 else if(type==='cards'){h=`<div style="text-align:center;font-size:28px;margin-bottom:14px">${item.type==='id'?'🪪':'💳'}</div>${F('Number',item.number,true)}${F('Holder',item.holder)}${F('Expiry',item.exp,true)}${item.cvv?F('CVV',item.cvv,true):''}${item.pin?F('PIN',item.pin,true):''}${item.billing?F('Billing Address',item.billing):''}`}
@@ -1630,7 +1635,7 @@ ${F('Relying Party',item.rpId)}${F('Username',item.username,true)}${F('Credentia
 ${item.rpId?`<button class="bt bt-p" style="width:100%;justify-content:center;padding:10px;margin-top:8px;gap:6px;font-size:13px" onclick="launchSite('passkeys','${item.id}')">${IC.launch} Launch Site</button>`:''}
 <div style="margin-top:8px;font-size:10px;color:var(--tx3)">Registered ${new Date(item.created).toLocaleDateString()} · Last used ${timeAgo(item.lastUsed)}</div>`}
 $('dBod').innerHTML=h;$('dP').classList.add('on')}
-function closeD(){$('dP').classList.remove('on');curD=null;$('dBod').innerHTML='';window._cpw=null;window._pwHistory=null}
+function closeD(){$('dP').classList.remove('on');curD=null;$('dBod').innerHTML='';_cpw=null;_pwHistory=null}
 function delCur(){if(!curD)return;const{type,id,item}=curD;V.trash.push({...item,deletedAt:Date.now(),origType:type});V[type]=V[type].filter(i=>i.id!==id);logA('Deleted',item.name,'delete');saveV();updC();render();closeD();toast('Moved to trash','ok')}
 function toggleFav(){if(!curD)return;const i=V[curD.type].find(x=>x.id===curD.id);if(i){i.fav=!i.fav;logA(i.fav?'Favorited':'Unfavorited',i.name,'fav');saveV();showD(curD.type,curD.id);render()}}
 function restoreI(id){const t=V.trash.find(i=>i.id===id);if(!t)return;const{deletedAt,origType,...item}=t;if(V[origType])V[origType].push(item);V.trash=V.trash.filter(i=>i.id!==id);logA('Restored',item.name,'add');saveV();updC();render();toast('Item restored','ok')}
