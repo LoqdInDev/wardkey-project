@@ -14,7 +14,7 @@ WARDKEY is completely free with all features unlocked for a limited time. No lim
 
 --- WHAT MAKES WARDKEY DIFFERENT ---
 
-Your vault is encrypted with AES-256-GCM and never leaves your device. There are no servers to breach, no cloud to compromise, and no company holding your data hostage behind a paywall.
+Your vault is encrypted with AES-256-GCM on your device. Even if our servers were ever breached, your vault data remains encrypted and unreadable without your master password.
 
 Most password managers charge $3-5/month to store an encrypted list. WARDKEY gives you more — for free.
 
@@ -76,7 +76,7 @@ WARDKEY requests minimal permissions:
 - activeTab: To detect and fill login forms on the current page
 - storage: To store your encrypted vault locally
 - clipboardWrite: To copy passwords to clipboard
-- No background data collection. No network requests unless you use cloud sync.
+- No background data collection. Network requests only when you use cloud sync, breach scanning, AI analysis, or sharing.
 
 --- LINKS ---
 

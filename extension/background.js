@@ -27,6 +27,8 @@ chrome.runtime.onInstalled.addListener((details) => {
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'wardkey-generate') {
+    // Only fill on http/https pages
+    if (!tab.url || (!tab.url.startsWith('http:') && !tab.url.startsWith('https:'))) return;
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=';
     const limit = 256 - (256 % chars.length);
     let pw = '';
@@ -49,6 +51,8 @@ chrome.commands.onCommand.addListener((command) => {
   if (command === 'generate_password') {
     chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
       if (!tab) return;
+      // Only fill on http/https pages
+      if (!tab.url || (!tab.url.startsWith('http:') && !tab.url.startsWith('https:'))) return;
       const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=';
       const limit = 256 - (256 % chars.length);
       let pw = '';

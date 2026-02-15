@@ -338,6 +338,17 @@
     }
 
     if (msg.type === 'WARDKEY_FILL') {
+      // Verify target domain matches current page before filling
+      if (msg.targetDomain) {
+        try {
+          const currentHost = location.hostname.replace(/^www\./, '');
+          const targetHost = msg.targetDomain.replace(/^www\./, '');
+          if (currentHost !== targetHost && !currentHost.endsWith('.' + targetHost)) {
+            sendResponse({ success: false, error: 'Domain mismatch' });
+            return;
+          }
+        } catch (e) { /* invalid domain, reject */ sendResponse({ success: false, error: 'Invalid domain' }); return; }
+      }
       const fields = findFields();
       if (fields.username && msg.username) fillField(fields.username, msg.username);
       if (fields.password && msg.password) fillField(fields.password, msg.password);

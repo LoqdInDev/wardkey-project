@@ -932,10 +932,16 @@ async function autofill(item) {
       } catch (e) { /* invalid URL, allow fill */ }
     }
 
+    // Pass target domain for content script verification
+    let targetDomain = '';
+    if (item.url) {
+      try { targetDomain = new URL(item.url.startsWith('http') ? item.url : 'https://' + item.url).hostname; } catch(e) {}
+    }
     await chrome.tabs.sendMessage(tab.id, {
       type: 'WARDKEY_FILL',
       username: item.username || '',
-      password: item.password || ''
+      password: item.password || '',
+      targetDomain
     });
     toast('Filled');
     setTimeout(() => window.close(), 600);
