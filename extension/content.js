@@ -88,6 +88,46 @@
            style.opacity !== '0';
   }
 
+  // Find username/email from hidden inputs or page text when no visible username field exists
+  // Handles multi-step logins (Google, Microsoft, Facebook) where email is shown as text on password page
+  function findUsernameHint() {
+    // 1. Hidden inputs with email/username-like names
+    const hiddenSelectors = [
+      'input[type="hidden"][name="identifier"]',
+      'input[type="hidden"][name="email"]',
+      'input[type="hidden"][name="username"]',
+      'input[type="hidden"][name="login"]',
+      'input[type="hidden"][name*="user"]',
+      'input[type="hidden"][name*="email"]',
+      'input[type="hidden"][name*="login_hint"]'
+    ];
+    for (const sel of hiddenSelectors) {
+      const el = document.querySelector(sel);
+      if (el?.value?.trim()) return el.value.trim();
+    }
+
+    // 2. Google-specific: data-identifier attribute
+    const gIdent = document.querySelector('[data-identifier]');
+    if (gIdent?.dataset?.identifier) return gIdent.dataset.identifier;
+
+    // 3. Google profile identifier displayed as text
+    const profileEmail = document.querySelector('#profileIdentifier');
+    if (profileEmail?.textContent?.includes('@')) return profileEmail.textContent.trim();
+
+    // 4. Look for email displayed as text near password field (common pattern)
+    // Check small text elements that contain an email address pattern
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const candidates = document.querySelectorAll(
+      '.identifier, .email-display, [data-email], #identifierLink, #hiddenEmail, .sign-in-card .email'
+    );
+    for (const el of candidates) {
+      const text = (el.textContent || el.dataset?.email || '').trim();
+      if (emailRegex.test(text)) return text;
+    }
+
+    return '';
+  }
+
   // ═══════ WARDKEY ICON INJECTION ═══════
   let activeDropdown = null;
 
@@ -298,7 +338,8 @@
       const storeCapture = (includePassword) => {
         const pw = (fields.password?.value || fields.newPassword?.value || '').trim();
         if (!pw) return;
-        const username = (fields.username?.value || '').trim();
+        // Try visible username field first, then hidden inputs/page text for multi-step logins
+        const username = (fields.username?.value || '').trim() || findUsernameHint();
         const msg = {
           type: 'WARDKEY_STORE_CAPTURE',
           domain: location.hostname.replace(/^www\./, ''),
@@ -325,7 +366,7 @@
       form.addEventListener('submit', () => {
         const pw = (fields.password?.value || fields.newPassword?.value || '').trim();
         if (!pw) return;
-        const username = (fields.username?.value || '').trim();
+        const username = (fields.username?.value || '').trim() || findUsernameHint();
         chrome.runtime.sendMessage({
           type: 'WARDKEY_STORE_CAPTURE',
           domain: location.hostname.replace(/^www\./, ''),
@@ -416,7 +457,9 @@
       // Capture password NOW before page navigates away
       const fields = findFields();
       const pw = fields.password?.value || fields.newPassword?.value || '';
-      chrome.runtime.sendMessage({ type: 'WARDKEY_SAVE_CONFIRM', domain: data.domain, username: data.username, url: data.url, password: pw }).catch(() => {});
+      // Use data.username if available, otherwise try to find it from hidden inputs/page text
+      const username = data.username || (fields.username?.value || '').trim() || findUsernameHint();
+      chrome.runtime.sendMessage({ type: 'WARDKEY_SAVE_CONFIRM', domain: data.domain, username, url: data.url, password: pw }).catch(() => {});
       closeDialog();
     };
 
