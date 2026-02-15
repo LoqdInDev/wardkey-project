@@ -364,6 +364,10 @@
         return;
       }
       // Domain verification — prevent filling generated password on wrong site
+      if (!msg.targetDomain) {
+        sendResponse({ success: false, error: 'No target domain specified' });
+        return;
+      }
       if (msg.targetDomain) {
         const currentHost = location.hostname.replace(/^www\./, '').toLowerCase();
         const expectedHost = msg.targetDomain.replace(/^www\./, '').toLowerCase();

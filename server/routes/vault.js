@@ -2,7 +2,7 @@
 // IMPORTANT: Server NEVER sees decrypted data. All encryption is client-side.
 const express = require('express');
 const { v4: uuid } = require('uuid');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const { getDB, auditLog } = require('../models/db');
 const { authenticate } = require('../middleware/auth');
 
