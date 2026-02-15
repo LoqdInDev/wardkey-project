@@ -59,6 +59,32 @@ function decryptMfaSecret(ciphertext) {
 const JWT_EXPIRES = process.env.JWT_EXPIRES_IN || '7d';
 const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS) || 12;
 
+// Parse JWT_EXPIRES to milliseconds for session expiry sync
+function parseExpiresMs(val) {
+  const m = /^(\d+)\s*(s|m|h|d|w)$/.exec(val);
+  if (!m) return 7 * 24 * 60 * 60 * 1000; // default 7d
+  const n = parseInt(m[1]);
+  const unit = { s: 1000, m: 60000, h: 3600000, d: 86400000, w: 604800000 }[m[2]];
+  return n * unit;
+}
+const SESSION_EXPIRES_MS = parseExpiresMs(JWT_EXPIRES);
+
+// TOTP replay protection — reject codes used within the same 30s window
+function checkTotpReplay(userId) {
+  const db = getDB();
+  const user = db.prepare('SELECT last_totp_at FROM users WHERE id = ?').get(userId);
+  const now = Math.floor(Date.now() / 1000);
+  const window = 30; // TOTP time step
+  if (user?.last_totp_at && Math.floor(user.last_totp_at / window) >= Math.floor(now / window)) {
+    return false; // replay — same time window
+  }
+  return true;
+}
+function markTotpUsed(userId) {
+  const db = getDB();
+  db.prepare('UPDATE users SET last_totp_at = ? WHERE id = ?').run(Math.floor(Date.now() / 1000), userId);
+}
+
 // ═══════ INPUT VALIDATION ═══════
 function isValidEmail(email) {
   if (!email || typeof email !== 'string') return false;
@@ -94,7 +120,7 @@ router.post('/register', async (req, res) => {
 
     // Create session and bind to JWT
     const sessionId = uuid();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + SESSION_EXPIRES_MS).toISOString();
     db.prepare('INSERT INTO sessions (id, user_id, device_name, ip_address, expires_at) VALUES (?, ?, ?, ?, ?)')
       .run(sessionId, id, req.headers['user-agent']?.substring(0, 100), req.ip, expiresAt);
 
@@ -146,7 +172,7 @@ router.post('/login', async (req, res) => {
 
     // Create session and bind to JWT
     const sessionId = uuid();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + SESSION_EXPIRES_MS).toISOString();
     db.prepare('INSERT INTO sessions (id, user_id, device_name, ip_address, expires_at) VALUES (?, ?, ?, ?, ?)')
       .run(sessionId, user.id, req.headers['user-agent']?.substring(0, 100), req.ip, expiresAt);
 
@@ -201,6 +227,8 @@ router.post('/2fa/confirm', authenticate, async (req, res) => {
     const decryptedSecret = decryptMfaSecret(user.mfa_secret);
     const isValid = authenticator.check(totpCode, decryptedSecret);
     if (!isValid) return res.status(400).json({ error: 'Invalid code — please try again' });
+    if (!checkTotpReplay(req.user.id)) return res.status(429).json({ error: 'Code already used — wait for a new code' });
+    markTotpUsed(req.user.id);
 
     db.prepare('UPDATE users SET mfa_enabled = 1 WHERE id = ?').run(req.user.id);
     auditLog(req.user.id, '2fa_enabled', null, req);
@@ -237,10 +265,12 @@ router.post('/2fa/verify-login', async (req, res) => {
       console.log(`[AUTH] Failed 2FA attempt for ${user.email.replace(/(.{2}).*(@.*)/, '$1***$2')} at ${new Date().toISOString()} from ${req.ip}`);
       return res.status(401).json({ error: 'Invalid 2FA code' });
     }
+    if (!checkTotpReplay(decoded.id)) return res.status(429).json({ error: 'Code already used — wait for a new code' });
+    markTotpUsed(decoded.id);
 
     // Issue full token and create session (bound to JWT)
     const sessionId = uuid();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + SESSION_EXPIRES_MS).toISOString();
     db.prepare('INSERT INTO sessions (id, user_id, device_name, ip_address, expires_at) VALUES (?, ?, ?, ?, ?)')
       .run(sessionId, user.id, req.headers['user-agent']?.substring(0, 100), req.ip, expiresAt);
 
@@ -270,6 +300,8 @@ router.post('/2fa/disable', authenticate, async (req, res) => {
     const decryptedSecret = decryptMfaSecret(user.mfa_secret);
     const isValid = authenticator.check(totpCode, decryptedSecret);
     if (!isValid) return res.status(400).json({ error: 'Invalid code — please try again' });
+    if (!checkTotpReplay(req.user.id)) return res.status(429).json({ error: 'Code already used — wait for a new code' });
+    markTotpUsed(req.user.id);
 
     db.prepare('UPDATE users SET mfa_enabled = 0, mfa_secret = NULL WHERE id = ?').run(req.user.id);
 

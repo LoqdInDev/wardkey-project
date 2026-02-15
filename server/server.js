@@ -199,7 +199,7 @@ app.get('/', (req, res) => {
 });
 
 // Catch-all for unknown routes
-app.get('*', (req, res) => {
+app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
@@ -207,7 +207,7 @@ app.get('*', (req, res) => {
 app.use((err, req, res, next) => {
   console.error('Server error:', err.message);
   res.status(err.status || 500).json({
-    error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message
+    error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
   });
 });
 

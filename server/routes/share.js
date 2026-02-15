@@ -18,7 +18,7 @@ router.post('/', authenticate, (req, res) => {
 
   const db = getDB();
 
-  const id = crypto.randomBytes(12).toString('hex');
+  const id = crypto.randomBytes(16).toString('hex');
   const safeExpiresInHours = typeof expiresInHours === 'number' && expiresInHours > 0 ? expiresInHours : 24;
   const hours = Math.min(safeExpiresInHours, 30 * 24); // Max 30 days
   const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();

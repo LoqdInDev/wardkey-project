@@ -98,18 +98,19 @@ async function saveVault() {
 }
 
 // Store lightweight credential index in session storage for inline autofill dropdown
+// SECURITY: Only stores id/name/username/domain — NO passwords sent to content scripts
 function syncCredentialIndex() {
   if (!vault?.passwords) return;
-  const creds = vault.passwords.map(p => {
+  const index = vault.passwords.map(p => {
     let domain = '';
     try {
       let raw = (p.url || '').trim();
       if (raw && !/^https?:\/\//.test(raw)) raw = 'https://' + raw;
       if (raw) domain = new URL(raw).hostname.replace(/^www\./, '');
     } catch {}
-    return { id: p.id, name: p.name || '', username: p.username || '', password: p.password || '', url: p.url || '', domain };
+    return { id: p.id, name: p.name || '', username: p.username || '', domain };
   });
-  chrome.storage.session?.set({ wardkey_credentials: creds });
+  chrome.storage.session?.set({ wardkey_credentials: index });
 }
 
 async function initVault(pw) {
@@ -1356,6 +1357,27 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
   }
   if (msg.type === 'WARDKEY_PENDING_SAVE' && unlocked) {
     checkPendingSave().catch(() => {});
+  }
+  // Resolve credential fill request from background (inline dropdown)
+  if (msg.type === 'WARDKEY_RESOLVE_FILL' && unlocked && msg.id && msg.tabId) {
+    const item = (vault.passwords || []).find(p => p.id === msg.id);
+    if (item) {
+      // Verify domain matches the credential
+      let itemDomain = '';
+      try {
+        let raw = (item.url || '').trim();
+        if (raw && !/^https?:\/\//.test(raw)) raw = 'https://' + raw;
+        if (raw) itemDomain = new URL(raw).hostname.replace(/^www\./, '');
+      } catch {}
+      if (itemDomain === msg.domain || !itemDomain) {
+        chrome.tabs.sendMessage(msg.tabId, {
+          type: 'WARDKEY_FILL',
+          username: item.username || '',
+          password: item.password || '',
+          targetDomain: itemDomain
+        }).catch(() => {});
+      }
+    }
   }
 });
 

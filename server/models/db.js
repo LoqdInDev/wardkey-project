@@ -21,7 +21,8 @@ function initDB() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       last_login DATETIME,
       mfa_secret TEXT,
-      mfa_enabled INTEGER DEFAULT 0
+      mfa_enabled INTEGER DEFAULT 0,
+      last_totp_at INTEGER DEFAULT 0
     );
 
     -- Encrypted vault blobs (server never sees decrypted data)
@@ -104,6 +105,9 @@ function initDB() {
     CREATE INDEX IF NOT EXISTS idx_ec_grantor ON emergency_contacts(grantor_id);
     CREATE INDEX IF NOT EXISTS idx_ec_grantee ON emergency_contacts(grantee_id);
   `);
+
+  // Migrations for existing databases
+  try { db.exec('ALTER TABLE users ADD COLUMN last_totp_at INTEGER DEFAULT 0'); } catch {}
 
   // Restrict database file permissions (owner read/write only)
   try { require('fs').chmodSync(DB_PATH, 0o600); } catch(e) {}

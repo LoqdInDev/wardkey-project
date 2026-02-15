@@ -150,6 +150,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
           const elapsed = Date.now() - data.wardkey_session.ts;
           if (elapsed > effectiveTimeout) {
             chrome.storage.session?.remove('wardkey_session');
+            chrome.storage.session?.remove('wardkey_credentials');
           }
         }
       });
@@ -252,6 +253,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   // Content script requests credentials for current site (inline dropdown)
+  // SECURITY: Only returns id/name/username — NO passwords sent to content scripts
   if (msg.type === 'WARDKEY_GET_SITE_CREDENTIALS') {
     if (typeof msg.domain !== 'string' || !msg.domain) return;
     // Verify domain matches sender tab
@@ -261,13 +263,25 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
     chrome.storage.session?.get('wardkey_credentials', (data) => {
       const creds = data?.wardkey_credentials || [];
-      const matches = creds.filter(c => {
-        if (!c.domain) return false;
-        return c.domain === msg.domain || msg.domain.endsWith('.' + c.domain) || c.domain.endsWith('.' + msg.domain);
-      }).map(c => ({ id: c.id, name: c.name, username: c.username, password: c.password, url: c.url }));
+      // Exact domain match only (no subdomain matching for inline dropdown)
+      const matches = creds.filter(c => c.domain && c.domain === msg.domain)
+        .map(c => ({ id: c.id, name: c.name, username: c.username }));
       sendResponse({ credentials: matches });
     });
     return true; // async sendResponse
+  }
+
+  // Content script requests autofill by credential ID (dropdown item selected)
+  // Background resolves password from popup's vault and sends WARDKEY_FILL to the tab
+  if (msg.type === 'WARDKEY_FILL_BY_ID') {
+    if (typeof msg.id !== 'string' || !msg.id) return;
+    if (!sender.tab?.id || !sender.tab?.url) return;
+    const senderHost = new URL(sender.tab.url).hostname.replace(/^www\./, '');
+    // Forward to popup to resolve the password (popup has the decrypted vault)
+    chrome.runtime.sendMessage({ type: 'WARDKEY_RESOLVE_FILL', id: msg.id, tabId: sender.tab.id, domain: senderHost }).catch(() => {
+      // Popup not open — notify user
+      chrome.tabs.sendMessage(sender.tab.id, { type: 'WARDKEY_FILL_FAILED', reason: 'Vault is locked. Open WARDKEY first.' }).catch(() => {});
+    });
   }
 
   // Content script checks for pending save dialog

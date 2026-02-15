@@ -35,10 +35,11 @@ router.post('/', authenticate, (req, res) => {
 
   const id = crypto.randomBytes(12).toString('hex');
   const inviteToken = crypto.randomBytes(24).toString('hex');
+  const inviteTokenHash = crypto.createHash('sha256').update(inviteToken).digest('hex');
 
   db.prepare(
     'INSERT INTO emergency_contacts (id, grantor_id, grantee_email, waiting_hours, invite_token) VALUES (?, ?, ?, ?, ?)'
-  ).run(id, req.user.id, contactEmail.toLowerCase(), hours, inviteToken);
+  ).run(id, req.user.id, contactEmail.toLowerCase(), hours, inviteTokenHash);
 
   // Get grantor info for email
   const grantor = db.prepare('SELECT name, email FROM users WHERE id = ?').get(req.user.id);
@@ -84,9 +85,10 @@ router.get('/incoming', authenticate, (req, res) => {
 router.post('/confirm/:token', authenticate, (req, res) => {
   if (!/^[0-9a-f]{48}$/.test(req.params.token)) return res.status(400).json({ error: 'Invalid token format' });
   const db = getDB();
+  const tokenHash = crypto.createHash('sha256').update(req.params.token).digest('hex');
   const contact = db.prepare(
     'SELECT * FROM emergency_contacts WHERE invite_token = ? AND status = ?'
-  ).get(req.params.token, 'invited');
+  ).get(tokenHash, 'invited');
 
   if (!contact) {
     return res.status(404).json({ error: 'Invalid or already used invitation link' });

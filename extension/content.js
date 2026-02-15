@@ -188,16 +188,14 @@
           item.innerHTML = `
             <div class="wardkey-dropdown-icon">🔑</div>
             <div class="wardkey-dropdown-info">
-              <div class="wardkey-dropdown-name">${escapeHtml(cred.name || cred.url || domain)}</div>
+              <div class="wardkey-dropdown-name">${escapeHtml(cred.name || domain)}</div>
               <div class="wardkey-dropdown-user">${escapeHtml(cred.username || 'No username')}</div>
             </div>
           `;
           item.onclick = (e) => {
             e.stopPropagation();
-            const fields = findFields();
-            if (fields.username && cred.username) fillField(fields.username, cred.username);
-            if (fields.password && cred.password) fillField(fields.password, cred.password);
-            if (fields.newPassword && cred.password) fillField(fields.newPassword, cred.password);
+            // Request fill via background → popup (password never touches content script)
+            chrome.runtime.sendMessage({ type: 'WARDKEY_FILL_BY_ID', id: cred.id }).catch(() => {});
             closeDropdown();
           };
           dropdown.appendChild(item);
@@ -584,6 +582,15 @@
         hasPassword: !!fields.password,
         domain: location.hostname.replace(/^www\./, '')
       });
+    }
+
+    if (msg.type === 'WARDKEY_FILL_FAILED') {
+      // Show a brief notification that fill failed (vault locked)
+      const banner = document.createElement('div');
+      banner.style.cssText = 'position:fixed;top:12px;right:12px;z-index:2147483647;background:#1a1a2e;color:#fff;padding:10px 16px;border-radius:8px;font:13px/1.4 -apple-system,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.3);animation:wardkey-dropdown-in .15s ease-out';
+      banner.textContent = '🔐 ' + (msg.reason || 'Open WARDKEY to autofill');
+      document.body.appendChild(banner);
+      setTimeout(() => banner.remove(), 3000);
     }
 
     if (msg.type === 'WARDKEY_SHOW_SAVE') {
