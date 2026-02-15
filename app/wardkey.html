@@ -764,7 +764,7 @@ async function decrypt(obj, key) {
 async function saveV() {
   if (!mk) return;
   const e = await encrypt(V, mk);
-  const stored = {v:CRYPTO_VERSION, salt:[...window._vaultSalt], verify:window._verifyHash, data:e};
+  const stored = {v:CRYPTO_VERSION, salt:[..._vaultSalt], verify:_verifyHash, data:e};
   localStorage.setItem('wardkey_v4', JSON.stringify(stored));
   if(syncEnabled&&authToken)syncUp(stored);
 }
@@ -796,7 +796,7 @@ async function syncDown(){
       const p=data.vault;
       const salt=new Uint8Array(p.salt);
       V=await decrypt(p.data,mk);
-      window._vaultSalt=salt;
+      _vaultSalt=salt;
       ['apikeys','licenses','trash','activity','passkeys','aliases','shares','emergency'].forEach(k=>{if(!V[k])V[k]=[]});
       lastSyncTime=Date.now();updateSyncIcon('done');
       render();updC();toast('Vault synced from cloud','ok');
@@ -831,8 +831,8 @@ async function loadV(pw) {
     if (hash !== p.verify) throw new Error('WRONG_PASSWORD');
     mk = await deriveKey(pw, salt);
     V = await decrypt(p.data, mk);
-    window._vaultSalt = salt;
-    window._verifyHash = p.verify;
+    _vaultSalt = salt;
+    _verifyHash = p.verify;
     ['apikeys','licenses','trash','activity','passkeys','aliases'].forEach(k => { if (!V[k]) V[k] = []; });
     return;
   }
@@ -845,9 +845,9 @@ async function loadV(pw) {
       V = await decrypt(p, mk);
       // Migrate to v4 with proper salt
       const salt = crypto.getRandomValues(new Uint8Array(16));
-      window._vaultSalt = salt;
+      _vaultSalt = salt;
       mk = await deriveKey(pw, salt);
-      window._verifyHash = await deriveVerifyHash(pw, salt);
+      _verifyHash = await deriveVerifyHash(pw, salt);
       ['apikeys','licenses','trash','activity','passkeys','aliases'].forEach(k => { if (!V[k]) V[k] = []; });
       await saveV();
       localStorage.removeItem('wardkey_v3');
@@ -858,17 +858,17 @@ async function loadV(pw) {
   // No vault exists — create new
   seed();
   const salt = crypto.getRandomValues(new Uint8Array(16));
-  window._vaultSalt = salt;
+  _vaultSalt = salt;
   mk = await deriveKey(pw, salt);
-  window._verifyHash = await deriveVerifyHash(pw, salt);
+  _verifyHash = await deriveVerifyHash(pw, salt);
   await saveV();
 }
 
 function secureClear() {
   // Wipe sensitive data from memory on lock
   mk = null;
-  window._vaultSalt = null;
-  window._verifyHash = null;
+  _vaultSalt = null;
+  _verifyHash = null;
   V = {passwords:[],cards:[],notes:[],totp:[],apikeys:[],licenses:[],passkeys:[],aliases:[],breaches:[],trash:[],activity:[]};
   // Clear any displayed passwords from DOM
   document.querySelectorAll('[id^="pwV"],[id^="ph"]').forEach(el => { el.textContent = ''; });
@@ -892,6 +892,7 @@ function secureClear() {
 // ════════ 2FA ════════
 let mfaPendingToken=null;
 let _pendingMp=null; // closure-scoped — not on window
+let _vaultSalt=null, _verifyHash=null; // closure-scoped — not on window
 
 function show2faLogin(){
   const panel=$('lpLogin');
@@ -1182,7 +1183,7 @@ async function doDeleteAccount(){
   if(!confirm('Delete your account? This will remove your cloud data. Your local vault will be kept.'))return;
   const pw=await askPassword('Re-enter master password to delete account:');
   if(!pw)return;
-  try{const hash=await deriveVerifyHash(pw,window._vaultSalt);if(hash!==window._verifyHash){toast('Wrong password — deletion denied','er');return}}catch{toast('Authentication failed','er');return}
+  try{const hash=await deriveVerifyHash(pw,_vaultSalt);if(hash!==_verifyHash){toast('Wrong password — deletion denied','er');return}}catch{toast('Authentication failed','er');return}
   if(!confirm('Are you absolutely sure? This cannot be undone.'))return;
   try{
     const res=await fetch(API+'/api/auth/account',{method:'DELETE',headers:{'Authorization':'Bearer '+authToken}});
@@ -1722,7 +1723,7 @@ async function doImport(input){const f=input.files[0];if(!f)return;
   if(f.size>10*1024*1024){toast('File too large (max 10MB)','er');return}
   const pw=await askPassword('Re-enter master password to import data:');
   if(!pw){input.value='';return}
-  try{const hash=await deriveVerifyHash(pw,window._vaultSalt);if(hash!==window._verifyHash){toast('Wrong password — import denied','er');input.value='';return}}catch{toast('Authentication failed','er');input.value='';return}
+  try{const hash=await deriveVerifyHash(pw,_vaultSalt);if(hash!==_verifyHash){toast('Wrong password — import denied','er');input.value='';return}}catch{toast('Authentication failed','er');input.value='';return}
   const r=new FileReader();r.onload=e=>{try{
     const text=e.target.result;const ext=f.name.split('.').pop().toLowerCase();
     let items=[],fmt='Unknown';
@@ -1802,8 +1803,8 @@ async function doExport(fmt){
   const pw=await askPassword('Re-enter master password to export vault:');
   if(!pw)return;
   try{
-    const hash=await deriveVerifyHash(pw,window._vaultSalt);
-    if(hash!==window._verifyHash){toast('Wrong password — export denied','er');return}
+    const hash=await deriveVerifyHash(pw,_vaultSalt);
+    if(hash!==_verifyHash){toast('Wrong password — export denied','er');return}
   }catch{toast('Authentication failed','er');return}
   function csvSafe(s){if(!s)return'';s=String(s).replace(/"/g,'""');if(/^[=+\-@\t\r|]/.test(s))s="'"+s;return s}
   if(fmt==='json'){if(!confirm('WARNING: JSON export contains all passwords in plaintext. Keep this file secure and delete it after use.\n\nContinue with JSON export?'))return;dl(JSON.stringify(V.passwords,null,2),'wardkey-vault.json','application/json')}else{if(!confirm('WARNING: CSV export contains all passwords in plaintext. This file will NOT be encrypted. Make sure to delete it after use and never share it.\n\nContinue with CSV export?'))return;const csv='name,username,password,url,category\n'+V.passwords.map(p=>`"${csvSafe(p.name)}","${csvSafe(p.username)}","${csvSafe(p.password)}","${csvSafe(p.url)}","${csvSafe(p.cat)}"`).join('\n');dl(csv,'wardkey-vault.csv','text/csv')}$('impMo').classList.remove('on');logA('Vault exported','','gen');toast(`Exported as ${fmt.toUpperCase()}`,'ok')}
@@ -1813,8 +1814,8 @@ async function wipeVault(){
   const pw=await askPassword('Re-enter master password to confirm wipe:');
   if(!pw)return;
   try{
-    const hash=await deriveVerifyHash(pw,window._vaultSalt);
-    if(hash!==window._verifyHash){toast('Wrong password — wipe denied','er');return}
+    const hash=await deriveVerifyHash(pw,_vaultSalt);
+    if(hash!==_verifyHash){toast('Wrong password — wipe denied','er');return}
   }catch{toast('Authentication failed','er');return}
   localStorage.removeItem('wardkey_v4');localStorage.removeItem('wardkey_v3');
   secureClear();lock();toast('Vault permanently wiped','er');
