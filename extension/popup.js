@@ -843,15 +843,55 @@ $('authPw').onkeydown = e => { if (e.key === 'Enter') $('authLoginBtn').click();
 $('regPwConf').onkeydown = e => { if (e.key === 'Enter') $('authRegBtn').click(); };
 
 // ═══════ SAVE PASSWORD PROMPT ═══════
+async function doSavePending(pending, password) {
+  // Check if credential exists for this domain+username (exact domain match)
+  const existing = (vault.passwords || []).find(p => {
+    try {
+      let raw = (p.url || '').trim().toLowerCase();
+      if (!raw) return false;
+      if (!/^https?:\/\//.test(raw)) raw = 'https://' + raw;
+      const host = new URL(raw).hostname.replace(/^www\./, '');
+      return host === pending.domain &&
+        (p.username || '').toLowerCase() === (pending.username || '').toLowerCase();
+    } catch { return false; }
+  });
+
+  if (existing) {
+    if (existing.password !== password) {
+      if (!existing.history) existing.history = [];
+      existing.history.push({ pw: existing.password, changed: Date.now() });
+      existing.password = password;
+      existing.modified = Date.now();
+    }
+  } else {
+    vault.passwords.push({
+      id: crypto.randomUUID(),
+      name: pending.domain,
+      username: pending.username || '',
+      password: password,
+      url: 'https://' + pending.domain,
+      cat: '', tags: [], notes: '',
+      created: Date.now(), modified: Date.now(),
+      history: [], icon: '🔑', fav: false, sens: false, fields: []
+    });
+  }
+
+  await saveVault();
+  await chrome.storage.session?.remove('wardkey_pendingSave');
+  $('saveBanner').classList.remove('on');
+  renderList();
+  toast(existing ? 'Password updated' : 'Password saved');
+}
+
 async function checkPendingSave() {
   const data = await chrome.storage.session?.get('wardkey_pendingSave');
   if (!data?.wardkey_pendingSave) { $('saveBanner').classList.remove('on'); return; }
 
   const pending = data.wardkey_pendingSave;
 
-  // If user already confirmed via the page dialog AND password was captured, auto-save
+  // If user already confirmed via the page dialog AND password was captured, auto-save silently
   if (pending.confirmed && pending.password) {
-    $('saveBannerYes').click();
+    await doSavePending(pending, pending.password);
     return;
   }
 
@@ -893,47 +933,7 @@ $('saveBannerYes').onclick = async () => {
     return;
   }
 
-  // Clear password from session storage immediately after reading
-  pending.password = undefined;
-  await chrome.storage.session?.set({ wardkey_pendingSave: pending });
-
-  // Check if credential exists for this domain+username (exact domain match)
-  const existing = (vault.passwords || []).find(p => {
-    try {
-      let raw = (p.url || '').trim().toLowerCase();
-      if (!raw) return false;
-      if (!/^https?:\/\//.test(raw)) raw = 'https://' + raw;
-      const host = new URL(raw).hostname.replace(/^www\./, '');
-      return host === pending.domain &&
-        (p.username || '').toLowerCase() === (pending.username || '').toLowerCase();
-    } catch { return false; }
-  });
-
-  if (existing) {
-    if (existing.password !== password) {
-      if (!existing.history) existing.history = [];
-      existing.history.push({ pw: existing.password, changed: Date.now() });
-      existing.password = password;
-      existing.modified = Date.now();
-    }
-  } else {
-    vault.passwords.push({
-      id: crypto.randomUUID(),
-      name: pending.domain,
-      username: pending.username || '',
-      password: password,
-      url: 'https://' + pending.domain,
-      cat: '', tags: [], notes: '',
-      created: Date.now(), modified: Date.now(),
-      history: [], icon: '🔑', fav: false, sens: false, fields: []
-    });
-  }
-
-  await saveVault();
-  await chrome.storage.session?.remove('wardkey_pendingSave');
-  $('saveBanner').classList.remove('on');
-  renderList();
-  toast(existing ? 'Password updated' : 'Password saved');
+  await doSavePending(pending, password);
 };
 
 $('saveBannerNo').onclick = async () => {
