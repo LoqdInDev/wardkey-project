@@ -65,7 +65,7 @@ footer a:hover{color:var(--tx1)}
 
 <div class="legal">
 <h1>Terms of Service</h1>
-<p class="updated">Last updated: February 11, 2026</p>
+<p class="updated">Last updated: February 15, 2026</p>
 
 <div class="highlight">
 <p><strong>The short version:</strong> By using WARDKEY, you agree to these terms. You own your data. We provide a tool to help you manage it securely. Use it responsibly.</p>
@@ -84,14 +84,19 @@ footer a:hover{color:var(--tx1)}
 </ul>
 
 <h2>3. Description of Service</h2>
-<p>WARDKEY is a password manager with zero-knowledge vault encryption that helps you securely store and manage passwords, payment cards, secure notes, TOTP keys, and other sensitive data. Key features include:</p>
+<p>WARDKEY is a password manager with zero-knowledge vault encryption that helps you securely store and manage passwords, payment cards, secure notes, TOTP keys, API keys, software licenses, passkeys, and other sensitive data. Key features include:</p>
 <ul>
 <li><strong>Local-first storage:</strong> Your vault is encrypted and stored on your device by default</li>
 <li><strong>Optional cloud sync:</strong> Encrypted vault data can be synced across devices via our servers</li>
 <li><strong>Browser extension:</strong> Autofill and save credentials on websites</li>
 <li><strong>Password generator:</strong> Create strong, unique passwords</li>
+<li><strong>TOTP authenticator:</strong> Store and generate time-based one-time password codes</li>
 <li><strong>Security Monitor:</strong> Identify weak, reused, or old passwords</li>
-<li><strong>AI-enhanced analysis (optional):</strong> Password Analyzer, Security Report, and Phishing Detector powered by Anthropic's Claude AI. These features send anonymized vault metadata (never passwords) to our servers for processing</li>
+<li><strong>Breach scanner:</strong> Check your passwords against the Have I Been Pwned database using k-anonymity (only partial password hashes are sent)</li>
+<li><strong>Secure sharing:</strong> Share credentials via time-limited, view-limited encrypted links. Encryption keys are embedded in the URL fragment and never sent to our servers</li>
+<li><strong>Emergency access:</strong> Designate trusted contacts who can request access to your vault with a configurable waiting period</li>
+<li><strong>Import/Export:</strong> Import from other password managers (LastPass, 1Password, Bitwarden, Chrome) and export your vault data</li>
+<li><strong>AI-enhanced analysis (optional):</strong> Password Analyzer and Security Report powered by Anthropic's Claude AI send anonymized vault metadata (never passwords) to our servers. The Phishing Detector sends user-provided content (text or URLs you paste) for analysis</li>
 </ul>
 
 <h2>4. Your Responsibilities</h2>
@@ -230,7 +235,7 @@ footer a:hover{color:var(--tx1)}
 <h3>12.1 By You</h3>
 <p>You may stop using the Service and delete your account at any time. Upon account deletion:</p>
 <ul>
-<li>Your cloud-stored encrypted vault will be permanently deleted within 30 days</li>
+<li>Your cloud-stored encrypted vault will be permanently deleted</li>
 <li>Your local vault on your device(s) will remain unless you manually remove it</li>
 <li>Any active Pro subscription will be canceled (no refund for partial periods unless within the 30-day guarantee)</li>
 </ul>

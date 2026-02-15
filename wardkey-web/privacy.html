@@ -69,7 +69,7 @@ footer a:hover{color:var(--tx1)}
 
 <div class="legal">
 <h1>Privacy Policy</h1>
-<p class="updated">Last updated: February 11, 2026</p>
+<p class="updated">Last updated: February 15, 2026</p>
 
 <div class="highlight">
 <p><strong>The short version:</strong> WARDKEY uses zero-knowledge vault encryption. We cannot read, access, or decrypt your vault data. Your master password never leaves your device. We collect the minimum data needed to provide our service. Optional AI features, when activated, send anonymized metadata (never passwords) to our servers for analysis.</p>
@@ -118,12 +118,21 @@ footer a:hover{color:var(--tx1)}
 <tr><td>Error logs</td><td>Debugging and service reliability</td><td>30 days</td></tr>
 </table>
 
-<h3>3.4 Information We Do NOT Collect</h3>
+<h3>3.4 Breach Scanner</h3>
+<p>When you use the breach scanner, partial SHA-1 hashes of your passwords (the first 5 characters only) are sent to our server, which queries the <strong>Have I Been Pwned</strong> Pwned Passwords API using a k-anonymity model. Your full passwords or full hashes are never transmitted. The k-anonymity approach means neither our server nor HIBP can determine your actual passwords from the prefixes sent.</p>
+
+<h3>3.5 Emergency Access</h3>
+<p>When you add an emergency contact, we send email notifications to the contact's email address on your behalf (invitation, access request notifications, approvals, and denials). The email addresses of your emergency contacts are stored on our servers to facilitate this feature.</p>
+
+<h3>3.6 Share Links</h3>
+<p>When you create a share link, the encrypted credential data is stored on our server. The decryption key is embedded in the URL fragment (the part after the # symbol) and is <strong>never sent to our server</strong>. Only the recipient with the full URL can decrypt the shared data.</p>
+
+<h3>3.7 Information We Do NOT Collect</h3>
 <ul>
 <li>Your master password (never transmitted)</li>
 <li>Decrypted vault contents</li>
 <li>Browsing history or website visits</li>
-<li>Keystrokes or form data (the extension only interacts with login fields when explicitly activated)</li>
+<li>Keystrokes or form data (the extension only interacts with login fields when it detects them)</li>
 <li>Analytics or tracking data from the extension</li>
 <li>Data from other extensions or tabs</li>
 </ul>
@@ -206,7 +215,7 @@ footer a:hover{color:var(--tx1)}
 <h2>9. Browser Extension Privacy</h2>
 <p>The WARDKEY browser extension:</p>
 <ul>
-<li>Only activates on web pages when you interact with it or when it detects login forms</li>
+<li>A content script runs on web pages to detect login forms; it only interacts with form fields when credentials are available or when you initiate autofill</li>
 <li>Does <strong>not</strong> collect browsing history, page content, or analytics</li>
 <li>Does <strong>not</strong> communicate with any third-party servers — only with api.wardkey.io for vault sync</li>
 <li>Stores vault data locally in <code>chrome.storage.local</code> (encrypted)</li>
@@ -238,7 +247,11 @@ footer a:hover{color:var(--tx1)}
 <p>All third-party providers are bound by data processing agreements and are prohibited from using your data for any purpose other than providing their service to us.</p>
 
 <h3>AI Analysis Services</h3>
-<p>When you use WARDKEY's AI-enhanced features (Password Analyzer, Security Report, Phishing Detector), anonymized metadata about your vault (such as password strength scores, character class distributions, and item counts) is sent to our servers and processed using Anthropic's Claude AI. <strong>Your actual passwords are never sent.</strong> Password characteristics (length, complexity metrics) are transmitted for analysis. You can use WARDKEY without ever activating AI features — they are entirely optional.</p>
+<p>When you use WARDKEY's AI-enhanced features, data is sent to our servers and processed using Anthropic's Claude AI. You can use WARDKEY without ever activating AI features — they are entirely optional.</p>
+<ul>
+<li><strong>Password Analyzer &amp; Security Report:</strong> Anonymized vault metadata (password strength scores, character class distributions, item counts, reuse counts, age metrics) is sent. <strong>Your actual passwords are never sent.</strong></li>
+<li><strong>Phishing Detector:</strong> The text or URL you paste into the analyzer is sent to our servers for AI analysis. <strong>Do not paste content containing passwords or sensitive credentials.</strong> Only paste suspicious emails, messages, or URLs you want checked for phishing indicators.</li>
+</ul>
 <table>
 <tr><th>Data Sent to AI</th><th>Data Never Sent</th></tr>
 <tr><td>Password length, character class distribution, strength score</td><td>Actual passwords, usernames, URLs</td></tr>
