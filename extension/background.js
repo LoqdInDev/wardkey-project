@@ -143,6 +143,16 @@ chrome.alarms.onAlarm.addListener((alarm) => {
       });
     });
   }
+  // Clear pending save password after 5 minutes to avoid lingering plaintext
+  if (alarm.name === 'wardkey-clear-pending-pw') {
+    chrome.storage.session?.get('wardkey_pendingSave', (data) => {
+      if (data?.wardkey_pendingSave?.password) {
+        const updated = { ...data.wardkey_pendingSave };
+        delete updated.password;
+        chrome.storage.session?.set({ wardkey_pendingSave: updated });
+      }
+    });
+  }
 });
 
 // ═══════ NEVER-SAVE LIST ═══════
@@ -255,16 +265,21 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.domain && msg.domain !== senderHost) return;
 
     (async () => {
-      await chrome.storage.session.set({
-        wardkey_pendingSave: {
-          domain: msg.domain,
-          username: msg.username,
-          hasPassword: true,
-          url: msg.url,
-          timestamp: Date.now(),
-          confirmed: true
-        }
-      });
+      const saveData = {
+        domain: msg.domain,
+        username: msg.username,
+        hasPassword: true,
+        url: msg.url,
+        timestamp: Date.now(),
+        confirmed: true
+      };
+      // Store password if captured at click time (before page navigates)
+      if (typeof msg.password === 'string' && msg.password) {
+        saveData.password = msg.password;
+        // Auto-clear password after 5 minutes if popup never opens
+        chrome.alarms.create('wardkey-clear-pending-pw', { delayInMinutes: 5 });
+      }
+      await chrome.storage.session.set({ wardkey_pendingSave: saveData });
       chrome.runtime.sendMessage({ type: 'WARDKEY_PENDING_SAVE' }).catch(() => {});
     })();
   }

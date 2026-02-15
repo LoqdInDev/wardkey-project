@@ -268,7 +268,10 @@
     });
 
     saveBtn.onclick = () => {
-      chrome.runtime.sendMessage({ type: 'WARDKEY_SAVE_CONFIRM', domain: data.domain, username: data.username, url: data.url }).catch(() => {});
+      // Capture password NOW before page navigates away
+      const fields = findFields();
+      const pw = fields.password?.value || fields.newPassword?.value || '';
+      chrome.runtime.sendMessage({ type: 'WARDKEY_SAVE_CONFIRM', domain: data.domain, username: data.username, url: data.url, password: pw }).catch(() => {});
       closeDialog();
     };
 
@@ -445,10 +448,12 @@
     window.addEventListener('load', () => setTimeout(checkPendingSaveOnLoad, 500));
   }
 
+  let _iconDebounce, _trackDebounce;
   const observer = new MutationObserver(() => {
-    setTimeout(injectIcons, 300);
-    // Re-check for new password fields to track
-    setTimeout(trackCredentialFields, 500);
+    clearTimeout(_iconDebounce);
+    clearTimeout(_trackDebounce);
+    _iconDebounce = setTimeout(injectIcons, 300);
+    _trackDebounce = setTimeout(trackCredentialFields, 500);
   });
   observer.observe(document.body, { childList: true, subtree: true });
 })();

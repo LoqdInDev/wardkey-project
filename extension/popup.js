@@ -849,10 +849,10 @@ async function checkPendingSave() {
 
   const pending = data.wardkey_pendingSave;
 
-  // If user already confirmed via the page dialog, show save banner
-  // (password is not stored in session storage for security — user confirms in popup)
-  if (pending.confirmed) {
-    // Show banner so user can save from the popup
+  // If user already confirmed via the page dialog AND password was captured, auto-save
+  if (pending.confirmed && pending.password) {
+    $('saveBannerYes').click();
+    return;
   }
 
   $('saveBannerTitle').textContent = `Save password for ${pending.domain}?`;
@@ -866,23 +866,25 @@ $('saveBannerYes').onclick = async () => {
 
   const pending = data.wardkey_pendingSave;
 
-  // Request password from the active tab's content script at save time
-  let password = '';
-  try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tab?.id) {
-      try {
-        const tabHost = new URL(tab.url).hostname.replace(/^www\./, '');
-        if (pending?.domain && tabHost !== pending.domain) {
-          toast('Tab changed — save cancelled');
-          $('saveBanner').classList.remove('on');
-          return;
-        }
-      } catch {}
-      const resp = await chrome.tabs.sendMessage(tab.id, { type: 'WARDKEY_GET_PASSWORD' });
-      password = resp?.password || '';
-    }
-  } catch { /* content script not available */ }
+  // Use password captured at click time (stored in session), fall back to content script query
+  let password = pending.password || '';
+  if (!password) {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id) {
+        try {
+          const tabHost = new URL(tab.url).hostname.replace(/^www\./, '');
+          if (pending?.domain && tabHost !== pending.domain) {
+            toast('Tab changed — save cancelled');
+            $('saveBanner').classList.remove('on');
+            return;
+          }
+        } catch {}
+        const resp = await chrome.tabs.sendMessage(tab.id, { type: 'WARDKEY_GET_PASSWORD' });
+        password = resp?.password || '';
+      }
+    } catch { /* content script not available */ }
+  }
 
   if (!password) {
     toast('Could not retrieve password — add manually', 'er');
@@ -890,6 +892,10 @@ $('saveBannerYes').onclick = async () => {
     $('saveBanner').classList.remove('on');
     return;
   }
+
+  // Clear password from session storage immediately after reading
+  pending.password = undefined;
+  await chrome.storage.session?.set({ wardkey_pendingSave: pending });
 
   // Check if credential exists for this domain+username (exact domain match)
   const existing = (vault.passwords || []).find(p => {

@@ -62,10 +62,15 @@ app.use('/api/admin', (req, res, next) => {
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean);
 // Also allow www variants automatically
 const allOrigins = [...new Set(allowedOrigins.flatMap(o => {
-  const u = new URL(o);
-  return u.hostname.startsWith('www.')
-    ? [o, o.replace('://www.', '://')]
-    : [o, o.replace('://', '://www.')];
+  try {
+    const u = new URL(o);
+    return u.hostname.startsWith('www.')
+      ? [o, o.replace('://www.', '://')]
+      : [o, o.replace('://', '://www.')];
+  } catch {
+    console.error(`Invalid ALLOWED_ORIGINS entry: ${o}`);
+    return [];
+  }
 }))];
 app.use(cors({
   origin: allOrigins,
