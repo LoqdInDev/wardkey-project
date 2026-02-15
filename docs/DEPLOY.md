@@ -528,8 +528,8 @@ const ASSETS = [
    - Best times: 8-10 AM EST weekdays
 
 3. **Reddit**
-   - r/selfhosted — emphasize local-first, open-source angle
-   - r/privacy — zero-knowledge architecture
+   - r/selfhosted — emphasize local-first, self-hostable architecture
+   - r/privacy — zero-knowledge vault encryption
    - r/cybersecurity — AI security analysis features
    - r/webdev — tech stack discussion
 
@@ -541,7 +541,7 @@ const ASSETS = [
 
 5. **Blog post / Dev.to article**
    - "Why I Built WARDKEY: The Password Manager I Wanted But Didn't Exist"
-   - Cover: local-first architecture, AI integration, zero-knowledge design
+   - Cover: local-first architecture, AI integration, zero-knowledge vault encryption
 
 6. **YouTube demo video**
    - 2-3 minute walkthrough of key features

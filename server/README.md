@@ -77,7 +77,7 @@ wardkey/
 |-------|-----------|
 | Encryption | AES-256-GCM (client-side) |
 | Key Derivation | PBKDF2 with 600,000 iterations |
-| Zero-Knowledge | Server never sees decrypted data |
+| Zero-Knowledge Vault Encryption | Server never sees decrypted data |
 | Auth | bcrypt (12 rounds) + JWT |
 | Transport | HTTPS/TLS 1.3 |
 | Storage | Encrypted blobs only |

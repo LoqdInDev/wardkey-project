@@ -1008,7 +1008,7 @@ checkFirstRun();
 
 // ════════ ONBOARDING TOUR ════════
 const OB_SLIDES=[
-{icon:'🔐',title:'Welcome to WARDKEY',desc:'Your zero-knowledge, local-first vault. All encryption happens on your device — your data never leaves unprotected.',tags:['End-to-End Encrypted','Offline-First','Auditable Code']},
+{icon:'🔐',title:'Welcome to WARDKEY',desc:'Your local-first vault with zero-knowledge vault encryption. All encryption happens on your device — your data never leaves unprotected.',tags:['End-to-End Encrypted','Offline-First','Auditable Code']},
 {icon:'🔑',title:'Passwords',desc:'Store unlimited credentials with automatic strength scoring, breach detection, and smart organization.',tags:['Strength Score','Breach Alerts','Categories & Tags']},
 {icon:'💳',title:'Cards & IDs',desc:'Keep credit cards, IDs, and payment methods in your vault. Copy any field with one click.',tags:['Credit Cards','IDs','One-Click Copy']},
 {icon:'📝',title:'Secure Notes',desc:'Encrypted free-form notes for recovery codes, Wi-Fi passwords, sensitive documents, and more.',tags:['Recovery Codes','Wi-Fi Keys','Private Docs']},
@@ -1896,7 +1896,7 @@ function runAiPw(){
   const sequential=(pw.match(/(012|123|234|345|456|567|678|789|abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)/gi)||[]).length;
   const entropy=Math.round(Math.log2(Math.pow(charClasses.length*20,pw.length/4)));
   const sys=`You are a cybersecurity expert analyzing password characteristics (NOT the actual password — it is never shared). Be specific and actionable. Use **bold** for emphasis. Start with a severity rating (use exactly one of: CRITICAL, WARNING, or SAFE). Then analyze the characteristics provided: composition quality, pattern concerns, estimated crack time (online throttled vs offline GPU), entropy assessment, and end with 3 specific improvement suggestions. Keep it concise but thorough.`;
-  const prompt=`Analyze these password characteristics (the actual password is NOT provided for zero-knowledge security):
+  const prompt=`Analyze these password characteristics (the actual password is NOT provided for zero-knowledge vault encryption):
 
 Length: ${pw.length}
 Strength Score: ${Math.round(s.s)}/100

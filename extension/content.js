@@ -180,7 +180,7 @@
 
         chrome.runtime.sendMessage({
           type: 'WARDKEY_STORE_CAPTURE',
-          domain: location.hostname.replace('www.', ''),
+          domain: location.hostname.replace(/^www\./, ''),
           username,
           hasPassword: true,
           url: location.href,
@@ -359,6 +359,10 @@
     }
 
     if (msg.type === 'WARDKEY_FILL_PW') {
+      if (location.protocol !== 'http:' && location.protocol !== 'https:') {
+        sendResponse({ success: false, error: 'Invalid protocol' });
+        return;
+      }
       const fields = findFields();
       const target = fields.newPassword || fields.password;
       if (target && msg.password) {
@@ -374,7 +378,7 @@
         hasLogin: !!(fields.username || fields.password),
         hasUsername: !!fields.username,
         hasPassword: !!fields.password,
-        domain: location.hostname.replace('www.', '')
+        domain: location.hostname.replace(/^www\./, '')
       });
     }
 

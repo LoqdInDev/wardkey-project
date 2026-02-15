@@ -1,6 +1,6 @@
 # 🔐 WARDKEY — AI-Enhanced Password Manager
 
-A local-first, zero-knowledge password manager with AES-256-GCM encryption, built as a single-file PWA with a Chrome extension and backend API.
+A local-first password manager with zero-knowledge vault encryption with AES-256-GCM encryption, built as a single-file PWA with a Chrome extension and backend API.
 
 ## Project Structure
 
@@ -52,7 +52,7 @@ wardkey-project/
 - **Encryption:** AES-256-GCM (authenticated encryption)
 - **Key Derivation:** PBKDF2 with 600,000 iterations + SHA-256
 - **Verification:** Separate SHA-512 hash (310K iterations) for password validation without exposing encryption key
-- **Zero-knowledge:** Server only stores encrypted blobs — cannot read vault contents
+- **Zero-knowledge vault encryption:** Server only stores encrypted blobs — cannot read vault contents
 - **Memory protection:** Keys wiped from memory on lock, clipboard auto-clears after 30s
 - **Brute force:** 5 attempts max, 60-second lockout, remaining attempts counter
 - **Browser hardening:** CSP, frame-ancestors:none, no-referrer, X-Content-Type-Options

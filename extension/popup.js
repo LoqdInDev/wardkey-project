@@ -306,7 +306,7 @@ async function getCurrentSite() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tab?.url) {
       const url = new URL(tab.url);
-      currentDomain = url.hostname.replace('www.', '');
+      currentDomain = url.hostname.replace(/^www\./, '');
       $('curSite').textContent = currentDomain;
     }
   } catch { currentDomain = ''; }
