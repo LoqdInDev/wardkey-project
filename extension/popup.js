@@ -312,7 +312,7 @@ async function getCurrentSite() {
   } catch { currentDomain = ''; }
 }
 
-const SHARED_HOSTS = ['github.io','herokuapp.com','netlify.app','vercel.app','pages.dev','gitlab.io','firebaseapp.com','web.app','azurewebsites.net'];
+const SHARED_HOSTS = ['github.io','herokuapp.com','netlify.app','vercel.app','pages.dev','gitlab.io','firebaseapp.com','web.app','azurewebsites.net','blogspot.com','wordpress.com','appspot.com','cloudfront.net'];
 
 function getMatches() {
   if (!currentDomain || !vault.passwords) return [];
@@ -1005,6 +1005,10 @@ $('genFill').onclick = async () => {
   if (!genPw) return;
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.url || (!tab.url.startsWith('http:') && !tab.url.startsWith('https:'))) {
+      copyPw(genPw);
+      return;
+    }
     await chrome.tabs.sendMessage(tab.id, { type: 'WARDKEY_FILL_PW', password: genPw });
     toast('Filled');
   } catch { copyPw(genPw); }

@@ -26,7 +26,7 @@ async function send(to, subject, html) {
   const from = process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@wardkey.io';
 
   if (!configured) {
-    console.log(`[EMAIL] To: ${to} | Subject: ${subject}\n${html.replace(/<[^>]+>/g, '')}\n`);
+    console.log(`[EMAIL] To: ${to} | Subject: ${subject} (body redacted — SMTP not configured)`);
     return { messageId: 'console-' + Date.now() };
   }
 
