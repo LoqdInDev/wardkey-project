@@ -79,8 +79,8 @@ router.get('/incoming', authenticate, (req, res) => {
   res.json({ contacts });
 });
 
-// ═══════ CONFIRM INVITATION (public, token-based) ═══════
-router.post('/confirm/:token', (req, res) => {
+// ═══════ CONFIRM INVITATION (requires auth to bind grantee identity) ═══════
+router.post('/confirm/:token', authenticate, (req, res) => {
   if (!/^[0-9a-f]{48}$/.test(req.params.token)) return res.status(400).json({ error: 'Invalid token format' });
   const db = getDB();
   const contact = db.prepare(
@@ -91,23 +91,8 @@ router.post('/confirm/:token', (req, res) => {
     return res.status(404).json({ error: 'Invalid or already used invitation link' });
   }
 
-  // Link grantee_id if the confirming user is authenticated
-  const authHeader = req.headers.authorization;
-  let granteeId = null;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    try {
-      const jwt = require('jsonwebtoken');
-      const decoded = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET, { algorithms: ['HS256'] });
-      if (decoded.id && !decoded.purpose) granteeId = decoded.id;
-    } catch {}
-  }
-
-  const updates = granteeId
-    ? db.prepare('UPDATE emergency_contacts SET status = ?, grantee_id = ?, invite_token = NULL WHERE id = ?')
-    : db.prepare('UPDATE emergency_contacts SET status = ?, invite_token = NULL WHERE id = ?');
-
-  if (granteeId) updates.run('confirmed', granteeId, contact.id);
-  else updates.run('confirmed', contact.id);
+  db.prepare('UPDATE emergency_contacts SET status = ?, grantee_id = ?, invite_token = NULL WHERE id = ?')
+    .run('confirmed', req.user.id, contact.id);
 
   auditLog(contact.grantor_id, 'emergency_confirmed', contact.grantee_email, req);
 

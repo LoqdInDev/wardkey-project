@@ -396,7 +396,7 @@ footer a{color:var(--tx2);text-decoration:none}
     </div>
     <div class="hero-free">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-      No credit card · No account · Free during launch — just download and go
+      No credit card · No account needed for local use · Free during launch
     </div>
   </div>
 </section>
@@ -556,7 +556,7 @@ footer a{color:var(--tx2);text-decoration:none}
     <div class="comp-h reveal">
       <span class="tag" style="margin-bottom:16px">Comparison</span>
       <h2>How WARDKEY <span class="grad-text">stacks up</span></h2>
-      <p>Feature-for-feature against the most popular password managers</p>
+      <p>See how we compare to the typical password manager</p>
     </div>
     <div class="comp-w reveal">
       <table class="comp-t">
@@ -564,167 +564,125 @@ footer a{color:var(--tx2);text-decoration:none}
           <tr>
             <th>Feature</th>
             <th class="hl hl-name">WARDKEY</th>
-            <th>1Password</th>
-            <th>Bitwarden</th>
-            <th>Dashlane</th>
+            <th>Industry Average</th>
           </tr>
         </thead>
         <tbody>
           <!-- PRICING -->
-          <tr><td colspan="5" class="comp-cat">💰 Pricing</td></tr>
+          <tr><td colspan="3" class="comp-cat">💰 Pricing</td></tr>
           <tr>
-            <td class="feat-name">Monthly cost</td>
+            <td class="feat-name">Cost</td>
             <td class="hl comp-price" style="color:var(--gn2)">Free / $1.49 Pro</td>
-            <td class="comp-price">$2.99/mo</td>
-            <td class="comp-price">$0.83/mo</td>
-            <td class="comp-price">$3.75/mo</td>
-          </tr>
-          <tr>
-            <td class="feat-name">Annual cost</td>
-            <td class="hl comp-price" style="color:var(--gn2)">Free / $14.99 Pro</td>
-            <td class="comp-price">$35.88</td>
-            <td class="comp-price">$10.00</td>
-            <td class="comp-price">$45.00</td>
+            <td class="comp-price">$2–4/mo</td>
           </tr>
           <tr>
             <td class="feat-name">Free tier</td>
-            <td class="hl yes">✓ 50 passwords</td>
-            <td class="no">14-day trial</td>
-            <td class="yes">✓ Unlimited</td>
-            <td class="partial">⚠ Limited</td>
+            <td class="hl yes">✓ All features during launch</td>
+            <td class="partial">⚠ Limited or trial only</td>
           </tr>
           <tr>
             <td class="feat-name">No account required</td>
-            <td class="hl yes">✓</td>
-            <td class="no">✗</td>
-            <td class="no">✗</td>
-            <td class="no">✗</td>
+            <td class="hl yes">✓ For local vault use</td>
+            <td class="no">✗ Account always required</td>
           </tr>
 
           <!-- SECURITY -->
-          <tr><td colspan="5" class="comp-cat">🔒 Security</td></tr>
+          <tr><td colspan="3" class="comp-cat">🔒 Security</td></tr>
           <tr>
             <td class="feat-name">Encryption</td>
             <td class="hl">AES-256-GCM</td>
             <td>AES-256</td>
-            <td>AES-256</td>
-            <td>AES-256</td>
           </tr>
           <tr>
-            <td class="feat-name">KDF iterations</td>
-            <td class="hl" style="font-family:var(--mono)">600,000</td>
-            <td style="font-family:var(--mono)">650,000</td>
-            <td style="font-family:var(--mono)">600,000</td>
-            <td style="font-family:var(--mono)">600,000</td>
+            <td class="feat-name">Key derivation</td>
+            <td class="hl" style="font-family:var(--mono)">PBKDF2 · 600K iterations</td>
+            <td style="font-family:var(--mono)">PBKDF2 or Argon2 · 600K+</td>
           </tr>
           <tr>
-            <td class="feat-name">Local-first / offline</td>
-            <td class="hl yes">✓ Always</td>
-            <td class="partial">⚠ Offline capable</td>
-            <td class="yes">✓ Self-host</td>
-            <td class="no">✗ Cloud only</td>
-          </tr>
-          <tr>
-            <td class="feat-name">ZK vault encryption</td>
+            <td class="feat-name">Zero-knowledge vault encryption</td>
             <td class="hl yes">✓</td>
-            <td class="yes">✓</td>
-            <td class="yes">✓</td>
-            <td class="yes">✓</td>
+            <td class="yes">✓ Industry standard</td>
+          </tr>
+          <tr>
+            <td class="feat-name">Local-first / works offline</td>
+            <td class="hl yes">✓ Always — no server needed</td>
+            <td class="no">✗ Cloud-dependent (most)</td>
           </tr>
 
-          <!-- FEATURES -->
-          <tr><td colspan="5" class="comp-cat">⚡ Features</td></tr>
+          <!-- STANDARD FEATURES -->
+          <tr><td colspan="3" class="comp-cat">⚡ Standard Features</td></tr>
           <tr>
-            <td class="feat-name">Built-in TOTP</td>
+            <td class="feat-name">Password generator</td>
             <td class="hl yes">✓ Free</td>
-            <td class="yes">✓ Included</td>
-            <td class="yes">✓ Premium</td>
-            <td class="yes">✓ Paid</td>
+            <td class="yes">✓ Universal</td>
+          </tr>
+          <tr>
+            <td class="feat-name">Built-in TOTP authenticator</td>
+            <td class="hl yes">✓ Free</td>
+            <td class="partial">⚠ Usually paid add-on</td>
           </tr>
           <tr>
             <td class="feat-name">Security dashboard</td>
             <td class="hl yes">✓ Security Monitor</td>
-            <td class="yes">✓ Watchtower&trade;</td>
-            <td class="yes">✓ Reports</td>
-            <td class="yes">✓ Health</td>
+            <td class="yes">✓ Common</td>
           </tr>
           <tr>
             <td class="feat-name">Breach monitoring</td>
             <td class="hl yes">✓</td>
-            <td class="yes">✓</td>
-            <td class="yes">✓ Vault health</td>
-            <td class="yes">✓ + Dark web</td>
+            <td class="yes">✓ Common</td>
+          </tr>
+          <tr>
+            <td class="feat-name">Secure sharing</td>
+            <td class="hl yes">✓ One-time links</td>
+            <td class="partial">⚠ Varies by provider</td>
+          </tr>
+          <tr>
+            <td class="feat-name">Emergency access</td>
+            <td class="hl yes">✓ With waiting period</td>
+            <td class="partial">⚠ Some providers</td>
           </tr>
           <tr>
             <td class="feat-name">Travel Mode</td>
             <td class="hl yes">✓</td>
-            <td class="yes">✓</td>
-            <td class="no">✗</td>
-            <td class="no">✗</td>
-          </tr>
-          <tr>
-            <td class="feat-name">Emergency access</td>
-            <td class="hl yes">✓</td>
-            <td class="yes">✓</td>
-            <td class="yes">✓</td>
-            <td class="yes">✓</td>
-          </tr>
-          <tr>
-            <td class="feat-name">One-time share links</td>
-            <td class="hl yes">✓</td>
-            <td class="yes">✓ Psst!</td>
-            <td class="yes">✓ Send</td>
-            <td class="no">✗</td>
+            <td class="no">✗ Rare</td>
           </tr>
 
-          <!-- UNIQUE -->
-          <tr><td colspan="5" class="comp-cat">🚀 Unique Features</td></tr>
+          <!-- WHAT MAKES US DIFFERENT -->
+          <tr><td colspan="3" class="comp-cat">🚀 What Makes Us Different</td></tr>
           <tr>
             <td class="feat-name">AI Password Analyzer</td>
-            <td class="hl yes">✓</td>
-            <td class="no">✗</td>
-            <td class="no">✗</td>
-            <td class="no">✗</td>
+            <td class="hl yes">✓ Powered by Claude</td>
+            <td class="no">✗ Not available</td>
           </tr>
           <tr>
             <td class="feat-name">AI Security Report</td>
-            <td class="hl yes">✓</td>
-            <td class="no">✗</td>
-            <td class="no">✗</td>
-            <td class="no">✗</td>
+            <td class="hl yes">✓ One-click vault audit</td>
+            <td class="no">✗ Not available</td>
           </tr>
           <tr>
             <td class="feat-name">AI Phishing Detector</td>
-            <td class="hl yes">✓</td>
-            <td class="no">✗</td>
-            <td class="no">✗</td>
-            <td class="no">✗</td>
+            <td class="hl yes">✓ Paste & analyze</td>
+            <td class="no">✗ Not available</td>
           </tr>
           <tr>
-            <td class="feat-name">API key vault</td>
-            <td class="hl yes">✓</td>
-            <td class="partial">⚠ Custom fields</td>
-            <td class="partial">⚠ Custom fields</td>
-            <td class="no">✗</td>
+            <td class="feat-name">Dedicated API key vault</td>
+            <td class="hl yes">✓ Built-in</td>
+            <td class="no">✗ Use custom fields</td>
           </tr>
           <tr>
-            <td class="feat-name">Software license mgmt</td>
-            <td class="hl yes">✓</td>
-            <td class="no">✗</td>
-            <td class="no">✗</td>
-            <td class="no">✗</td>
+            <td class="feat-name">Software license manager</td>
+            <td class="hl yes">✓ Built-in</td>
+            <td class="no">✗ Not available</td>
           </tr>
           <tr>
-            <td class="feat-name">Works fully offline</td>
-            <td class="hl yes">✓</td>
-            <td class="partial">⚠ Cached</td>
-            <td class="partial">⚠ Optional</td>
-            <td class="no">✗</td>
+            <td class="feat-name">Single-file architecture</td>
+            <td class="hl yes">✓ One HTML file, fully auditable</td>
+            <td class="no">✗ Proprietary clients</td>
           </tr>
         </tbody>
       </table>
     </div>
-    <p class="comp-note">Pricing as of February 2026. Competitor pricing reflects lowest available annual plan rate.</p>
+    <p class="comp-note">Industry averages based on 1Password, Bitwarden, Dashlane, NordPass, Keeper, and LastPass as of February 2026.</p>
   </div>
 </section>
 
