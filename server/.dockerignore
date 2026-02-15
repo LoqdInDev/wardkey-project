@@ -1,0 +1,9 @@
+.env
+data/
+*.db
+node_modules/
+.git/
+*.log
+.DS_Store
+Thumbs.db
+admin.html

@@ -684,7 +684,7 @@ function actionBadge(action) {
   else if (/password_changed/.test(action)) c = 'yellow';
   else if (/deleted|revoked/.test(action)) c = 'red';
   else if (/^admin_/.test(action)) c = 'blue';
-  return `<span class="badge badge-${c}">${action}</span>`;
+  return `<span class="badge badge-${c}">${esc(action)}</span>`;
 }
 
 function planBadge(p) {
@@ -707,7 +707,7 @@ function toast(msg, type = 'info', duration = 3500) {
   const icons = { success: '\u2713', error: '\u2717', info: '\u24D8', warn: '\u26A0' };
   const t = document.createElement('div');
   t.className = 'toast toast-' + type;
-  t.innerHTML = `<span class="toast-icon">${icons[type] || ''}</span><span class="toast-msg">${msg}</span>`;
+  t.innerHTML = `<span class="toast-icon">${icons[type] || ''}</span><span class="toast-msg">${esc(msg)}</span>`;
   $('toast-container').appendChild(t);
   setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 250); }, duration);
 }
