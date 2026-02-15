@@ -358,13 +358,12 @@ router.delete('/me', authenticate, sensitiveAuthLimiter, async (req, res) => {
 
   // Explicitly delete all user data in a transaction (don't rely solely on CASCADE)
   const deleteAccount = db.transaction(() => {
-    // Write audit entry BEFORE deleting data so it persists
-    auditLog(req.user.id, 'account_deleted', null, req);
     db.prepare('DELETE FROM vaults WHERE user_id = ?').run(req.user.id);
     db.prepare('DELETE FROM shares WHERE user_id = ?').run(req.user.id);
     db.prepare('DELETE FROM sync_log WHERE user_id = ?').run(req.user.id);
     db.prepare('DELETE FROM sessions WHERE user_id = ?').run(req.user.id);
     db.prepare('DELETE FROM emergency_contacts WHERE grantor_id = ? OR grantee_id = ?').run(req.user.id, req.user.id);
+    db.prepare('DELETE FROM audit_log WHERE user_id = ?').run(req.user.id);
     db.prepare('DELETE FROM users WHERE id = ?').run(req.user.id);
   });
   deleteAccount();

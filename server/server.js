@@ -231,7 +231,8 @@ setInterval(() => {
     ).all();
 
     for (const contact of expired) {
-      db.prepare("UPDATE emergency_contacts SET status = 'approved' WHERE id = ?").run(contact.id);
+      const updated = db.prepare("UPDATE emergency_contacts SET status = 'approved' WHERE id = ? AND status = 'requesting'").run(contact.id);
+      if (updated.changes === 0) continue; // Already denied or approved by grantor
       const tpl = emailService.emergencyApproved(contact.grantor_email);
       emailService.send(contact.grantee_email, tpl.subject, tpl.html).catch(err => {
         console.error('Failed to send auto-approval email:', err.message);

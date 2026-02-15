@@ -1534,8 +1534,8 @@ async function addEmerContact(){
 async function emerAction(id,action){
   if(!/^[a-zA-Z0-9_-]+$/.test(id)||!/^(approve|deny)$/.test(action))return;
   let body={};
-  if(action==='approve'){
-    const pw=prompt('Enter your master password to approve emergency access:');
+  if(action==='approve'||action==='deny'){
+    const pw=prompt('Enter your master password to '+action+' emergency access:');
     if(!pw)return;
     try{const hash=await deriveVerifyHash(pw,_vaultSalt);if(hash!==_verifyHash){toast('Wrong password','er');return}}catch{toast('Verification failed','er');return}
     body.password=pw;

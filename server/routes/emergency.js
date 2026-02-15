@@ -174,8 +174,17 @@ router.post('/:id/approve', authenticate, async (req, res) => {
 });
 
 // ═══════ DENY (grantor) ═══════
-router.post('/:id/deny', authenticate, (req, res) => {
+router.post('/:id/deny', authenticate, async (req, res) => {
+  const { password } = req.body || {};
+  if (!password || typeof password !== 'string') {
+    return res.status(400).json({ error: 'Password required to deny emergency access' });
+  }
   const db = getDB();
+  const user = db.prepare('SELECT password_hash FROM users WHERE id = ?').get(req.user.id);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  const valid = await bcrypt.compare(password, user.password_hash);
+  if (!valid) return res.status(401).json({ error: 'Invalid password' });
+
   const contact = db.prepare(
     'SELECT * FROM emergency_contacts WHERE id = ? AND grantor_id = ? AND status = ?'
   ).get(req.params.id, req.user.id, 'requesting');
