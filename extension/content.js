@@ -173,24 +173,27 @@
       if (trackedFields.has(field)) return;
       trackedFields.add(field);
 
-      const storeCapture = () => {
+      const storeCapture = (includePassword) => {
         const pw = (fields.password?.value || fields.newPassword?.value || '').trim();
         if (!pw) return;
         const username = (fields.username?.value || '').trim();
-
-        chrome.runtime.sendMessage({
+        const msg = {
           type: 'WARDKEY_STORE_CAPTURE',
           domain: location.hostname.replace(/^www\./, ''),
           username,
           hasPassword: true,
           url: location.href,
           timestamp: Date.now()
-        }).catch(() => {});
+        };
+        // Include password on blur of password fields (captures right before submit click)
+        if (includePassword) msg.password = pw;
+        chrome.runtime.sendMessage(msg).catch(() => {});
       };
 
-      field.addEventListener('input', storeCapture);
-      field.addEventListener('change', storeCapture);
-      field.addEventListener('blur', storeCapture);
+      const isPwField = (field === fields.password || field === fields.newPassword);
+      field.addEventListener('input', () => storeCapture(false));
+      field.addEventListener('change', () => storeCapture(false));
+      field.addEventListener('blur', () => storeCapture(isPwField));
     });
 
     // Detect form submission to capture password before page navigates away
