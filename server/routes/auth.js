@@ -34,7 +34,7 @@ const MFA_ENC_KEY = crypto.createHash('sha256').update(MFA_ENC_KEY_RAW + ':mfa-e
 
 function encryptMfaSecret(plaintext) {
   const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv('aes-256-gcm', MFA_ENC_KEY, iv);
+  const cipher = crypto.createCipheriv('aes-256-gcm', MFA_ENC_KEY, iv, { authTagLength: 16 });
   let encrypted = cipher.update(plaintext, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   const tag = cipher.getAuthTag().toString('hex');
@@ -50,7 +50,7 @@ function decryptMfaSecret(ciphertext) {
   if (!ivHex || !tagHex || !encrypted) throw new Error('Malformed encrypted MFA secret');
   const iv = Buffer.from(ivHex, 'hex');
   const tag = Buffer.from(tagHex, 'hex');
-  const decipher = crypto.createDecipheriv('aes-256-gcm', MFA_ENC_KEY, iv);
+  const decipher = crypto.createDecipheriv('aes-256-gcm', MFA_ENC_KEY, iv, { authTagLength: 16 });
   decipher.setAuthTag(tag);
   let decrypted = decipher.update(encrypted, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
