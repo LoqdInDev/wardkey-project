@@ -166,13 +166,13 @@ async function syncUp(blob) {
 }
 
 async function syncDown() {
-  if (!authToken || !_mk) return;
-  if (syncInProgress) return; // Don't overwrite a pending syncUp
+  if (!authToken || !_mk) return 'skip';
+  if (syncInProgress) return 'busy';
   syncInProgress = true;
   updateSyncDot('active');
   try {
     const res = await fetch(API + '/api/vault', { headers: { 'Authorization': 'Bearer ' + authToken } });
-    if (res.status === 401) { authToken = null; authUser = null; saveAuth(); toast('Session expired'); return; }
+    if (res.status === 401) { authToken = null; authUser = null; saveAuth(); toast('Session expired'); return 'error'; }
     if (!res.ok) throw new Error('Download failed');
     const data = await res.json();
     if (data.vault && data.vault.data) {
@@ -183,13 +183,11 @@ async function syncDown() {
         decrypted = await decrypt(data.vault.data, _mk);
       } catch {
         updateSyncDot('off');
-        toast('Sync failed: could not decrypt cloud vault');
-        return;
+        return 'decrypt_failed';
       }
       if (!decrypted || typeof decrypted !== 'object' || Array.isArray(decrypted)) {
         updateSyncDot('off');
-        toast('Sync failed: invalid vault data');
-        return;
+        return 'invalid';
       }
       // Only persist after successful decryption
       await chrome.storage.local.set({ wardkey_v4: data.vault });
@@ -200,15 +198,59 @@ async function syncDown() {
       _salt = salt;
       updateSyncDot('ok');
       renderList();
-      toast('Vault synced');
+      return 'synced';
     } else {
       updateSyncDot('ok');
+      return 'empty';
     }
   } catch {
     updateSyncDot('off');
-    toast('Sync failed');
+    return 'error';
   } finally {
     syncInProgress = false;
+  }
+}
+
+// Count total vault items for sync prompts
+function localItemCount() {
+  return (vault.passwords?.length || 0) + (vault.cards?.length || 0) +
+    (vault.notes?.length || 0) + (vault.totp?.length || 0) +
+    (vault.apikeys?.length || 0) + (vault.licenses?.length || 0);
+}
+
+// Handle post-login sync result
+async function handleSyncResult(result) {
+  if (result === 'synced') {
+    toast('Vault synced from cloud');
+  } else if (result === 'empty') {
+    const count = localItemCount();
+    if (count > 0) {
+      const keep = confirm(
+        `You have ${count} local item${count > 1 ? 's' : ''} saved offline.\n\n` +
+        `OK = Sync them to your cloud account\n` +
+        `Cancel = Start fresh (local items will be cleared)`
+      );
+      if (keep) {
+        const e = await encrypt(vault, _mk);
+        const blob = { v: CRYPTO_VERSION, salt: Array.from(_salt), verify: _verify, data: e };
+        await syncUp(blob);
+        toast('Local vault synced to cloud!');
+      } else {
+        vault = { passwords:[], cards:[], notes:[], totp:[], apikeys:[], licenses:[],
+          passkeys:[], aliases:[], breaches:[], trash:[], activity:[] };
+        await saveVault();
+        renderList();
+        toast('Started fresh');
+      }
+    } else {
+      toast('Signed in!');
+    }
+  } else if (result === 'decrypt_failed') {
+    toast('Cloud vault uses a different master password. Lock and re-unlock with the correct one to sync.', 'er');
+  } else if (result === 'error') {
+    toast('Could not reach cloud. Using local vault.');
+  } else {
+    toast('Signed in!');
   }
 }
 
@@ -292,7 +334,7 @@ $('unlockBtn').onclick = async () => {
   await checkPendingSave();
 
   // Auto sync on unlock (AFTER pending save is processed)
-  if (syncEnabled && authToken) syncDown();
+  if (syncEnabled && authToken) syncDown().then(r => { if (r === 'synced') toast('Vault synced'); });
 };
 
 $('masterPw').onkeydown = e => { if (e.key === 'Enter') $('unlockBtn').click(); };
@@ -656,7 +698,14 @@ function renderAccount() {
       </div>
       ${lockSettingHtml}`;
 
-    $('acctSyncBtn').onclick = () => { syncDown(); toast('Syncing...'); };
+    $('acctSyncBtn').onclick = async () => {
+      toast('Syncing...');
+      const r = await syncDown();
+      if (r === 'synced') toast('Vault synced');
+      else if (r === 'empty') toast('Cloud vault is empty');
+      else if (r === 'decrypt_failed') toast('Could not decrypt cloud vault', 'er');
+      else if (r === 'error') toast('Sync failed');
+    };
     $('acctLogoutBtn').onclick = () => {
       authToken = null;
       authUser = null;
@@ -757,10 +806,10 @@ $('authLoginBtn').onclick = async () => {
     await saveAuth();
     hideAuth();
 
-    // Download vault from cloud
-    await syncDown();
+    // Download vault from cloud and handle result
+    const syncResult = await syncDown();
     showPanel('vault');
-    toast('Signed in!');
+    await handleSyncResult(syncResult);
   } catch (e) {
     $('authErr').textContent = 'Connection error';
   } finally {
@@ -846,9 +895,9 @@ $('auth2faBtn').onclick = async () => {
     mfaTempTokenExpiry = 0;
     await saveAuth();
     hideAuth();
-    await syncDown();
+    const syncResult = await syncDown();
     showPanel('vault');
-    toast('Signed in!');
+    await handleSyncResult(syncResult);
   } catch (e) {
     $('auth2faErr').textContent = 'Connection error';
   } finally {
@@ -1544,7 +1593,7 @@ async function tryAutoUnlock() {
     syncCredentialIndex();
     updateSyncDot();
     await checkPendingSave();
-    if (syncEnabled && authToken) syncDown();
+    if (syncEnabled && authToken) syncDown().then(r => { if (r === 'synced') toast('Vault synced'); });
   }
 }
 
