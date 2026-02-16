@@ -925,8 +925,17 @@ $('saveBannerYes').onclick = async () => {
 
   const pending = data.wardkey_pendingSave;
 
-  // Use password captured at click time (stored in session), fall back to content script query
+  // Use password captured at click time (stored in session), fall back to wardkey_capture, then content script
   let password = pending.password || '';
+  if (!password) {
+    // Check wardkey_capture (password may not have been promoted — e.g., AJAX login)
+    try {
+      const captureData = await chrome.storage.session?.get('wardkey_capture');
+      if (captureData?.wardkey_capture?.password && captureData.wardkey_capture.domain === pending.domain) {
+        password = captureData.wardkey_capture.password;
+      }
+    } catch {}
+  }
   if (!password) {
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -934,7 +943,9 @@ $('saveBannerYes').onclick = async () => {
         try {
           const tabHost = new URL(tab.url).hostname.replace(/^www\./, '');
           if (pending?.domain && tabHost !== pending.domain) {
-            toast('Tab changed — save cancelled');
+            // Different tab — can't query content script, no password available
+            toast('Could not retrieve password — add manually', 'er');
+            await chrome.storage.session?.remove('wardkey_pendingSave');
             $('saveBanner').classList.remove('on');
             return;
           }

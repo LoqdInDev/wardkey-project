@@ -368,6 +368,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       } else if (prev?.password) {
         // Preserve password from earlier capture phase (form submit)
         saveData.password = prev.password;
+      } else {
+        // Fallback: check wardkey_capture (may not have been promoted yet — e.g., AJAX login)
+        const captureData = await chrome.storage.session.get('wardkey_capture');
+        if (captureData?.wardkey_capture?.password && captureData.wardkey_capture.domain === msg.domain) {
+          saveData.password = captureData.wardkey_capture.password;
+          chrome.alarms.create('wardkey-clear-pending-pw', { delayInMinutes: 5 });
+        }
       }
       await chrome.storage.session.set({ wardkey_pendingSave: saveData });
       chrome.runtime.sendMessage({ type: 'WARDKEY_PENDING_SAVE' }).catch(() => {});
