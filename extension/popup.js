@@ -167,6 +167,7 @@ async function syncUp(blob) {
 
 async function syncDown() {
   if (!authToken || !_mk) return;
+  if (syncInProgress) return; // Don't overwrite a pending syncUp
   syncInProgress = true;
   updateSyncDot('active');
   try {
